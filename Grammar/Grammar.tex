@@ -46,19 +46,19 @@ The notation used in constructions are:
 \begin{sloppypar} 
 
 Clause\_implementation ::=\\
-\hspace*{0.20in} $|$ {Clause\_sees}\\
-\hspace*{0.20in} $|$ {Clause\_imports}\\
-\hspace*{0.20in} $|$ {Clause\_promotes}\\
-\hspace*{0.20in} $|$ \textcolor{green}{Clause\_extends\_B0}\\
+\hspace*{0.20in} $|$ \textbf{Clause\_sees\\
+\hspace*{0.20in} $|$ Clause\_imports\\
+\hspace*{0.20in} $|$ Clause\_promotes}\\
+\hspace*{0.20in} $|$ \textbf{Clause\_extends\_B0 (?)}\\
 \hspace*{0.20in} $|$ \textcolor{gray}{Clause\_sets}\\
-\hspace*{0.20in} $|$ \textcolor{gray}{Clause\_concrete\_constants}\\
-\hspace*{0.20in} $|$ \textcolor{gray}{Clause\_properties}\\
+\hspace*{0.20in} $|$ \textbf{Clause\_concrete\_constants}\\
+\hspace*{0.20in} $|$ Clause\_properties\\
 \hspace*{0.20in} $|$ Clause\_values\\
 \hspace*{0.20in} $|$ \textbf{Clause\_concrete\_variables}\\
 \hspace*{0.20in} $|$ \textcolor{gray}{Clause\_invariant}\\
 \hspace*{0.20in} $|$ \textcolor{gray}{Clause\_assertions}\\
-\hspace*{0.20in} $|$ Clause\_initialization\_B0\\
-\hspace*{0.20in} $|$ Clause\_operations\_B0\\
+\hspace*{0.20in} $|$ \textbf{Clause\_initialization\_B0\\
+\hspace*{0.20in} $|$ Clause\_operations\_B0}\\
 \end{sloppypar}}
 
 \footnotesize{
@@ -151,8 +151,8 @@ Integer\_lit ::= \\
 \hspace*{0.20in} Integer\_literal \\
 \hspace*{0.20in} $|$ "MAXINT"\\
 \hspace*{0.20in} $|$ "MININT" \\
-Boolean\_lit ::= "FALSE"\\
-\hspace*{0.20in} $|$ "TRUE" \\
+Boolean\_lit ::= \textbf{"FALSE"\\
+\hspace*{0.20in} $|$ "TRUE"} \\
 Arithmetical\_expression ::= \\
 \hspace*{0.20in}  \textbf{ Integer\_lit\\
 \hspace*{0.20in} $|$  Ident +"."\\
@@ -192,8 +192,8 @@ Integer\_set\_B0 ::= \\
 Condition ::= \\
 \hspace*{0.20in}   Simple\_term  "="  Simple\_term\\
 \hspace*{0.20in} $|$  Simple\_term  " $\ne$  "  Simple\_term\\
-\hspace*{0.20in} $|$  Simple\_term  "<"  Simple\_term  \\
-\hspace*{0.20in} $|$  Simple\_term  ">"  Simple\_term  \\
+\hspace*{0.20in} $|$  Simple\_term  " $<$  "  Simple\_term  \\
+\hspace*{0.20in} $|$  Simple\_term  "$>$"  Simple\_term  \\
 \hspace*{0.20in} $|$  Simple\_term  "$\leq$"  Simple\_term\\
 \hspace*{0.20in} $|$  Simple\_term  "$\geq$"  Simple\_term\\
 \hspace*{0.20in} $|$ \textbf{ Condition  "$\land$"  Condition\\
@@ -424,8 +424,8 @@ Construction\_of\_sequences ::= \\
 Data    ::= Ident+"." \\
    \hspace*{0.20in} $|$ Ident+"."\$0 \\
 Expr\_bracketed  ::= "(" Expression ")" \\
-Boolean\_lit   ::=  FALSE\\
-   \hspace*{0.20in} $|$  TRUE\\
+Boolean\_lit   ::=  \textbf{FALSE\\
+   \hspace*{0.20in} $|$  TRUE}\\
 Conversion\_Bool  ::= bool   "(" Predicate ")" \\
 Integer\_lit   ::= Integer\_literal \\
    \hspace*{0.20in} $|$  MAXINT\\
