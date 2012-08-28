@@ -26,13 +26,11 @@ The grammar reduced B0 (RB0)  is based on B0 Grammar  provided by official manua
 The next sections contain the grammar rules presented in \textit{top-down}. 
 The notation used in constructions are:
 \textcolor{gray}{gray constructs} are not translated, because they can be non deterministic or  no relevant to assembly code;
-\texttt{typewriter constructs} are  not supported yet.
+\textbf{bold constructs} are reported; \texttt{typewriter constructs} are not supported yet.
 
 \subsection{Basic Constructions Grammar}
-% B.1.1
 
-\subsubsection{B.1.2 Clauses}
-
+\subsubsection{ B.1.1 Implementation }
 \footnotesize{
 \begin{sloppypar} 
 \noindent Implementation ::=\\
@@ -41,7 +39,12 @@ The notation used in constructions are:
 \hspace*{0.20in} \textcolor{gray}{Clause\_refines}\\
 \hspace*{0.20in} Clause\_implementation*\\
 \hspace*{0.20in} ``END'' \\
-\\
+\end{sloppypar}}
+
+\subsubsection{B.1.2 Clauses}
+\footnotesize{
+\begin{sloppypar} 
+
 Clause\_implementation ::=\\
 \hspace*{0.20in} $|$ {Clause\_sees}\\
 \hspace*{0.20in} $|$ {Clause\_imports}\\
@@ -51,7 +54,7 @@ Clause\_implementation ::=\\
 \hspace*{0.20in} $|$ \textcolor{gray}{Clause\_concrete\_constants}\\
 \hspace*{0.20in} $|$ \textcolor{gray}{Clause\_properties}\\
 \hspace*{0.20in} $|$ Clause\_values\\
-\hspace*{0.20in} $|$ Clause\_concrete\_variables\\
+\hspace*{0.20in} $|$ \textbf{Clause\_concrete\_variables}\\
 \hspace*{0.20in} $|$ \textcolor{gray}{Clause\_invariant}\\
 \hspace*{0.20in} $|$ \textcolor{gray}{Clause\_assertions}\\
 \hspace*{0.20in} $|$ Clause\_initialization\_B0\\
@@ -73,7 +76,7 @@ Instanciation\_B0 := \\
 \hspace*{0.20in} $|$  BOOL\\
 \hspace*{0.20in} $|$  Interval\\
 Clause\_sees ::= \\
-\hspace*{0.20in}  "SEES" (Ident +"." ) +","\\
+\hspace*{0.20in}  \textbf{"SEES" (Ident +"." ) +","}\\
 Clause\_includes ::= \\
 \hspace*{0.20in}  "INCLUDES" ( [Ident.]Ident  [ "(" Instanciation+","  ")" ] ) +","\\
 Instanciation := \\
@@ -82,7 +85,7 @@ Instanciation := \\
 \hspace*{0.20in} $|$ "BOOL"\\
 \hspace*{0.20in} $|$  Interval \\
 Clause\_promotes ::= \\
-\hspace*{0.20in}   "PROMOTES" ( Ident+"." )+","\\
+\hspace*{0.20in}   \textbf{"PROMOTES" ( Ident+"." )+","}\\
 \noindent Clause\_EXTENDS ::= \\
 \hspace*{0.20in}  "EXTENDS" ( [Ident"."]Ident  [ "(" Instantiating +","  ")" ] ) +","\\
 Clause\_EXTENDS\_B0 ::= \\
@@ -95,8 +98,8 @@ Set ::= \\
 \hspace*{0.20in}  Ident \\
 \hspace*{0.20in} $|$ Ident  "="  "{" Ident +","  "}" \\
 Clause\_concrete\_constants ::= \\
-\hspace*{0.20in}  "CONCRETE\_CONSTANTS"  Ident +","\\
-\hspace*{0.20in} $|$ "CONSTANTS"  Ident +","\\
+\hspace*{0.20in}  \textbf{"CONCRETE\_CONSTANTS"  Ident +","\\
+\hspace*{0.20in} $|$ "CONSTANTS"  Ident +","}\\
 Clause\_abstract\_constants ::= \\
 \hspace*{0.20in}  "ABSTRACT\_CONSTANTS"  Ident +","\\
 Clause\_properties ::= \\
@@ -109,7 +112,7 @@ Valuation  ::= \\
 \hspace*{0.20in} $|$ Ident  "="  Expr\_array\\
 \hspace*{0.20in} $|$ Ident  "="  Interval\_B0\\
 Clause\_concrete\_variables ::= \\
-\hspace*{0.20in}  "CONCRETE\_VARIABLES"  ( Ident +"."  ) +","\\
+\hspace*{0.20in}  \textbf{"CONCRETE\_VARIABLES"  ( Ident +"."  ) +","}\\
 Clause\_abstract\_variables ::= \\
 \hspace*{0.20in}  "ABSTRACT\_VARIABLES"  Ident +","\\
 \hspace*{0.20in} $|$ "VARIABLES" Ident +","\\
@@ -120,37 +123,38 @@ Clause\_assertions ::= \\
 Clause\_initialization ::= \\
 \hspace*{0.20in}  "INITIALISATION" Substitution\\
 Clause\_initialization\_B0 ::= \\
-\hspace*{0.20in}  "INITIALISATION" Instruction\\
+\hspace*{0.20in}  "INITIALISATION" \textbf{Instruction}\\
 Clause\_operations ::= \\
 \hspace*{0.20in}  "OPERATIONS"  Operation +";"\\
 Operation ::= \\
-\hspace*{0.20in}   Header\_operation  "="  Level1\_substitution\\
+\hspace*{0.20in}   \textbf{Header\_operation}  "="  Level1\_substitution\\
    
 \noindent Header\_operation ::= \\
-\hspace*{0.20in}  Ident +","  "$\leftarrow$"   Ident +"."   "(" Ident +"," ")"  \\  %   [ Ident +","  "$\leftarrow$"]  Ident +"."   [ "(" Ident +"," ")" ] \\   % a small adjust to latex support
+\hspace*{0.20in}  \textbf{Ident +","  "$\leftarrow$"   Ident +"."   "(" Ident +"," ")" } \\  %   [ Ident +","  "$\leftarrow$"]  Ident +"."   [ "(" Ident +"," ")" ] \\   % a small adjust to latex support
 Clause\_operations\_B0 ::= \\
-\hspace*{0.20in}  "OPERATIONS"  Operation\_B0 +";"\\
+\hspace*{0.20in}  "OPERATIONS" \textbf{ Operation\_B0} +";"\\
 Operation\_B0 ::= \\
 \hspace*{0.20in}   Header\_operation  "="  Level1\_instruction\\
    
    
-% B.1.3 Terms and Groups of Expressions 
+% B.1.3 Terms and Groups of Expressions
+\subsubsection{B.1.3 Terms and Groups of Expressions}
 \noindent Term  ::= \\
    Simple\_term\\
 \hspace*{0.20in} $|$ Ident+"." "(" Term+"," ")"  \\
 \hspace*{0.20in} $|$  Arithmetical\_expression\\
 Simple\_term ::= \\
   Ident+"."\\
-\hspace*{0.20in} $|$  Integer\_lit\\
-\hspace*{0.20in} $|$  Boolean\_lit\\
+  \hspace*{0.20in} $|$ \textbf{ Integer\_lit\\
+\hspace*{0.20in} $|$  Boolean\_lit}\\
 Integer\_lit ::= \\
-  Integer\_literal \\
+\hspace*{0.20in} Integer\_literal \\
 \hspace*{0.20in} $|$ "MAXINT"\\
 \hspace*{0.20in} $|$ "MININT" \\
 Boolean\_lit ::= "FALSE"\\
 \hspace*{0.20in} $|$ "TRUE" \\
 Arithmetical\_expression ::= \\
-\hspace*{0.20in}   Integer\_lit\\
+\hspace*{0.20in}  \textbf{ Integer\_lit\\
 \hspace*{0.20in} $|$  Ident +"."\\
 \hspace*{0.20in} $|$  Arithmetical\_expression  "+"  Arithmetical\_expression\\
 \hspace*{0.20in} $|$  Arithmetical\_expression  "-"  Arithmetical\_expression\\
@@ -158,10 +162,10 @@ Arithmetical\_expression ::= \\
 \hspace*{0.20in} $|$  Arithmetical\_expression  "$\times$"  Arithmetical\_expression\\
 \hspace*{0.20in} $|$  Arithmetical\_expression  "/"  Arithmetical\_expression\\
 \hspace*{0.20in} $|$  Arithmetical\_expression  "mod"  Arithmetical\_expression\\
-\hspace*{0.20in} $|$  Arithmetical\_expression  \\
+\hspace*{0.20in} $|$  Arithmetical\_expression } \\
 Expression\_arithmétique\\
-\hspace*{0.20in} $|$ "succ" "(" Arithmetical\_expression ")"\\
-\hspace*{0.20in} $|$ "pred" "(" Arithmetical\_expression ")" \\
+\hspace*{0.20in} $|$\textbf{ "succ" "(" Arithmetical\_expression ")"\\
+\hspace*{0.20in} $|$ "pred" "(" Arithmetical\_expression ")"} \\
 Expr\_array ::= \\
 \hspace*{0.20in}  Ident \\
 \hspace*{0.20in} $|$ "{" ( Simple\_term +"m"  "m" Term ) +","  "}" \\
@@ -192,25 +196,25 @@ Condition ::= \\
 \hspace*{0.20in} $|$  Simple\_term  ">"  Simple\_term  \\
 \hspace*{0.20in} $|$  Simple\_term  "$\leq$"  Simple\_term\\
 \hspace*{0.20in} $|$  Simple\_term  "$\geq$"  Simple\_term\\
-\hspace*{0.20in} $|$  Condition  "$\land$"  Condition\\
+\hspace*{0.20in} $|$ \textbf{ Condition  "$\land$"  Condition\\
 \hspace*{0.20in} $|$  Condition  "$\lor$"  Condition\\
-\hspace*{0.20in} $|$ "$\neg$" "(" Condition ")" \\
+\hspace*{0.20in} $|$ "$\neg$" "(" Condition ")"} \\
  
- 
+\subsubsection{B.1.5 Instructions} 
 % B.1.5 Instructions 
 \noindent Instruction ::= \\
 \hspace*{0.20in}Level1\_instruction\\
-\hspace*{0.20in} $|$  Sequence\_instruction\\
+\hspace*{0.20in} $|$ \textbf{ Sequence\_instruction}\\
 Level1\_instruction ::= \\
-\hspace*{0.20in}Block\_instruction\\
-\hspace*{0.20in} $|$  Var\_instruction\\
+\hspace*{0.20in}\textbf{Block\_instruction\\
+\hspace*{0.20in} $|$  Var\_instruction}\\
 \hspace*{0.20in} $|$  Identity\_substitution\\
-\hspace*{0.20in} $|$  Becomes\_equal\_instruction\\
+\hspace*{0.20in} $|$\textbf{  Becomes\_equal\_instruction\\
 \hspace*{0.20in} $|$  Callup\_instruction\\
 \hspace*{0.20in} $|$  If\_instruction\\
-\hspace*{0.20in} $|$ Case\_instruction\\ 
+\hspace*{0.20in} $|$  Case\_instruction\\ 
 \hspace*{0.20in} $|$  Assert\_instruction\\
-\hspace*{0.20in} $|$  While\_substitution\\
+\hspace*{0.20in} $|$  While\_substitution\\}
 Block\_instruction ::= \\
 \hspace*{0.20in}  "BEGIN"  Instruction  "END" \\
 Var\_instruction ::= \\
@@ -237,6 +241,7 @@ Case\_instruction ::= \\
 \hspace*{0.20in}  "END" \\
   
 %  B.1.6 Predicates 
+\subsubsection{B.1.6 Predicates}
 \noindent Predicate ::= \\
 \hspace*{0.20in}   Bracketed\_predicate\\
 \hspace*{0.20in} $|$  Conjunction\_predicate\\
@@ -323,7 +328,7 @@ Expressions\_boolean ::= \\
 \hspace*{0.20in}   Boolean\_lit\\
 \hspace*{0.20in} $|$  Conversion\_Bool\\
 Expressions\_arithmetical ::= \\
-\hspace*{0.20in}  Integer\_lit \\
+\hspace*{0.20in} \textbf{ Integer\_lit \\
 \hspace*{0.20in} $|$  Addition\\
 \hspace*{0.20in} $|$  Difference\\
 \hspace*{0.20in} $|$  Unary\_minus\\
@@ -332,7 +337,7 @@ Expressions\_arithmetical ::= \\
 \hspace*{0.20in} $|$  Modulo\\
 \hspace*{0.20in} $|$  Power\_of\\
 \hspace*{0.20in} $|$  Successor\\
-\hspace*{0.20in} $|$  Predecessor\\
+\hspace*{0.20in} $|$  Predecessor}\\
 \hspace*{0.20in} $|$  Maximum\\
 \hspace*{0.20in} $|$  Minimum\\
 \hspace*{0.20in} $|$  Cardinal\\
@@ -640,13 +645,13 @@ Predicate\_typing\_equals\_concrete\_cts ::= \\
 \hspace*{0.20in} $|$   Integer\_set\_B0\\ 
 Simple\_set ::= \\ 
 \hspace*{0.20in}   Integer\_set\_B0\\ 
-\hspace*{0.20in} $|$ "BOOL" \\ 
+\hspace*{0.20in} $|$ \textbf{"BOOL"} \\ 
 \hspace*{0.20in} $|$  Interval\\ 
 \hspace*{0.20in} $|$ Ident \\ 
 Integer\_set\_B0 ::=  \\ 
 \hspace*{0.20in}  "NAT" \\ 
 \hspace*{0.20in} $|$ "NAT1" \\ 
-\hspace*{0.20in} $|$ "INT" \\ 
+\hspace*{0.20in} $|$ \textbf{"INT"} \\ 
 Expr\_array ::= \\ 
 \hspace*{0.20in}  Ident \\ 
 \hspace*{0.20in} $|$ "{" ( Simple\_term +"m"  "m" Term ) +","  "}" \\ 
