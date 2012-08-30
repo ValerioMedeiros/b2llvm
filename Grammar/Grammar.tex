@@ -46,10 +46,10 @@ The notation used in constructions are:
 \begin{sloppypar} 
 
 Clause\_implementation ::=\\
-\hspace*{0.20in} $|$ \textbf{Clause\_sees\\
-\hspace*{0.20in} $|$ Clause\_imports\\
-\hspace*{0.20in} $|$ Clause\_promotes}\\
-\hspace*{0.20in} $|$ \textbf{Clause\_extends\_B0 (?)}\\
+\hspace*{0.20in} $|$ \texttt{Clause\_sees}\\
+\hspace*{0.20in} $|$ \texttt{Clause\_imports}\\
+\hspace*{0.20in} $|$ \texttt{Clause\_promotes}\\
+\hspace*{0.20in} $|$ \texttt{Clause\_extends\_B0} \\
 \hspace*{0.20in} $|$ \textcolor{gray}{Clause\_sets}\\
 \hspace*{0.20in} $|$ \textbf{Clause\_concrete\_constants}\\
 \hspace*{0.20in} $|$ Clause\_properties\\
@@ -76,7 +76,7 @@ Instanciation\_B0 := \\
 \hspace*{0.20in} $|$  BOOL\\
 \hspace*{0.20in} $|$  Interval\\
 Clause\_sees ::= \\
-\hspace*{0.20in}  \textbf{"SEES" (Ident +"." ) +","}\\
+\hspace*{0.20in}  \texttt{"SEES" (Ident +"." ) +","}\\
 Clause\_includes ::= \\
 \hspace*{0.20in}  "INCLUDES" ( [Ident.]Ident  [ "(" Instanciation+","  ")" ] ) +","\\
 Instanciation := \\
@@ -85,7 +85,7 @@ Instanciation := \\
 \hspace*{0.20in} $|$ "BOOL"\\
 \hspace*{0.20in} $|$  Interval \\
 Clause\_promotes ::= \\
-\hspace*{0.20in}   \textbf{"PROMOTES" ( Ident+"." )+","}\\
+\hspace*{0.20in}   \texttt{"PROMOTES" ( Ident+"." )+","}\\
 \noindent Clause\_EXTENDS ::= \\
 \hspace*{0.20in}  "EXTENDS" ( [Ident"."]Ident  [ "(" Instantiating +","  ")" ] ) +","\\
 Clause\_EXTENDS\_B0 ::= \\
@@ -616,7 +616,7 @@ List\_ident ::=\\
 
 
 \subsubsection{B.1.10 Grammar of Typing Predicates} 
-[[TODO: Check the symbols used]]
+[[TODO: to add some symbols]]
 \footnotesize{
 \begin{sloppypar} 
 
