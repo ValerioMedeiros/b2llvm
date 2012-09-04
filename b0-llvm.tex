@@ -249,8 +249,8 @@ the data is restricted to predefined basic types \textsf{INT} and
 \begin{align}
 \begin{split}
   \trad{}{impl} : & \textsf{ Node} \rightarrow text \\
-  \trad{i}{impl} \isdef & \textbf{ let } O_{c} = \trad{n.values}{val} \textbf{ and } O_v = \trad{n.vars}{var} \\
-  & \quad \textbf{ and } O_{in} = \trad{n.initialization}{ini} \textbf{ and } O_{op} = \trad{n.ops}{ops} \\
+  \trad{i}{impl} \isdef & \textbf{ let } O_{c} = \trad{i.values}{val} \textbf{ and } O_v = \trad{i.vars}{var} \\
+  & \quad \textbf{ and } O_{in} = \trad{i.initialization}{ini} \textbf{ and } O_{op} = \trad{i.ops}{ops} \\
   & \quad \textbf{ in} \\
   & \textbf{ yields } \\
   & \quad \trad{i.ops}{ops}  \\
@@ -293,12 +293,16 @@ Concrete variables are mapped to so-called internal variables in the
 LLVM program, i.e. private data that is local to the produced
 file. The following rule describes the code generation for such
 variables:
+
+% TODO: Qual o valor de n ?  Seria isto: n = L()  (\name) ?
+% Nas duas funções seguintes parece ter uma mistura com
+% relação ao nome das funções:  {var}, {type}, {val} 
 \begin{framed}
 \begin{align}
 \begin{split}
   \trad{}{var} : & \textsf{ Node} \times dict \rightarrow text \times dict \\
   \trad{v, $D$}{type} \isdef & \textbf{ let } O', D' = \trad{v.next, $D$}{var} \textbf{ and } 
-  id = \texttt{"@"} \conc \textsf{v.ident} \textbf{ in} \\
+  id = \texttt{"@"} \conc \textsf{v.ident}  \textbf{ and }  n = ???? \textbf{ in} \\
   & \textbf{ yields } \\
   & \quad (id \conc \texttt{" = internal global "} \conc \trad{v.type}{type} \conc \nl \\
   & \quad \quad \conc O'), D' \cup \{ \textsf{n} \mapsto id \} \\
@@ -318,7 +322,7 @@ LLVM program, as described in the following rule:
 \begin{split}
   \trad{}{val} : & \textsf{ Node} \times dict \rightarrow text \times dict \\
   \trad{v, $D$}{val} \isdef & \textbf{ let } O', D' = \trad{v.next, $D$}{var} \textbf{ and } 
-  id = \texttt{"@"} \conc \textsf{v.ident} \textbf{ in} \\
+  id = \texttt{"@"} \conc \textsf{v.ident} \textbf{ and }  n = ???? \textbf{ in} \\
   & \textbf{ yields } \\
   & \quad (id \conc \texttt{" = constant "} \conc \trad{v.type}{type} \conc \nl \\
   & \quad \quad \conc O'), D' \cup \{ \textsf{n} \mapsto id \} \\
@@ -354,6 +358,7 @@ Based on this definition, the translation of boolean literals is straightforward
 \begin{framed}
 \begin{align}
 \begin{split}
+  \trad{}{exp} : & \textsf{ Node} \times dict \rightarrow text \times text \times  text  \\
   \trad{n, $D$}{exp} \isdef & \textbf{ yields } \texttt{""}, D_{bool}(\textsf{n.val}), \texttt{"i1"} \\
   & \textbf{ where } \textsf{n.k} = \textsf{LitBool}
 \end{split}
@@ -365,6 +370,7 @@ same denotation in B0 and LLVM:
 \begin{framed}
 \begin{align}
 \begin{split}
+ \trad{}{exp} : & \textsf{ Node} \times dict \rightarrow text  \times text \times  text\\
   \trad{n, $D$}{exp} \isdef & \textbf{ yields } \texttt{""}, \textsf{n.val}, \texttt{"i32"} \\
   & \textbf{ where } \textsf{n.k} = \textsf{LitInt}
 \end{split}
@@ -378,6 +384,7 @@ also the corresponding LLVM data type:
 \begin{framed}
 \begin{align}
 \begin{split}
+  \trad{}{exp} : & \textsf{ Node} \times dict \rightarrow text \times text \times  text\\
   \trad{n, $D$}{exp} \isdef & \textbf{ yields } \texttt{""}, D(\textsf{n}), \trad{n.type}{type} \\
   & \textbf{ where } \textsf{n.k} = \textsf{Ident}
 \end{split}
@@ -397,13 +404,15 @@ Based upon this definition, the following rule specifies the
 generation of LLVM code responsible for the evaluation of binary
 arithmetic expressions (plus the name of the local variable storing
 the resulting value, and of its LLVM type):
+% TODO: Explicar o que significa o O_p,  O_l,   O_t  ?
 \begin{framed}
 \begin{align}
 \begin{split}
+  \trad{}{exp} : & \textsf{ Node} \times dict  \rightarrow text \times text \times  text\\
   \trad{n, $D$}{exp} \isdef & \textbf{ let } O_p, O_l, O_t =
   \trad{n.left, $D$}{exp} \textbf{ and }
   O'_p, O'_l, O'_t = \trad{n.right, $D$}{exp} \\
-  & \quad \textbf{ and } v = \mathcal{V} \textbf{ and } op = D_{bari}(\textsf{n.op}) \textbf{ in } \\
+  & \quad \textbf{ and } v = \name \textbf{ and } op = D_{bari}(\textsf{n.op}) \textbf{ in } \\
   & \textbf{ yields} \\
   & \quad (O_p \conc \\
   & \quad O'_p \conc \\
@@ -421,8 +430,9 @@ generated code uses addition and subtraction:
 \begin{framed}
 \begin{align}
 \begin{split}
+ \trad{}{exp} : & \textsf{ Node} \times dict  \rightarrow text \times text \times  text\\
   \trad{n, $D$}{exp} \isdef & \textbf{ let } O_p, O_l, O_t =
-  \trad{n.arg, $D$}{exp} \textbf{ and } v = \mathcal{V} \textbf{ in } \\
+  \trad{n.arg, $D$}{exp} \textbf{ and } v = \name \textbf{ in } \\
   & \textbf{ yields} \\
   & \quad (O_p \conc \\
   & \quad v \conc \texttt{" = i32 add 1, "} \conc O_l \conc \nl), \\
@@ -430,7 +440,7 @@ generated code uses addition and subtraction:
   & \textbf{ where } \textsf{n.k} = \textsf{Arith} \textbf{ and } \textsf{n.op} = \textsf{succ} \\
   & \textbf{ assert } O_t = \texttt{i32} \\
   \trad{n, $D$}{exp} \isdef & \textbf{ let } O_p, O_l, O_t =
-  \trad{n.arg, $D$}{exp} \textbf{ and } v = \mathcal{V} \textbf{ in } \\
+  \trad{n.arg, $D$}{exp} \textbf{ and } v = \name \textbf{ in } \\
   & \textbf{ yields} \\
   & \quad (O_p \conc \\
   & \quad v \conc \texttt{" = i32 sub "} \conc O_l \conc \texttt{", 1"} \conc \nl), \\
@@ -447,8 +457,9 @@ operation, the translation uses subtraction:
 \begin{framed}
 \begin{align}
 \begin{split}
+ \trad{}{exp} : & \textsf{ Node} \times dict  \rightarrow text \times text \times  text\\
   \trad{n, $D$}{exp} \isdef & \textbf{ let } O_p, O_l, O_t =
-  \trad{n.arg, $D$}{exp} \textbf{ and } v = \mathcal{V} \textbf{ in } \\
+  \trad{n.arg, $D$}{exp} \textbf{ and } v = \name \textbf{ in } \\
   & \textbf{ yields} \\
   & \quad (O_p \conc \\
   & \quad v \conc \texttt{" = i32 sub 0, "} \conc O_l \conc \nl), \\
@@ -466,10 +477,11 @@ for such function is not presented herein):
 \begin{framed}
 \begin{align}
 \begin{split}
+ \trad{}{rel} : & \textsf{ Node} \times dict  \rightarrow text \times text \\
   \trad{n, $D$}{rel} \isdef & \textbf{ let } O_p, O_l, O_t =
   \trad{n.left, $D$}{exp} \textbf{ and }
   O'_p, O'_l, O'_t = \trad{n.right, $D$}{exp} \\
-  & \quad \textbf{ and } l = \mathcal{V} \textbf{ in } \\
+  & \quad \textbf{ and } l = \name \textbf{ in } \\
   & \textbf{ yields} \\
   & \quad (O_p \conc \\
   & \quad O'_p \conc \\
@@ -503,10 +515,11 @@ $$D_{op} = \{ = \mapsto \texttt{"eq"},
 \begin{framed}
 \begin{align}
 \begin{split}
+ \trad{}{rel} : & \textsf{ Node} \times dict  \rightarrow text \times text \\
   \trad{r, $D$}{rel} \isdef & \textbf{ let } O_p, O_l, O_t =
   \trad{r.left, $D$}{exp} \textbf{ and }
   O'_p, O'_l, O'_t = \trad{r.right, $D$}{exp} \\
-  & \quad \textbf{ and } l = \mathcal{V} \textbf{ and } op = D_{op}(\textsf{r.op}) \textbf{ in } \\
+  & \quad \textbf{ and } l = \name \textbf{ and } op = D_{op}(\textsf{r.op}) \textbf{ in } \\
   & \textbf{ yields} \\
   & \quad (O_p \conc \\
   & \quad O'_p \conc \\
