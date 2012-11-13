@@ -82,22 +82,25 @@ nodes and their attributes.
         \textsf{k} & Decription & attributes\\
         \hline
         \hline
-        \textsf{Impl} & Implementation & \textsf{sees} : ? \\
-        & & \textsf{imports} : ? \\
+        \textsf{Impl} & Implementation & $\textsf{sees} : \textsf{Identifiers} (?)$\\
+        & & $\textsf{imports} \in \textsf{Identifiers} (?)$ \\
+        & & $\textsf{values} \in \textsf{Identifiers} (?)$ \\
+        & & $\textsf{vars} \in \textsf{Identifiers} (?)$ \\
+        & & $\textsf{initialization} \in Inst (?)$ \\
         & & $\cdots$ \\
         & & \textsf{ops} : Op \\
         \hline
-        \textsf{Op} & Operation & \textsf{header}: \textsf{Hd} \\
+        \textsf{Op} & Operation & $\textsf{header} \in \textsf{Hd} $\\
         & & $\textsf{body} \in \textsf{inst}$ \\
-        & & \textsf{next} : \textsf{Op} \\
+        & & $\textsf{next} \in \textsf{Op} $\\
         \hline
-        \textsf{Hd} & Operation header & \textsf{ident} : text \\
-        & & \textsf{output} : \textsf{VarDecl} \\
-        & & \textsf{input} : \textsf{VarDecl} \\
+        \textsf{Hd} & Operation header & $ \textsf{ident} \in text$ \\
+        & & $\textsf{output} \in \textsf{VarDecl}$ \\
+        & & $\textsf{input} \in \textsf{VarDecl}$ \\
         \hline
-        \textsf{Var} & Variable, parameter & \textsf{ident} : text \\
-        & & \textsf{type} : basic type \\
-        & & \textsf{next} : \textsf{Var} \\
+        \textsf{Var} & Variable, parameter & $ \textsf{ident} \in text $\\
+        & & $\textsf{type} \in basic type $\\
+        & & $\textsf{next} \in \textsf{Var} $\\
         \hline
       \end{tabular}
       &
@@ -109,37 +112,37 @@ nodes and their attributes.
         \textsf{Blk} & Block instr. & $\textsf{body} \in \textsf{inst}$ \\
         & & $\textsf{next} \in \textsf{Instruction}$ \\
         \hline
-        \textsf{VarDecl} & Variable decl. & \textsf{ident}: \textsf{VarDecl} \\
+        \textsf{VarDecl} & Variable decl. & $\textsf{ident}\in \textsf{VarDecl} $\\
         & & $\textsf{body} \in \textsf{inst}$ \\
         \hline
-        \textsf{If} & If & \textsf{branches}: \textsf{IfBr} \\
+        \textsf{If} & If & $\textsf{branches} \in \textsf{IfBr}$ \\
         & & $\textsf{next} \in \textsf{Instruction}$ \\
         \hline
-        \textsf{IfBr} & If branch & \textsf{cond}: predicate \\
+        \textsf{IfBr} & If branch & $ \textsf{cond}\in predicate $ \\
         & & $\textsf{body} \in \textsf{Instr}$ \\
-        & & \textsf{next} : \textsf{IfBr} \\
+        & & $\textsf{next} \in \textsf{IfBr}$ \\
         \hline
-        \textsf{BEq} & Becomes equal & \textsf{lhs}: target \\
-        & & \textsf{rhs}: expression \\
+        \textsf{BEq} & Becomes equal & $\textsf{lhs} \in target $ \\
+        & & $\textsf{rhs} \in expression $ \\
         & & $\textsf{next} \in \textsf{Instruction}$ \\
         \hline
-        \textsf{Call} & Call instruction & \textsf{fun}: name \\
-        & & \textsf{args}: expression \\
+        \textsf{Call} & Call instruction & $\textsf{fun} \in name$ \\
+        & & $\textsf{args} \in expression$ \\
         & & $\textsf{next} \in \textsf{Instruction}$ \\
         \hline
-        \textsf{While} & While instr. & \textsf{cond}: predicate \\
+        \textsf{While} & While instr. & $\textsf{cond} \in predicate $\\
         & & $\textsf{body} \in \textsf{Instr}$ \\
         & & $\textsf{next} \in \textsf{Instruction}$ \\
         \hline
         \textsf{Assert} & Assert instr. & $\textsf{next} \in \textsf{Instruction}$ \\
         \hline
-        \textsf{Case} & Case instr. & \textsf{expr}: expression\\
-        & & \textsf{branches}: \textsf{CaseBr} \\
+        \textsf{Case} & Case instr. & $\textsf{expr} \in expression$\\
+        & & $\textsf{branches} \in \textsf{CaseBr}$ \\
         & & $\textsf{next} \in \textsf{Instruction}$ \\
         \hline
-        \textsf{CaseBr} & Case branch & \textsf{val}: \textsf{Value} \\
+        \textsf{CaseBr} & Case branch & $\textsf{val} \in \textsf{Value}$ \\
         & & $\textsf{body} \in \textsf{Instr}$ \\
-        & & \textsf{next} : \textsf{CaseBr} \\
+        & & $\textsf{next} \in \textsf{CaseBr}$ \\
         \hline
         \textsf{Value} & Value & ??? \\
         & & \textsf{next}: \textsf{Value} \\
@@ -160,7 +163,7 @@ presented using a pseudo-functional language.  In such rules, the
 \textsf{sans serif} and \texttt{typewriter} fonts are used to denote
 \textsf{B0} abstract syntax tree nodes and \texttt{LLVM} text
 respectively, and $\conc$ denotes string catenation and $\nl$ a new
-line. .
+line.
 
 Several utility functions are employed throughout those rules.  The
 operator $\conc^,$ is the concatenation of two texts separated by a
@@ -175,7 +178,8 @@ $\fresh: text \times dict \rightarrow text$ is such that
 $\fresh(t, D)$  returns a text $t'$ that is either $t$, if $t$ is not in
 the domain of the dictionary $D$, or $t$ followed by the string $n$ of
 digits representing the smallest positive number $t \conc n$ does not
-belong to the domain of $D$.
+belong to the domain of $D$. This dictionary is a function that keeps 
+\textbf{B identifiers} in domain and \textbf{LLVM identifiers} in range.
 
 We assume that there is an unlimited supply of labels and local variables.
 $\name$ returns a text that represents a fresh label or local variable
@@ -249,15 +253,19 @@ the data is restricted to predefined basic types \textsf{INT} and
 \begin{align}
 \begin{split}
   \trad{}{impl} : & \textsf{ Node} \rightarrow text \\
-  \trad{i}{impl} \isdef & \textbf{ let } O_{c} = \trad{i.values}{val} \textbf{ and } O_v = \trad{i.vars}{var} \\
-  & \quad \textbf{ and } O_{in} = \trad{i.initialization}{ini} \textbf{ and } O_{op} = \trad{i.ops}{ops} \\
+  \trad{i}{impl} \isdef & \textbf{ let } Dic = \{ \#ModuleName \mapsto  i.moduleName\} \textbf{ in}\\
+  & \textbf{ let } O_{c}, Dic'  = \trad{i.values, Dic }{val} \textbf{ and } O_v, Dic'' = \trad{i.vars, Dic'}{var} \\
+  & \quad \textbf{ and } O_{in} = \trad{i.initialization, Dic''}{ini} \textbf{ and } O_{op} = \trad{i.ops, Dic''}{ops} \\
   & \quad \textbf{ in} \\
   & \textbf{ yields } \\
-  & \quad \trad{i.ops}{ops}  \\
+  & \quad O_{c} \conc O_{v} \conc O_{in} \conc O_{op}    \\
   & \textbf{ where } \textsf{i.k} = \textsf{Impl} 
 \end{split}
 \end{align}
 \end{framed}
+
+
+
 Code generation for initialisation and operations is specified in
 section~\ref{sec:control}. Code generation for data (type and
 state) is defined in section~\ref{sec:data}, and for expression
@@ -294,20 +302,35 @@ LLVM program, i.e. private data that is local to the produced
 file. The following rule describes the code generation for such
 variables:
 
-% TODO: Qual o valor de n ?  Seria isto: n = L()  (\name) ?
-% Nas duas funções seguintes parece ter uma mistura com
-% relação ao nome das funções:  {var}, {type}, {val} 
+
 \begin{framed}
 \begin{align}
 \begin{split}
   \trad{}{var} : & \textsf{ Node} \times dict \rightarrow text \times dict \\
-  \trad{v, $D$}{type} \isdef & \textbf{ let } O', D' = \trad{v.next, $D$}{var} \textbf{ and } 
-  id = \texttt{"@"} \conc \textsf{v.ident}  \textbf{ and }  n = ???? \textbf{ in} \\
+  \trad{v, $D$}{var} \isdef & textListVar = \trad{v,$D$,0}{DicVars}  \textbf{ in}\\
   & \textbf{ yields } \\
-  & \quad (id \conc \texttt{" = internal global "} \conc \trad{v.type}{type} \conc \nl \\
-  & \quad \quad \conc O'), D' \cup \{ \textsf{n} \mapsto id \} \\
-  & \textbf{ where } \textsf{v} \ne \bot \textbf{ and } \textsf{v.k} = \textsf{ConcVar} \\
-  \trad{$\bot$, $D$}{type} \isdef & \textbf{ yields } \texttt{""}, D
+  & \quad \texttt{" \%struct."}\conc  D(\#ModuleName) \conc \texttt{"\_internalState = type \{"} \\
+  & \quad  \conc textListVar \conc \texttt{"\} "}  \nl , D \\
+  & \textbf{ where } \textsf{v} \ne  \bot \textbf{ and }  \textsf{v.k} = ConcreteVars \\
+  \trad{$\bot$, $D$}{var} \isdef & \textbf{ yields } \texttt{""}, D
+\end{split}
+\end{align}
+\end{framed}
+
+
+The type list of module variables are declared using this role, where:
+n is the actual node, D is the dictionary and  p is the position of variable.
+
+\begin{framed}
+\begin{align}
+\begin{split}
+  \trad{}{DicVars} : & \textsf{ Node } \times dict \times integer \rightarrow text  \times dict \\
+  \trad{n, $D$, p }{DicVars} \isdef  & \textbf{ let }   type = \trad{n.type}{type}   \textbf{ and }  t', D' =  \trad{n.next,D,p+1} {DicVars}   \textbf{ in}   \\
+  & \textbf{ yields } \\
+  & \quad  type \conc^,  t' , D' \cup \{ \textsf{n.ident} \mapsto (\textit{text }  p) \}  \cup\\
+  & \quad \{ \texttt{"\#type\_"}\conc \textsf{n.ident} \mapsto type \} \\
+  & \textbf{ where } \textsf{n.k} = \textsf{Var}  \\
+\trad{$\bot$, $D$, p }{DicVars} \isdef & \textbf{yields} \texttt{""}, D
 \end{split}
 \end{align}
 \end{framed}
@@ -321,12 +344,12 @@ LLVM program, as described in the following rule:
 \begin{align}
 \begin{split}
   \trad{}{val} : & \textsf{ Node} \times dict \rightarrow text \times dict \\
-  \trad{v, $D$}{val} \isdef & \textbf{ let } O', D' = \trad{v.next, $D$}{var} \textbf{ and } 
-  id = \texttt{"@"} \conc \textsf{v.ident} \textbf{ and }  n = ???? \textbf{ in} \\
+  \trad{v, $D$}{val} \isdef & \textbf{ let } type = \trad{n.type}{type}   \textbf{ and }O', D' = \trad{v.next, $D$}{val} \textbf{ and } 
+  id = \texttt{"@"} \conc \textsf{v.ident} \textbf{ in} \\
   & \textbf{ yields } \\
-  & \quad (id \conc \texttt{" = constant "} \conc \trad{v.type}{type} \conc \nl \\
-  & \quad \quad \conc O'), D' \cup \{ \textsf{n} \mapsto id \} \\
-  & \textbf{ where } \textsf{v} \ne \bot \textbf{ and } \textsf{v.k} = \textsf{ConcVar} \\
+  & \quad (id \conc \texttt{" = constant "} \conc type \conc \nl \\
+  & \quad \quad \conc O'), D' \cup \{ \textsf{v.ident} \mapsto id \} \conc  \{ \texttt{"\#type\_"}\conc \textsf{n.ident} \mapsto type \} \\
+  & \textbf{ where } \textsf{v} \ne \bot \textbf{ and } \textsf{v.k} = \textsf{Values} \\
   \trad{$\bot$, $D$}{val} \isdef & \textbf{ yields } \texttt{""}, D
 \end{split}
 \end{align}
@@ -609,11 +632,11 @@ result of the translation of the operations clause:
 \begin{framed}
 \begin{align}
   \begin{split}
-  \trad{}{ops} : & \textsf{ Node} \rightarrow text \\
-  \trad{o}{ops} \isdef 
-  & \textbf{ yields } \trad{o}{op} \conc \trad{o.next}{ops}  \\
+  \trad{}{ops} : & \textsf{ Node} \times \textsf{ Dict} \rightarrow text \\
+  \trad{o,D}{ops} \isdef 
+  & \textbf{ yields } \trad{o,D}{op} \conc \trad{o.next,D}{ops}  \\
   & \textbf{ where } \textsf{o} \neq \bot  \textbf{ and } \textsf{o.k} \in \textsf{Op}  \\
-  \trad{$\bot$}{ops} \isdef
+  \trad{$\bot$,D}{ops} \isdef
   & \textbf{ yields } \mty 
   \end{split}
 \end{align}
@@ -673,12 +696,12 @@ The translation of an operation is defined by the following rule:
 \begin{framed}
 \begin{align}
 \begin{split}
-  \trad{}{op} &: \textsf{ Node} \rightarrow text \\
-  \trad{op}{op} \isdef
-  & \textbf{ let } O_l = \trad{op}{link} \textbf{ and } O_h, D_h = \trad{op.header}{header} \textbf{ in}  \\
+  \trad{}{op} &: \textsf{ Node } \times \textsf{ Dict} \rightarrow text \\
+  \trad{op,d}{op} \isdef
+  & \textbf{ let } O_l = \trad{op}{link} \textbf{ and } O_h, D_h = \trad{op.header,d}{header} \textbf{ in}  \\
   & \textbf{ let } O_a, D_a = \trad{op.body, $D_h$}{alloc} \textbf{ in}  \\
   & \textbf{ let } O_i = \trad{op.body, $D_a$}{inst} \textbf{ in}  \\
-  & \textbf{ yields } \texttt{"declare "} \conc O_l \conc O_h \conc \texttt{"\{"} \conc \nl \conc \\
+  & \textbf{ yields } \texttt{"define "} \conc O_l \conc O_h \conc \texttt{"\{"} \conc \nl \conc \\
   & \quad \conc O_a \conc \nl \conc O_i \conc \nl \conc \texttt{"ret void"} \conc \nl \conc \texttt{"\}"} \conc \nl  \\
   & \textbf{ where } \textsf{op} \ne \bot \textbf{ and } \textsf{op.k} = \textsf{Op} 
 \end{split}
@@ -715,13 +738,14 @@ of the input and output parameters:
 \begin{framed}
   \begin{align}
 \begin{split}
-    \trad{}{header} &: Hd \rightarrow text \times dict \times dict \\
-    \trad{h}{header} \isdef& \textbf{ let } T_n = \textsf{"@"} \conc \textsf{h.ident} 
-    \textbf{ and } T_i, D_i = \trad{h.input}{inp} 
-    \textbf{ and } T_o, D_o = \trad{h.output}{out} \textbf{ in}  \\
-    & \textbf{ let } T_p = T_i \conc^, T_o \textbf{ in}  \\
-    & \textbf{ yields } \texttt{"void "} \conc T_n \conc \texttt{"("} \conc T_p \conc
-    \texttt{")"}, D_i \cup D_o, \{ \textsf{h.ident} \mapsto T_n \}  \\
+    \trad{}{header} &: Hd \times dict \rightarrow text \times dict \\
+    \trad{h,D}{header} \isdef& \textbf{ let } T_n = \textsf{"@"} \conc \textsf{h.ident}  \textbf{ and } 
+    \textbf{ and } T_i, D_i = \trad{h.input}{inp} \\
+    & \textbf{ and } T_o, D_o = \trad{h.output}{out} \textbf{ in}  \\
+    & \textbf{ let } T_p = \texttt{" \%struct."} \conc D(\#ModuleName) \conc \\
+    & \texttt{"\_internalState* nocapture \%pointerMVars"}  \textbf{ in}  \\
+    & \textbf{ yields } \texttt{"void "} \conc T_n \conc \texttt{"("} \conc T_p \conc^, T_i \conc^, T_o \conc
+    \texttt{")"}, D_i \cup D_o \conc \{ \textsf{h.ident} \mapsto T_n \}  \\
     & \textbf{ where } \textsf{h} \ne \bot \textbf{ and } \textsf{h.k} = \textsf{Hd} 
   \end{split}
 \end{align}
@@ -741,7 +765,7 @@ defined in section~\ref{sec:data}:
     \trad{i}{inp} \isdef& \textbf{ let } T_n = \textsf{"\%"} \conc \textsf{i.ident} 
     \textbf{ and } T_t = \trad{i.type}{type} 
     \textbf{ and } T, D = \trad{i.next}{inp} \textbf{ in}  \\
-    & \textbf{ yields } T_t \conc \texttt{" "} \conc (T_n \conc^, T), \{ \textsf{i} \mapsto T_n \} \cup D  \\
+    & \textbf{ yields } T_t \conc \texttt{" "} \conc (T_n \conc^, T), \{ \textsf{i.ident} \mapsto T_n \} \cup D  \\
     & \textbf{ where } \textsf{i} \ne \bot \textbf{ and } \textsf{i.k} = \textsf{Var}  \\
     \trad{$\bot$}{inp} \isdef& \textbf{ yields } \mty, \emptyset 
   \end{split}
@@ -759,7 +783,7 @@ that parameters need to be of pointer type.
     \trad{o}{out} \isdef& \textbf{ let } T_n = \textsf{"\%"} \conc \textsf{o.ident} 
     \textbf{ and } T_t = \trad{o.type}{type} \conc \texttt{"*"}
     \textbf{ and } T, D = \trad{o.next}{out} \textbf{ in}  \\
-    & \textbf{ yields } T_t \conc \texttt{" "} \conc (T_n \conc^, T), \{ \textsf{o} \mapsto T_n \} \cup D  \\
+    & \textbf{ yields } T_t \conc \texttt{" "} \conc (T_n \conc^, T), \{ \textsf{o.ident} \mapsto T_n \} \cup D  \\
     & \textbf{ where } \textsf{o} \ne \bot \textbf{ and } \textsf{o.k} = \textsf{Var}  \\
     \trad{$\bot$}{out} \isdef& \textbf{ yields } \mty, \emptyset  
   \end{split}
@@ -808,10 +832,37 @@ created. This association is recorded in the $D$ parameters and results.
     & \textbf{ let } O_l, D_l = \trad{i.ident, $D$}{local} \textbf{ in}  \\
     & \textbf{ let } O_b, D_b = \trad{i.body, $D_l$}{alloc} \textbf{ in}  \\
     & \textbf{ yields } O_l \conc \nl \conc O_b, D_b  \\
-    & \textbf{ where } \textsf{i} \ne \bot \textbf{ and } \textsf{i.k} = \textsf{VarDecl} 
+    & \textbf{ where } \textsf{i} \ne \bot \textbf{ and } \textsf{i.k} = \textsf{VarDecl} \\
+    \trad{i, $D$}{alloc}_{base} \isdef 
+    & \textbf{ let } O_l, D_l = \trad{i.ident, $D$}{global} \textbf{ in}  \\
+    & \textbf{ let } O_b, D_b = \trad{i.body, $D_l$}{alloc} \textbf{ in}  \\
+    & \textbf{ yields } O_l \conc \nl \conc O_b, D_b  \\
+    & \textbf{ where } \textsf{i} \ne \bot \textbf{ and } \textsf{i.k} = \textsf{Var} 
   \end{split}
 \end{align}
 \end{framed}
+
+This function get internal references to concrete variables from module.
+
+
+\begin{framed}
+\begin{align}
+\begin{split}
+  \trad{}{global} : & \textsf{ Node } \times dict \rightarrow text \times dict \\
+  \trad{v, $D$}{global} \isdef & 
+  \textbf{ let } T_v = \fresh(\texttt{"\%"}\conc\textsf{v.ident}, D) \textbf{ in}  \\
+  & \textbf{ let } T_n, D_n = \trad{v.next, $D \cup \{ \textsf{v.ident} \mapsto T_v \}$}{local} \textbf{ in}  \\
+  & \textbf{ yields } T_v \conc \texttt{" = getelementptr inbounds "} \conc\\
+  & \texttt{"\%struct.ModuloName\_internalState* \%pointerMVars, i64 0, i32 "} \conc \\
+  & D(\texttt{"\#type\_"}\conc v.ident) \conc \nl \conc T_n, D_n  \\
+  & \textbf{ where } \textsf{v} \ne \bot \textbf{ and } \textsf{v.k} = \textsf{Var}  \\
+  \trad{$\bot$, $D$}{global} \isdef & 
+  \textbf{ yields } \mty, D 
+\end{split}
+\end{align}
+\end{framed}
+
+
 
 To illustrate how heap allocation works in LLVM, this is the statement
 produced by Clang corresponding to the C declaration
@@ -833,7 +884,7 @@ defined hereafter:
   \trad{}{local} : & \textsf{ Node } \times dict \rightarrow text \times dict \\
   \trad{v, $D$}{local} \isdef & 
   \textbf{ let } T_v = \fresh(\texttt{"\%"}\conc\textsf{v.ident}, D) \textbf{ in}  \\
-  & \textbf{ let } T_n, D_n = \trad{v.next, $D \cup \{ \textsf{v} \mapsto T_v \}$}{local} \textbf{ in}  \\
+  & \textbf{ let } T_n, D_n = \trad{v.next, $D \cup \{ \textsf{v.ident} \mapsto T_v \}$}{local} \textbf{ in}  \\
   & \textbf{ yields } T_v \conc \texttt{" = alloca "} \conc \trad{v.type}{type} \conc \nl \conc T_n, D_n  \\
   & \textbf{ where } \textsf{v} \ne \bot \textbf{ and } \textsf{v.k} = \textsf{Var}  \\
   \trad{$\bot$, $D$}{local} \isdef & 
@@ -841,6 +892,8 @@ defined hereafter:
 \end{split}
 \end{align}
 \end{framed}
+
+
 
 Following the allocation statement, the LLVM source code contains the
 statements that encodes the instructions in the body of the
@@ -1340,6 +1393,12 @@ intrinsics). Rule~\ref{trad:id} handles this case.
 
 \section{Modularity}
 
+
+B method supported different types of modularity.
+The implementation modules can use the clauses: SEES, PROMOTES and IMPORT.
+
+
+
 \subsection{The SEES clause}
 
 Suppose a machine $M$ is seen from the implementation being translated
@@ -1357,16 +1416,149 @@ declare i32 @f(i32, i32, i32*)
 @k1 = external constant i8
 @k2 = external global i32
 \end{verbatim}
-Also, for the following C++ code:
+
+[[TODO: to add and to explain the translation function]]
+
+\subsection{The IMPORT clause}
+
+In B, one module can be imported several times with different
+names creating instances of one module, this feature is called 
+``renaming" in C4B, but it is not supported in version 1.0. Based on
+the following C++ code, the state of each module can be stored in a LLVM
+structure. To represent an reference of module state, one pointer to this
+structure can be used. 
 \begin{verbatim}
-class t1;
-extern t1 c1;
+class CRectangle {
+    int x, y;  
+    };
+extern CRectangle vCRectangle;
+extern CRectangle *pCRectangle;
 \end{verbatim}
-the compiler produces the following LLVM:
+The compiler produces the following LLVM:
 \begin{verbatim}
-%class.t1 = type opaque
-@c1 = external global %class.t1
+%struct.CRectangle = type { i32, i32 }
+@pCRectangle = external global %struct.CRectangle* 
+@vCRectangle = external global %struct.CRectangle 
 \end{verbatim}
+
+Now to add support to renaming, all functions contain an first additional
+parameter that allow access data from imported module. This parameter
+is a pointer to structure that store the state of imported module.
+In practice, the translation of module called ``Data" will be based in following
+C code:
+\begin{verbatim}
+long Data__vint;
+struct R_1 { long elem1;long elem2; } Data__vstruct;
+void Data__INITIALISATION(void)
+{
+    Data__vint = 10;
+    Data__vstruct.elem1 = 1;
+    Data__vstruct.elem2 = 2;
+}
+void Data__get_vint( )
+{
+    return vint;
+}
+
+\end{verbatim}
+The result of translation creates a structure ``TStateData" with all
+variables of  module ``Data" to store the state of module, create a pointer
+to this structure and added this pointer as the first parameter in all functions of module.
+The return of a function is passed by last parameter as a pointer.
+\begin{verbatim}
+struct R_1 { long elem1;long elem2; } ;  
+struct TStateData { long vint;long vinterval; R_1 vstruct; } ;
+extern TStateData *pStateData; 
+void Data__INITIALISATION(TStateData * pStateData)
+{
+    pStateData->vint = 10;
+    pStateData->vstruct.elem1 = 1;
+    pStateData->vstruct.elem2 = 2;
+}
+void Data__get_vint(TStateData * pStateData, int * res1 )
+{
+    res1 = &pStateData->vint;
+}
+
+\end{verbatim}
+
+
+\begin{figure}[ht]
+
+\begin{minipage}{50in}
+\begin{verbatim}
+<how>
+   <to value="make" />
+   <this value="work" />
+</how>
+\end{verbatim}
+\end{minipage}
+
+
+\begin{tabular}[t]{l}
+\begin{minipage}{50in}
+\begin{verbatim}
+<how>
+   <to value="make" />
+   <this value="work" />
+</how>
+\end{verbatim}
+\end{minipage}
+\end{tabular}
+
+\begin{tabular}[t]{l}
+
+\end{tabular}
+
+ 
+\caption{Example.}
+\label{fig:kjdsldkjsa}
+\end{figure}
+
+[[TODO: Explain... ]]
+
+All the above examples are omitting informations about modularity,
+because it becomes the explanation more easy. However, the unique difference
+is when a variable is accessed then is needed add a parameter pointer to keep the state of module
+and to add parameter  to return.
+
+
+% This clause is supported only in Implementation ( The codes are compiled individually ) 
+
+
+The unique additional information is an parameter in functions that represent the 
+This parameter works as object of class.
+
+All the above examples are omitting informations about modularity,
+because it becomes the explanation more easy.
+
+%[[TODO: update the other sections based in this example.]]
+ 
+% The renaming of imported modules are not supported in C4B (version 1.0 ). 
+
+\begin{verbatim}
+	
+  // I added this definitions to support renaming
+  struct R_1 { long elem1;long elem2; } ;  // update this declaration to create the type of structures
+  struct TStateData { long vint;long vinterval; R_1 vstruct; } ; // Create this declaration to keep the state
+  extern TStateData vStateData; // Declare the variables
+  extern TStateData *pStateData; // Declare the variables
+
+/* Clause CONCRETE_CONSTANTS */
+/* Basic constants */
+/* Array and record constants */
+extern void Data__INITIALISATION(TStateData * pStateData);
+
+/* Clause OPERATIONS */
+
+extern void Data__set_vint(TStateData * pStateData);
+extern long Data__get_vint(TStateData * pStateData);
+\end{verbatim}
+
+
+% Why it no use the concept  class and objects ? 
+% Because it is owner compiler uses 
+
 
 \subsection{The PROMOTES clause}
 
