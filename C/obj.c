@@ -3,7 +3,7 @@ struct impl1 {
   int v1;
   int v2;
   bool v3;
-} * impl1_anonymous;
+} instance, * impl1_anonymous;
 
 void op1(struct impl1 * a)
 {
