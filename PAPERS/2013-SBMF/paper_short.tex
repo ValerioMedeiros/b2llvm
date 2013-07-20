@@ -316,7 +316,7 @@ C code appears on the left) with two temporary variables \llvm{\%0} and
 %      \> y\\
       inc(x) =\\
       \B{PRE} x : INT \B{THEN}   \\
-      \> 	y = x+y\\
+      \> 	y := x+y\\
       \B{END} \\
       \end{tabbing}
   \end{minipage}
@@ -686,145 +686,146 @@ variables: let $\name$ return a fresh LLVM label or local variable name.
 %The definition of the translation for expressions is described next in
 %section~\ref{sec:expr}.
 %
-\section{Translation: Expressions
-  \label{sec:expr}}
 
-To evaluate a composed expression using the LLVM, one must first generate a
-sequence of instructions to evaluate each argument, the resulting value being
-stored in a temporary variable, and second generate an instance of the LLVM
-instruction corresponding to the expression argument.  Translation of
-expressions is defined as functions that take as input some class of expressions
-and produce a triple of strings $p \sep v \sep t$, where $p$ is a possibly empty
-sequence of instructions required in the evaluation (e.g.  for the
-sub-expressions), $v$ is the LLVM expression representing the resulting value,
-and $t$ represents the LLVM type of the expression. In the case of composed
-predicates, though, the evaluation is different as boolean operations need to be
-implemented with conditional and unconditional jumps.
-
-\paragraph{Atomic expressions} have a simple translation. In the case of
-literals, one only needs to issue the corresponding LLVM literal:
-$\trad{TRUE}{\B{Lit}} \isdef \llvm{""} \sep \llvm{"1"} \sep \llvm{"i1"}$,
-$\trad{FALSE}{\B{Lit}} \isdef \llvm{""} \sep \llvm{"0"} \sep \llvm{"i1"}$ and
-$\trad{l}{\B{Lit}} \isdef \llvm{""} \sep \llvm{"\PH{l}"} \sep \llvm{"i32"}$ when
-$\B{l.type} = \B{INT}$.
-
-For identifiers, three cases are possible: global constants, local variables,
-and module state variables. For state variables, the translation issues
-statements to assign the address of the corresponding element in the state
-structure to pointer variable $p$ and then dereference $p$ to assign $v$:
-\begin{align*}
-\lefteqn{\trad{n}{\B{Name}} \isdef \LET t = \trad{n.type}{\B{Type}} \IN} \\
-& \IF \B{n} \mbox{ is a constant } \THEN \llvm{""} \sep \Global(\B{n}) \sep t \\
-& \ELSIF \B{n} \mbox{ is a local variable } \THEN 
-\llvm{""} \sep \local(\B{n}) \sep t \\
-& \ELSE (\B{n} \mbox{ is a state variable }) \LET p = \name \AND v = \name \IN \\
-& \quad \llvm{"\PH{p} = getelementptr \%self\$, i32 0, i32 \PH{\idx(\B{n})} \nl} \\
-& \quad \llvm{\PH{v} = load \PH{t}* \PH{p}\nl"} \sep v \sep t
-\end{align*}
-
-\paragraph{Comparisons} are formed by the application of a relational operator
-to two expressions. Mapping $\opmap$ associates B operators to corresponding
-LLVM keywords:
-$$\opmap = \{ = \mapsto \llvm{"eq"}, 
-  \ne \mapsto \llvm{"ne"}, 
-  < \mapsto \llvm{"slt"}, 
-  \le \mapsto \llvm{"sle"}, 
-  > \mapsto \llvm{"sgt"}, 
-  \ge \mapsto \llvm{"sge"} \}.
-$$
-
-The code responsible for evaluating a comparison \B{r} is defined by the
-following rule. First both arguments are evaluated in $p_1$ and $p_2$, and then
-an instance of the LLVM comparison instruction \llvm{icmp} is used to compare
-the temporary variables $v_1$ and $v_2$, of type $t_1 = t_2$, storing the result
-in the fresh variable $v$.
-\begin{align*}
-\lefteqn{\trad{r}{\B{Comp}} \isdef
-  \LET
-  p_1 \sep v_1 \sep t_1 = \trad{r.arg1}{\B{Expr}} \AND
-  p_2 \sep v_2 \sep t_2 = \trad{r.arg2}{\B{Expr}}} \\
-& \AND v = \name \IN \\
-& \llvm{"\PH{p_1}\quad\PH{p_2}\quad\PH{v} = icmp \PH{\opmap(\B{r.op})} \PH{t_1} \PH{v_1} \PH{v_2} \nl"} \sep v
-\end{align*}
-   
-\paragraph{Arithmetic operations} have a similar structure and interpretation
-as comparisons and their presentation is mostly omitted. Let us present the
-translation of the unary \B{succ} operator though:
-\begin{align*}
-  \trad{n}{\B{succ}} \isdef & \textbf{ let } p \sep v \sep t =
-  \trad{n.arg}{\B{expr}} \AND w = \name \IN \\
-  & \llvm{"\PH{p} \quad \PH{w} = i32 add 1, \PH{v} \nl"} \sep w \sep \llvm{i32}
-\end{align*}
-
-\paragraph{Predicates}
-The translation of conditions takes as input a condition node \B{n}, as well as
-two labels $\ell_t$ and $\ell_f$ that correspond to program locations where the
-execution shall jump when the condition is evaluted to true or false,
-respectively.  The first rule defines the translation of an atomic relation:
-\begin{align*}
-  \lefteqn{\trad{n, $\ell_t$, $\ell_f$}{\B{Form}} \isdef
-  \textbf{ let } p \sep v = \trad{n}{\B{Comp}} \IN} \\
-  & \llvm{"\PH{p} \quad br i1 \PH{v}, label \PH{\ell_t}, label \PH{\ell_f} \nl"}
-\end{align*}
-
-\noindent The translation for negation is simply: $\trad{not f, $\ell_t$,
-  $\ell_f$}{\B{not}} \isdef \trad{f, $\ell_f$, $\ell_t$}{\B{Form}}$.  The
-following rule handles the case of conjunctions. Note that it produces code with
-a ``short-cut'' when the evaluation of the first argument yields false:
-\begin{align*}
-\begin{split}
-  \lefteqn{\trad{n, $\ell_t$, $\ell_f$}{\B{and}} \isdef \LET \ell = \name \IN} \\
-  & \LET p_1 = \trad{n.arg1, $\ell$, $\ell_f$}{\B{Form}}
-  \AND p_2 = \trad{n.arg2, $\ell_t$, $\ell_f$}{\B{Form}} \IN \\
-  & \quad \llvm{"\PH{p_1} \PH{\ell} :  \nl \PH{p_2}"}
-\end{split}
-\end{align*}
-The definition of the translation for disjunctions is similar and is omitted.
-
-%\section{Translation: Control Flow and Instructions
-%  \label{sec:control}}
+%\section{Translation: Expressions
+%  \label{sec:expr}}
 %
-%This section addresses how operations in B implementations are translated to
-%LLVM functions. It also discusses initialization, which might be seen as a
-%special kind of operation. For operations, the presentation of the translation
-%is divided into three steps: the signature, the local data, and the body
-%instructions.
+%To evaluate a composed expression using the LLVM, one must first generate a
+%sequence of instructions to evaluate each argument, the resulting value being
+%stored in a temporary variable, and second generate an instance of the LLVM
+%instruction corresponding to the expression argument.  Translation of
+%expressions is defined as functions that take as input some class of expressions
+%and produce a triple of strings $p \sep v \sep t$, where $p$ is a possibly empty
+%sequence of instructions required in the evaluation (e.g.  for the
+%sub-expressions), $v$ is the LLVM expression representing the resulting value,
+%and $t$ represents the LLVM type of the expression. In the case of composed
+%predicates, though, the evaluation is different as boolean operations need to be
+%implemented with conditional and unconditional jumps.
 %
-%The signature of the function is composed of the name of the function, the
-%result type, the name and type of the parameters. The signature may carry other
-%information such as linkage, visibility, calling convention, etc. The B parser
-%provides this information after the type checking phase has been completed.  On
-%the one hand LLVM functions may only have one result, on the other hand B0
-%operations may produce several results. The translation of output parameters
-%will be function parameters passed by reference, i.e. they are pointers. For
-%uniformity of treatment, the return type of the produced LLVM functions is
-%\llvm{void}. Translation of operation headers is defined in
-%sec.~\ref{sec:trad-header}. The memory to store local variables is allocated on
-%the stack, using the \llvm{alloca} instruction. We describe a function in
-%sec.~\ref{sec:trad-alloc} that, applied to a B operation, returns the name and
-%type of its local variables used in the operation. These names are translated to
-%conform to LLVM restrictions. The body of the operation has to be transformed to
-%a sequence of LLVM blocks of statements. For each kind of instruction one (or
-%more) translation function is defined. The details are provided in
-%section~\ref{sec:trad-instr}.  The results of the translation of each aspect are
-%combined as follows:
+%\paragraph{Atomic expressions} have a simple translation. In the case of
+%literals, one only needs to issue the corresponding LLVM literal:
+%$\trad{TRUE}{\B{Lit}} \isdef \llvm{""} \sep \llvm{"1"} \sep \llvm{"i1"}$,
+%$\trad{FALSE}{\B{Lit}} \isdef \llvm{""} \sep \llvm{"0"} \sep \llvm{"i1"}$ and
+%$\trad{l}{\B{Lit}} \isdef \llvm{""} \sep \llvm{"\PH{l}"} \sep \llvm{"i32"}$ when
+%$\B{l.type} = \B{INT}$.
+%
+%For identifiers, three cases are possible: global constants, local variables,
+%and module state variables. For state variables, the translation issues
+%statements to assign the address of the corresponding element in the state
+%structure to pointer variable $p$ and then dereference $p$ to assign $v$:
 %\begin{align*}
-%\begin{split}
-%  \lefteqn{\trad{\B{op}}{\B{oper}} \isdef} \\
-%  & \LET h = \trad{\B{op}}{sig} \AND   a = \trad{\B{op.body}}{alloc} \AND i = \trad{\B{op.body}, \llvm{exit}}{\ListOf{\B{Inst}}}_L \IN  \\
-%  & \llvm{"define void \PH{h} \{\nl} \\
-%  & \quad \llvm{entry:\nl} \\
-%  & \quad \quad \PH{a} \\
-%  & \quad \quad \PH{i} \\
-%  & \quad \llvm{exit: ret void\nl} \\
-%  & \llvm{\}\nl"}
-%\end{split}
+%\lefteqn{\trad{n}{\B{Name}} \isdef \LET t = \trad{n.type}{\B{Type}} \IN} \\
+%& \IF \B{n} \mbox{ is a constant } \THEN \llvm{""} \sep \Global(\B{n}) \sep t \\
+%& \ELSIF \B{n} \mbox{ is a local variable } \THEN 
+%\llvm{""} \sep \local(\B{n}) \sep t \\
+%& \ELSE (\B{n} \mbox{ is a state variable }) \LET p = \name \AND v = \name \IN \\
+%& \quad \llvm{"\PH{p} = getelementptr \%self\$, i32 0, i32 \PH{\idx(\B{n})} \nl} \\
+%& \quad \llvm{\PH{v} = load \PH{t}* \PH{p}\nl"} \sep v \sep t
 %\end{align*}
 %
-%Initialization of a B implementation shares many characteristics with operations
-%but needs to deal with initialization of imported modules. It is discussed in
-%sec.~\ref{sec:trad-init}.
+%\paragraph{Comparisons} are formed by the application of a relational operator
+%to two expressions. Mapping $\opmap$ associates B operators to corresponding
+%LLVM keywords:
+%$$\opmap = \{ = \mapsto \llvm{"eq"}, 
+%  \ne \mapsto \llvm{"ne"}, 
+%  < \mapsto \llvm{"slt"}, 
+%  \le \mapsto \llvm{"sle"}, 
+%  > \mapsto \llvm{"sgt"}, 
+%  \ge \mapsto \llvm{"sge"} \}.
+%$$
 %
+%The code responsible for evaluating a comparison \B{r} is defined by the
+%following rule. First both arguments are evaluated in $p_1$ and $p_2$, and then
+%an instance of the LLVM comparison instruction \llvm{icmp} is used to compare
+%the temporary variables $v_1$ and $v_2$, of type $t_1 = t_2$, storing the result
+%in the fresh variable $v$.
+%\begin{align*}
+%\lefteqn{\trad{r}{\B{Comp}} \isdef
+%  \LET
+%  p_1 \sep v_1 \sep t_1 = \trad{r.arg1}{\B{Expr}} \AND
+%  p_2 \sep v_2 \sep t_2 = \trad{r.arg2}{\B{Expr}}} \\
+%& \AND v = \name \IN \\
+%& \llvm{"\PH{p_1}\quad\PH{p_2}\quad\PH{v} = icmp \PH{\opmap(\B{r.op})} \PH{t_1} \PH{v_1} \PH{v_2} \nl"} \sep v
+%\end{align*}
+%   
+%\paragraph{Arithmetic operations} have a similar structure and interpretation
+%as comparisons and their presentation is mostly omitted. Let us present the
+%translation of the unary \B{succ} operator though:
+%\begin{align*}
+%  \trad{n}{\B{succ}} \isdef & \textbf{ let } p \sep v \sep t =
+%  \trad{n.arg}{\B{expr}} \AND w = \name \IN \\
+%  & \llvm{"\PH{p} \quad \PH{w} = i32 add 1, \PH{v} \nl"} \sep w \sep \llvm{i32}
+%\end{align*}
+%
+%\paragraph{Predicates}
+%The translation of conditions takes as input a condition node \B{n}, as well as
+%two labels $\ell_t$ and $\ell_f$ that correspond to program locations where the
+%execution shall jump when the condition is evaluted to true or false,
+%respectively.  The first rule defines the translation of an atomic relation:
+%\begin{align*}
+%  \lefteqn{\trad{n, $\ell_t$, $\ell_f$}{\B{Form}} \isdef
+%  \textbf{ let } p \sep v = \trad{n}{\B{Comp}} \IN} \\
+%  & \llvm{"\PH{p} \quad br i1 \PH{v}, label \PH{\ell_t}, label \PH{\ell_f} \nl"}
+%\end{align*}
+%
+%\noindent The translation for negation is simply: $\trad{not f, $\ell_t$,
+%  $\ell_f$}{\B{not}} \isdef \trad{f, $\ell_f$, $\ell_t$}{\B{Form}}$.  The
+%following rule handles the case of conjunctions. Note that it produces code with
+%a ``short-cut'' when the evaluation of the first argument yields false:
+%\begin{align*}
+%\begin{split}
+%  \lefteqn{\trad{n, $\ell_t$, $\ell_f$}{\B{and}} \isdef \LET \ell = \name \IN} \\
+%  & \LET p_1 = \trad{n.arg1, $\ell$, $\ell_f$}{\B{Form}}
+%  \AND p_2 = \trad{n.arg2, $\ell_t$, $\ell_f$}{\B{Form}} \IN \\
+%  & \quad \llvm{"\PH{p_1} \PH{\ell} :  \nl \PH{p_2}"}
+%\end{split}
+%\end{align*}
+%The definition of the translation for disjunctions is similar and is omitted.
+
+\section{Translation: Control Flow and Instructions
+  \label{sec:control}}
+
+This section addresses how operations in B implementations are translated to
+LLVM functions. It also discusses initialization, which might be seen as a
+special kind of operation. For operations, the presentation of the translation
+is divided into three steps: the signature, the local data, and the body
+instructions.
+
+The signature of the function is composed of the name of the function, the
+result type, the name and type of the parameters. The signature may carry other
+information such as linkage, visibility, calling convention, etc. The B parser
+provides this information after the type checking phase has been completed.  On
+the one hand LLVM functions may only have one result, on the other hand B0
+operations may produce several results. The translation of output parameters
+will be function parameters passed by reference, i.e. they are pointers. For
+uniformity of treatment, the return type of the produced LLVM functions is
+\llvm{void}. Translation of operation headers is defined in
+sec.~\ref{sec:trad-header}. The memory to store local variables is allocated on
+the stack, using the \llvm{alloca} instruction. We describe a function in
+sec.~\ref{sec:trad-alloc} that, applied to a B operation, returns the name and
+type of its local variables used in the operation. These names are translated to
+conform to LLVM restrictions. The body of the operation has to be transformed to
+a sequence of LLVM blocks of statements. For each kind of instruction one (or
+more) translation function is defined. The details are provided in
+section~\ref{sec:trad-instr}.  The results of the translation of each aspect are
+combined as follows:
+\begin{align*}
+\begin{split}
+  \lefteqn{\trad{\B{op}}{\B{oper}} \isdef} \\
+  & \LET h = \trad{\B{op}}{sig} \AND   a = \trad{\B{op.body}}{alloc} \AND i = \trad{\B{op.body}, \llvm{exit}}{\ListOf{\B{Inst}}}_L \IN  \\
+  & \llvm{"define void \PH{h} \{\nl} \\
+  & \quad \llvm{entry:\nl} \\
+  & \quad \quad \PH{a} \\
+  & \quad \quad \PH{i} \\
+  & \quad \llvm{exit: ret void\nl} \\
+  & \llvm{\}\nl"}
+\end{split}
+\end{align*}
+
+Initialization of a B implementation shares many characteristics with operations
+but needs to deal with initialization of imported modules. It is discussed in
+sec.~\ref{sec:trad-init}.
+
 %\subsection{Sub-routines signatures}
 %\label{sec:trad-header}
 %
@@ -865,38 +866,38 @@ The definition of the translation for disjunctions is similar and is omitted.
 %encodes the instructions in the body of the operation, as described in the
 %following section.
 %
-%\subsection{Translation of instructions}
-%\label{sec:trad-instr}
-%
-%Function $\trad{\B{il}, $\ell$}{\ListOf{\B{Inst}}}_L$ takes as input a sequence
-%of B instructions \B{il} and a label $\ell$ and produces the source code of a
-%LLVM block with $\ell$ as exit point. It is defined as follows:
-%
-%\begin{align*}
-%\trad{\B{il}, $\ell$}{\ListOf{\B{Inst}}}_L \isdef & \IF \B{il} \mbox{ is empty} \THEN \llvm{"br \PH{\ell} \nl"} \\
-%& \ELSE \LET i, il' = il  \AND p = \trad{il, $\ell$}{\ListOf{\B{Inst}}}_L \IN \\
-%& \quad \IF i \mbox{ is \B{If} or \B{While}} \THEN \LET \ell' = \name \IN \llvm{"\PH{\trad{i, $\ell'$}{\B{Inst}}} \PH{\ell'}: \PH{p}"} \\
-%& \quad \ELSE \llvm{"\PH{\trad{i}{\B{Inst}}} \PH{p}"}
-%\end{align*}
-%
-%Eventually, $\trad{}{\B{Inst}}$ defines the translation for individual
-%instructions. Its definition is specialized for each class of instructions as
-%detailed in the rest of this section. Note that a new block is created after
-%each \B{If} and \B{While} instruction.
-%
-%\paragraph{While instructions} are translated in two blocks of instructions:
-%block $\ell_1$ evaluates the loop condition and block $\ell_2$ executes the loop
-%body:
-%\begin{align*}
-%\begin{split}
-%\trad{w, $\ell$}{\B{While}} \isdef 
-%  & \LET \ell_1 = \name \AND \ell_2 = \name \AND c \sep v = \trad{w.cond}{\B{Pred}} \IN \\
-%  & \llvm{"\PH{\ell_1} : \PH{c}} \\
-%  & \llvm{br i1 \PH{v}, label \PH{\ell_2}, label \PH{\ell} \nl} \\
-%  & \llvm{\PH{\ell_2} : \PH{\trad{i.body, $\ell_1$}{\ListOf{\B{Inst}}}_L}}
-%\end{split}
-%\end{align*}
-%
+\subsection{Translation of instructions}
+\label{sec:trad-instr}
+
+Function $\trad{\B{il}, $\ell$}{\ListOf{\B{Inst}}}_L$ takes as input a sequence
+of B instructions \B{il} and a label $\ell$ and produces the source code of a
+LLVM block with $\ell$ as exit point. It is defined as follows:
+
+\begin{align*}
+\trad{\B{il}, $\ell$}{\ListOf{\B{Inst}}}_L \isdef & \IF \B{il} \mbox{ is empty} \THEN \llvm{"br \PH{\ell} \nl"} \\
+& \ELSE \LET i, il' = il  \AND p = \trad{il, $\ell$}{\ListOf{\B{Inst}}}_L \IN \\
+& \quad \IF i \mbox{ is \B{If} or \B{While}} \THEN \LET \ell' = \name \IN \llvm{"\PH{\trad{i, $\ell'$}{\B{Inst}}} \PH{\ell'}: \PH{p}"} \\
+& \quad \ELSE \llvm{"\PH{\trad{i}{\B{Inst}}} \PH{p}"}
+\end{align*}
+
+Eventually, $\trad{}{\B{Inst}}$ defines the translation for individual
+instructions. Its definition is specialized for each class of instructions as
+detailed in the rest of this section. Note that a new block is created after
+each \B{If} and \B{While} instruction.
+
+\paragraph{While instructions} are translated in two blocks of instructions:
+block $\ell_1$ evaluates the loop condition and block $\ell_2$ executes the loop
+body:
+\begin{align*}
+\begin{split}
+\trad{w, $\ell$}{\B{While}} \isdef 
+  & \LET \ell_1 = \name \AND \ell_2 = \name \AND c \sep v = \trad{w.cond}{\B{Pred}} \IN \\
+  & \llvm{"\PH{\ell_1} : \PH{c}} \\
+  & \llvm{br i1 \PH{v}, label \PH{\ell_2}, label \PH{\ell} \nl} \\
+  & \llvm{\PH{\ell_2} : \PH{\trad{i.body, $\ell_1$}{\ListOf{\B{Inst}}}_L}}
+\end{split}
+\end{align*}
+
 %\paragraph{If instructions} are sequences of possibly conditional blocks of
 %instructions, i.e. branches. After a branch is executed, control must go
 %to the next block $\ell$.
@@ -929,25 +930,25 @@ The definition of the translation for disjunctions is similar and is omitted.
 %\end{split}
 %\end{align*}
 %
-%\paragraph{Becomes equal instructions} must evaluate the target and the source
-%of the assignment, and then copy the result of the latter in the former, using
-%the LLVM instruction \llvm{store}. The evaluation of the target is defined with
-%$\trad{}{lv}$, which yields the corresponding LLVM source code $l$ and the
-%variable $p$ containing the assigned location. The evaluation of the source
-%yields the corresponding code $r$, the variable $v$ holding the result, and its
-%type $t$.
-%\begin{align*}
-%\begin{split}
-%  \trad{a}{\B{Beq}} \isdef 
-%  & \LET l \sep p = \trad{i.lhs}{lv} \AND r \sep v \sep t = \trad{i.rhs}{\B{Expr}} \IN \\
-%  & \llvm{"\PH{l}} \\
-%  & \llvm{\PH{r}} \\
-%  & \llvm{store \PH{t} \PH{v}, \PH{t}* \PH{p} \nl"}
-%%   & l \conc r \conc 
-%%   \llvm{"store "} \conc t \conc \texttt{" "} \conc v \conc \llvm{", "}
-%%   \conc t \conc \llvm{"* "} \conc p \conc \nl
-%\end{split}
-%\end{align*}
+\paragraph{Becomes equal instructions} must evaluate the target and the source
+of the assignment, and then copy the result of the latter in the former, using
+the LLVM instruction \llvm{store}. The evaluation of the target is defined with
+$\trad{}{lv}$, which yields the corresponding LLVM source code $l$ and the
+variable $p$ containing the assigned location. The evaluation of the source
+yields the corresponding code $r$, the variable $v$ holding the result, and its
+type $t$.
+\begin{align*}
+\begin{split}
+  \trad{a}{\B{Beq}} \isdef 
+  & \LET l \sep p = \trad{i.lhs}{lv} \AND r \sep v \sep t = \trad{i.rhs}{\B{Expr}} \IN \\
+  & \llvm{"\PH{l}} \\
+  & \llvm{\PH{r}} \\
+  & \llvm{store \PH{t} \PH{v}, \PH{t}* \PH{p} \nl"}
+%   & l \conc r \conc 
+%   \llvm{"store "} \conc t \conc \texttt{" "} \conc v \conc \llvm{", "}
+%   \conc t \conc \llvm{"* "} \conc p \conc \nl
+\end{split}
+\end{align*}
 %The assignment target may be either local to the operation or a state
 %variable. In the former case, it can be referenced by the corresponding LLVM
 %identifier. In the latter case, it is represented as an element of the state
