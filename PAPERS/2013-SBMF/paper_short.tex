@@ -53,13 +53,12 @@ Federal Institute of Education, Science and Technology  of Rio Grande do Norte, 
 \maketitle
 
 \begin{abstract}
-  The aim of this work is to lay the foundations of a multi-platform code
-  generator for the B method. In particular, this paper presents a translation
-  procedure from a large subset of the B language for implementations towards
-  LLVM source code. This translation is defined formally as a set of rules
-  defined recursively on the abstract syntax for B implementations. It handles
-  the following elements of the B language: simple data types, imperative
-  instructions and component compositions. 
+The aim of this work is to lay the foundations of a multi-platform code
+generator for the B method. In particular, this paper presents a proposed
+translation  procedure from a subset of the B language for implementations
+towards LLVM source code. This translation is defined formally as a set of
+rules defined recursively on the abstract syntax for B implementations. It 
+presents a overview of translation and a simplified example.
 \end{abstract}
 
 \section{Introduction}
@@ -100,12 +99,9 @@ of assertion violations.
 
 \paragraph{Overview.} Following this introduction, the paper is organized as
 follows. The implementation constructs of the B language, and selected elements
-of the LLVM are presented in section~\ref{sec:b-impl}
-and~\ref{sec:llvm}. Section~\ref{sec:overview} presents a bird's-eye view that
-is then detailed in sections~\ref{sec:module} (for component modularity)
-~\ref{sec:data} (for data aspects),~\ref{sec:expr} (expressions) and
-instructions~\ref{sec:control}. We conclude and discuss future work
-in~\ref{sec:conclusion}.
+of the LLVM are presented in section~\ref{sec:b-impl} and~\ref{sec:llvm}.
+Section~\ref{sec:control} presents the main rules to translate the operations and
+instructions. We conclude and discuss future work in~\ref{sec:conclusion}.
 
 \section{Implementation Language in the B-method}
 \label{sec:b-impl}
@@ -122,9 +118,10 @@ translation. For instance, and for the purpose of the translation, the relevant
 components of a B implementation are: \B{id}, the name identifying the
 implementation within the project; \B{see}, a set of references to other modules
 containing definitions used in the implementation; \B{const}, a set of constant
-names, their type and their values; \B{imp}, a sequence of optionally
-prefixed B machines corresponding to external modules instantiated in the
-implementation; \B{var}, a set of variable names, their type and possibly
+names, their type and their values; \B{imp},%a sequence of optionally prefixed
+%B machines corresponding to external modules instantiated in the
+%implementation;
+\B{var}, a set of variable names, their type and possibly
 additional functional restrictions forming the rest of the state; \B{init}, a
 sequence of instructions executed upon initialization of the implementation;
 \B{op}, a set of operations, each being an algorithmic description of the
@@ -142,14 +139,13 @@ they have an optional prefix identifying the module.
 Note that the translation presented in this paper only considers types \B{INT}
 (integer) and \B{BOOL} (Boolean). Accordingly, the expression language consists
 in arithmetic operations \B{-} (unary and binary), \B{+}, \B{*}, \B{/}, \B{mod},
-% \B{**} (exponentiation), 
 \B{succ} and \B{pred} and Boolean operations
 \B{$\land$}, \B{$\lor$}, \B{$\neg$} as well as relations \B{=}, \B{$\neq$},
 \B{$>$}, \B{$<$}, \B{$\leq$} and \B{$\neq$}. Atomic expressions are identifiers,
 Boolean constants \B{FALSE} and \B{TRUE}, integer literals, and integer
 constants \B{MAXINT} and \B{MININT}. The development through the application of
 the B method ensures the absence of overflows and underflows.
-%TODO optionally to remove unsed elements in this table
+
 \begin{figure}[H]
   \begin{center}
     {\footnotesize
@@ -161,17 +157,17 @@ the B method ensures the absence of overflows and underflows.
         \hline
         \B{id} & : & \B{Name} \\
         \B{see} & : & seq \B{Name} \\
-        \B{imp} & : & seq \B{Impo} \\
+%        \B{imp} & : & seq \B{Impo} \\
         \B{const} & : & seq \B{Cons} \\
         \B{var} & : & seq \B{Vari} \\
         \B{init} & : & \B{Inst} \\
         \B{op} & : & seq \B{Oper} \\
         \hline
-        \multicolumn{3}{|c|}{Imported machine: \B{Impo}} \\
-        \hline
-        \B{id} & : & \B{Name} \\
-        \B{pre} & : & opt \B{Name} \\
-        \hline
+        %\multicolumn{3}{|c|}{Imported machine: \B{Impo}} \\
+        %\hline
+        %\B{id} & : & \B{Name} \\
+        %\B{pre} & : & opt \B{Name} \\
+        %\hline
         \multicolumn{3}{|c|}{Constant: \B{Cons}} \\
         \hline
         \B{id} & : & \B{Name} \\
@@ -182,19 +178,17 @@ the B method ensures the absence of overflows and underflows.
         \hline
         \B{id} & : & \B{Name} \\
         \B{type} & : & \B{Type} \\
-        \B{scope} & : & \B{Impl} \alt \B{Oper}
-        \\
-      \end{tabular}
-      & &
-      \begin{tabular}[t]{rcl}
+        \B{scope} & : & \B{Impl} \alt \B{Oper}\\
         \hline
         \multicolumn{3}{|c|}{Operation: \B{Oper}} \\
         \hline
         \B{id} & : & \B{Name} \\
         \B{inp} & : & seq \B{Vari} \\
         \B{out} & : & seq \B{Vari} \\
-        \B{body} & : & \B{Inst}
-        \\
+        \B{body} & : & \B{Inst}	\\
+      \end{tabular}
+      & &
+      \begin{tabular}[t]{rcl}
         \hline
         \multicolumn{3}{|c|}{Instruction: \B{Inst}} \\
         \hline
@@ -226,6 +220,12 @@ the B method ensures the absence of overflows and underflows.
         \B{inp} & : & seq \B{Expr} \\
         \B{out} & : & seq \B{Name}
         \\
+	\hline
+	\multicolumn{3}{|c|}{While loop: \B{While}} \\
+        \hline
+        \B{cond} & : & \B{Pred} \\
+        \B{body} & : & \B{Inst}
+        \\
 %         \\
 %         \hline
 %         \multicolumn{3}{|c|}{Case conditional: \B{Case}} \\
@@ -235,12 +235,6 @@ the B method ensures the absence of overflows and underflows.
       \end{tabular}
       & &
       \begin{tabular}[t]{rcl}
-        \hline
-        \multicolumn{3}{|c|}{While loop: \B{While}} \\
-        \hline
-        \B{cond} & : & \B{Pred} \\
-        \B{body} & : & \B{Inst}
-        \\
         \hline
         \multicolumn{3}{|c|}{If branch: \B{IfBr}} \\
         \hline
@@ -288,7 +282,7 @@ the B method ensures the absence of overflows and underflows.
       or a list of the possible sub-classes (e.g. \B{Inst} for the different
       kinds of instructions).
       Sequence and optional attributes are denoted ``seq'' and ``opt'',
-      respectively}
+      respectively.}
     \label{tab:node-attr}
   \end{center}
 \end{figure}
