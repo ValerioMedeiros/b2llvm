@@ -7,7 +7,7 @@
 \usepackage[colorlinks=true]{hyperref}
 \usepackage{xspace,framed,here,keystroke}
 \pagestyle{headings}
-\title{A Proposed Translation of B Implementations to the LLVM}
+\title{Proposal: Translation of B Implementations to LLVM-IR}
 \author{David D\'{e}harbe \inst{1} \and Val\'{e}rio Medeiros Jr.\inst{2}}
 \institute{Federal University of Rio Grande do Norte, UFRN, Brazil\\
 \and 
@@ -58,7 +58,7 @@ generator for the B method. In particular, this paper presents a proposed
 translation  procedure from a subset of the B language for implementations
 towards LLVM source code. This translation is defined formally as a set of
 rules defined recursively on the abstract syntax for B implementations. It 
-presents a overview of translation and a simplified example.
+presents an overview of translation and a simplified example.
 \end{abstract}
 
 \section{Introduction}
@@ -342,7 +342,7 @@ program with two temporary variables \llvm{\%0} and \llvm{\%1}.
 \end{figure}
 
 Operations and instructions are translated to LLVM instructions as discussed in
-sec.~\ref{sec:control}. For reason of reduced space, only the operations and
+sec.~\ref{sec:control}. For a reason of reduced space, only the operations and
 instructions will be presented with more details.
 
 Code generation is defined with a set of rules defined by structural
@@ -454,13 +454,13 @@ type $t$.
 \section{Conclusion and future work}
 \label{sec:conclusion}
 
-This paper presents the formal specification of a translation from a large
-subset of the B implementation language to LLVM, a modern compiler internal
-language.  Even though this is still a work in progress, the definition is
-self-contained and has a large enough scope to be applied to B implementations
-where the data belongs to basic types. This specification is a blueprint for a
-code synthesis tool for B that is currently being implemented. This tool will be
-distributed as an extension to Atelier-B under an open-source license.
+This paper presents the formal specification of a translation from a subset of
+the B implementation language to LLVM, a modern compiler internal language.
+Even though this is still a work in progress, the definition is self-contained
+and has a large enough scope to be applied to B implementations where the data
+belongs to basic types. This specification is a blueprint for a code synthesis
+tool for B that is currently being implemented. This tool will be distributed
+as an extension to Atelier-B under an open-source license.
 
 The next step is to extend the scope to the full B implementation language. This
 entails that the translation must be defined for aggregate data types and
