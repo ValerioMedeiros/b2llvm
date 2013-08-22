@@ -1,0 +1,1092 @@
+\documentclass{llncs}
+
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{amssymb}
+\usepackage[fleqn]{amsmath}
+\usepackage[colorlinks=false]{hyperref}
+\usepackage{xspace,framed,here,keystroke}
+\pagestyle{headings}
+\title{Translation of B Implementations to the LLVM: Control and Modularity}
+\author{David Déharbe \and Valério Medeiros Jr} 
+\institute{Program of Graduate Studies in Systems and Computing (PPgSC) \\
+  Federal University of Rio Grande do Norte \\
+  Natal (Brazil)}
+\date{May 2013}
+
+\newcommand{\trad}[2]{\ensuremath{\lVert \textsf{#1} \rVert^{\textit{#2}}}}
+\newcommand{\nl}[0]{\text{\Return}}
+\newcommand{\mty}[0]{\texttt{""}}
+\DeclareMathOperator{\conc}{\diamond}
+\DeclareMathOperator{\isdef}{\equiv}
+\DeclareMathOperator{\dom}{\mbox{dom}}
+\DeclareMathOperator{\lbl}{\mathcal{L}()}
+\DeclareMathOperator{\variable}{\mathcal{V}()}
+\newcommand{\llvm}[1]{\texttt{#1}}
+\newcommand{\B}[1]{\textsf{#1}}
+\newcommand{\lalt}[0]{$\langle$\xspace}
+\newcommand{\ralt}[0]{$\rangle$\xspace}
+\newcommand{\alt}[0]{$\mid\,$}
+\newcommand{\ListOf}[1]{$\mbox{#1}^+$}
+\newcommand{\nt}[1]{{\normalfont\textit{#1}}}
+\newcommand{\Dict}[0]{\mathbb{D}}
+\newcommand{\Text}[0]{\mathbb{T}}
+\newcommand{\IF}[0]{\textbf{ if }}
+\newcommand{\ELSIF}[0]{\textbf{ else if }}
+\newcommand{\ELSE}[0]{\textbf{ else }}
+\newcommand{\THEN}[0]{\textbf{ then }}
+\newcommand{\LET}[0]{\textbf{ let }}
+\newcommand{\IN}[0]{\textbf{ in }}
+\newcommand{\AND}[0]{\textbf{ and }}
+\newcommand{\PH}[1]{\framebox{$#1$}}
+\newcommand{\sep}[0]{\otimes}
+\newcommand{\intf}[0]{\ensuremath{\mathbb{I}}}
+\newcommand{\Global}[0]{\ensuremath{\sf\Gamma}}
+\newcommand{\local}[0]{\ensuremath{\sf\lambda}}
+\newcommand{\opmap}[0]{\ensuremath{\sf\Omega}}
+\newcommand{\idx}[0]{\ensuremath{\sf\Pi}}
+\newcommand{\state}[0]{\ensuremath{\sf\Sigma}}
+\newcommand{\tradi}[2]{\ensuremath{\langle \textsf{#1} \rangle^{\textit{#2}}}}
+
+\newcommand{\DD}[1]{\marginpar{\tiny{DD: #1}}}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+  The aim of this work is to lay the foundations of a multi-platform code
+  generator for the B method. In particular, this paper presents a translation
+  procedure from a large subset of the B language for implementations towards
+  LLVM source code. This translation is defined formally as a set of rules
+  defined recursively on the abstract syntax for B implementations. It handles
+  the following elements of the B language: simple data types, imperative
+  instructions and component compositions. 
+\end{abstract}
+
+\section{Introduction}
+
+B is a formal refinement-based software design method~\cite{Abrial1996}. It has
+a single language encompassing abstract constructs suitable for specification,
+as well as classic imperative constructs for computer programming. The starting
+point of a B development is a specification, called a \emph{machine}, that is
+incrementally refined to an \emph{implementation}, where only imperative-like
+constructs may be employed~\cite{Clearsy}. Such implementation may then be
+translated to source code in a programming language, say C~\cite{ComenC} or
+Ada. All steps in the B method are formally verified using certified theorem
+proving technologies. However the translation to some programming language and
+its subsequent compilation to the target platform do not benefit from the same
+mathematical rigor. In practice, redundancy in the tool chains and execution
+platform are employed to increase the level of confidence to the desired levels.
+
+The goal of this work is to connect the B method to the LLVM compilation
+framework~\cite{Lattner04LLVM}.  LLVM is a free, open-source project upon which
+many compiling contemporary technologies and tools are based. LLVM provides an
+intermediate assembly language upon which may be applied techniques such as
+optimization, static analysis, code generation, debugging, etc. Providing a
+connection from the B method to this framework gives the users of the B method
+access to these technologies. Our approach is to define a translation from B0
+(the subset of the B language that is used to describe imperative programs) to
+the LLVM intermediate format.
+
+Considering the correctness of the proposed translation, we shall rely upon
+human inspection for the time being. The standard uniform semantic framework for
+B and LLVM that would be necessary to carry out a proof of this correctness does
+not exist (yet). A possible approach to mitigate the risk of having an error in
+the translation would be to include assertions in the target code. Indeed the
+artifacts produced in the B development have many such assertions and it would
+be possible to translate at least some of them (B has an assertion instruction
+that introduces additional verification conditions in the development). The
+produced code could then be (at least partially) verified by testing the absence
+of assertion violations.
+
+\paragraph{Overview.} Following this introduction, the paper is organized as
+follows. The implementation constructs of the B language, and selected elements
+of the LLVM are presented in section~\ref{sec:b-impl}
+and~\ref{sec:llvm}. Section~\ref{sec:overview} presents a bird's-eye view that
+is then detailed in sections~\ref{sec:module} (for component modularity)
+~\ref{sec:data} (for data aspects),~\ref{sec:expr} (expressions) and
+instructions~\ref{sec:control}. We conclude and discuss future work
+in~\ref{sec:conclusion}.
+
+\section{Implementation Language in the B-method}
+\label{sec:b-impl}
+
+This section describes the B implementation constructs that are considered in
+the compilation to the LLVM. This description introduces the notations used in
+the definition of the translation. The elements of the B language are denoted
+using a \B{sans serif} font. 
+
+Figure~\ref{tab:node-attr} summarizes the structure
+of the abstract syntax that is relevant in the definition of the proposed
+translation and introduces identifiers used in the definition of the
+translation. For instance, and for the purpose of the translation, the relevant
+components of a B implementation are: \B{id}, the name identifying the
+implementation within the project; \B{see}, a set of references to other modules
+containing definitions used in the implementation; \B{const}, a set of constant
+names, their type and their values; \B{imp}, a sequence of optionally
+prefixed B machines corresponding to external modules instantiated in the
+implementation; \B{var}, a set of variable names, their type and possibly
+additional functional restrictions forming the rest of the state; \B{init}, a
+sequence of instructions executed upon initialization of the implementation;
+\B{op}, a set of operations, each being an algorithmic description of the
+different functionalities provided by the implementation.
+
+The initialization and the operations are defined as (sequences of)
+instructions. Operations also have a name, inputs and outputs. Possible
+instructions are the classic imperative constructs: variable assignment, if and
+case conditional, while loop, block with or without local variables, and
+operation calls. The if constructs may have several branches, each with a
+condition as well as an optional else branch. Called operations may be either
+local operations or operations of instances of external modules, in this case
+they have an optional prefix identifying the module. 
+
+Note that the translation presented in this paper only considers types \B{INT}
+(integer) and \B{BOOL} (Boolean). Accordingly, the expression language consists
+in arithmetic operations \B{-} (unary and binary), \B{+}, \B{*}, \B{/}, \B{mod},
+% \B{**} (exponentiation), 
+\B{succ} and \B{pred} and Boolean operations
+\B{$\land$}, \B{$\lor$}, \B{$\neg$} as well as relations \B{=}, \B{$\neq$},
+\B{$>$}, \B{$<$}, \B{$\leq$} and \B{$\neq$}. Atomic expressions are identifiers,
+Boolean constants \B{FALSE} and \B{TRUE}, integer literals, and integer
+constants \B{MAXINT} and \B{MININT}. The development through the application of
+the B method ensures the absence of overflows and underflows.
+
+\begin{figure}[H]
+  \begin{center}
+    {\footnotesize
+      \frame{
+    \begin{tabular}[t]{ccccc}
+      \begin{tabular}[t]{rcl}
+        \hline
+        \multicolumn{3}{|c|}{Implementation: \B{Impl}} \\
+        \hline
+        \B{id} & : & \B{Name} \\
+        \B{see} & : & seq \B{Name} \\
+        \B{imp} & : & seq \B{Impo} \\
+        \B{const} & : & seq \B{Cons} \\
+        \B{var} & : & seq \B{Vari} \\
+        \B{init} & : & seq \B{Inst} \\
+        \B{op} & : & seq \B{Oper} \\
+        \hline
+        \multicolumn{3}{|c|}{Imported machine: \B{Impo}} \\
+        \hline
+        \B{id} & : & \B{Name} \\
+        \B{pre} & : & opt \B{Name} \\
+        \hline
+        \multicolumn{3}{|c|}{Constant: \B{Cons}} \\
+        \hline
+        \B{id} & : & \B{Name} \\
+        \B{type} & : & \B{Type} \\
+        \B{val} & : & \B{Value} \\
+        \hline
+        \multicolumn{3}{|c|}{Variable: \B{Vari}} \\
+        \hline
+        \B{id} & : & \B{Name} \\
+        \B{type} & : & \B{Type} \\
+        \B{scope} & : & \B{Impl} \alt \B{Oper}
+        \\
+      \end{tabular}
+      & &
+      \begin{tabular}[t]{rcl}
+        \hline
+        \multicolumn{3}{|c|}{Operation: \B{Oper}} \\
+        \hline
+        \B{id} & : & \B{Name} \\
+        \B{inp} & : & seq \B{Vari} \\
+        \B{out} & : & seq \B{Vari} \\
+        \B{body} & : & \B{Inst}
+        \\
+        \hline
+        \multicolumn{3}{|c|}{Instruction: \B{Inst}} \\
+        \hline
+        \multicolumn{3}{c}{\B{Blk} \alt \B{VarD} \alt \B{If} \alt \B{BEq} \alt } \\
+        \multicolumn{3}{c}{\B{Call} \alt \B{While} \alt \B{Case}} \\
+        \hline
+        \multicolumn{3}{|c|}{Block: \B{Blk}} \\
+        \hline
+        \B{body} & : & seq \B{Inst} \\
+        \hline
+        \multicolumn{3}{|c|}{Variable declaration: \B{VarD}} \\
+        \hline
+        \B{vars} & : & seq \B{Name} \\
+        \B{body} & : & seq \B{Inst} \\
+        \hline
+        \multicolumn{3}{|c|}{If: \B{If}} \\
+        \hline
+        \B{branches} & : & seq \B{IfBr} \\
+        \hline
+        \multicolumn{3}{|c|}{Becomes equal: \B{Beq}} \\
+        \hline
+        \B{lhs} & : & \B{Vari} \\
+        \B{rhs} & : & \B{Expr} \\
+        \hline
+        \multicolumn{3}{|c|}{Operation call: \B{Call}} \\
+        \hline
+        \B{op} & : & \B{Name} \\
+        \B{pre} & : & opt \B{Name} \\
+        \B{inp} & : & seq \B{Expr} \\
+        \B{out} & : & seq \B{Name}
+        \\
+%         \\
+%         \hline
+%         \multicolumn{3}{|c|}{Case conditional: \B{Case}} \\
+%         \hline
+%         \B{expr} & : & \B{Expr} \\
+%         \B{branches} & : & seq \B{CaseBr}
+      \end{tabular}
+      & &
+      \begin{tabular}[t]{rcl}
+        \hline
+        \multicolumn{3}{|c|}{While loop: \B{While}} \\
+        \hline
+        \B{cond} & : & \B{Pred} \\
+        \B{body} & : & \B{Inst}
+        \\
+        \hline
+        \multicolumn{3}{|c|}{If branch: \B{IfBr}} \\
+        \hline
+        \B{cond} & : & opt \B{Pred} \\
+        \B{body} & : & \B{Inst} \\
+%         \hline
+%         \multicolumn{3}{|c|}{Case branch: \B{CaseBr}} \\
+%         \hline
+%         \B{val} & : & seq \B{Value} \\
+%         \B{body} & : & \B{Inst} \\
+        \hline
+        \multicolumn{3}{|c|}{Expression: \B{Expr}} \\
+        \hline
+        \multicolumn{3}{c} {\B{Lit} \alt \B{Term} \alt \B{Pred}} \\
+        \hline
+        \multicolumn{3}{|c|}{Term expression: \B{Term}} \\
+        \hline
+        \B{op} & : & \B{ArithOp} \\
+        \B{args} & : & seq \B{Exp} \\
+        \hline
+        \multicolumn{3}{|c|}{Predicate: \B{Pred}} \\
+        \hline
+        \multicolumn{3}{c}{\B{Form} \alt \B{Comp}} \\
+        \hline
+        \multicolumn{3}{|c|}{Boolean formula: \B{Form}} \\
+        \hline
+        \B{op} & : & \B{BoolOp} \\
+        \B{args} & : & seq \B{Pred} \\
+        \hline
+        \multicolumn{3}{|c|}{Comparison: \B{Comp}} \\
+        \hline
+        \B{op} & : & \B{RelOp} \\
+        \B{arg1}, \B{arg2} & : & \B{Exp} \\
+        \hline
+        \multicolumn{3}{|c|}{Data type: \B{Type}} \\
+        \hline
+        \multicolumn{3}{c}{\B{INT} \alt \B{BOOL}}
+      \end{tabular}
+    \end{tabular}
+  }
+  }
+    \caption{Abstract syntax structure of a B implementation.  For each abstract
+      syntax element, we give the name of the class (e.g. \B{CaseBr} for a
+      branch in a case instruction, and the different attributes of the class),
+      or a list of the possible sub-classes (e.g. \B{Inst} for the different
+      kinds of instructions).
+      Sequence and optional attributes are denoted ``seq'' and ``opt'',
+      respectively}
+    \label{tab:node-attr}
+  \end{center}
+\end{figure}
+\DD{Include \B{Vari} as one of the alternative for an \B{Expr}.}
+\DD{Restore \B{Case} and \B{CaseBr}.}
+
+\section{Target LLVM Subset}
+\label{sec:llvm}
+
+LLVM aims to be a general, language agnostic, intermediate representation for
+compilers. The compiler front-end translates the source programming language to
+LLVM source code, upon which optimization and other static analysis tasks may be
+performed, and the compiler back-end translates to the target platform assembly
+language. One key feature of LLVM is that it is a single-static assignment (SSA)
+language: a variable may only be assigned once. So for each assignment to a
+variable found in the source language, the front-end shall generate a new
+temporary variable in the LLVM program. For illustration,
+figure~\ref{fig:ex-llvm} presents a LLVM program (for clarity, the corresponding
+C code appears on the left) with two temporary variables \llvm{\%0} and
+\llvm{\%1}.
+\begin{figure}
+\vspace*{-3em}
+  \begin{minipage}[t]{.3\textwidth}
+    \begin{tabbing}
+      foo \= \kill  \\
+      void inc(int * pi) \{\\
+      \> *pi += 1; \\
+      \}\end{tabbing}
+  \end{minipage}
+  \hfill
+  \begin{minipage}[t]{.6\textwidth}
+    \begin{tabbing}
+      foo \= \kill  \\
+      \llvm{define void @inc(i32* \%pi) nounwind \{} \\
+      \llvm{entry:}                      \\
+      \> \llvm{\%0 = load i32* \%pi}     \\
+      \> \llvm{\%1 = add i32 \%0, 1}     \\
+      \> \llvm{store i32 \%1, i32* \%pi} \\
+      \> \llvm{ret void} \\
+      \llvm{\}}
+    \end{tabbing}
+  \end{minipage}
+  \caption{Simple example of a C function and its corresponding LLVM function.
+    The first line contains the signature: return type \llvm{void}, the name
+    \llvm{@inc} and one parameter named \llvm{\%pi} and typed \llvm{i32*}.  Next
+    is the body with a single block, labeled \llvm{entry}, and temporary
+    variables \llvm{\%0} and \llvm{\%1}, created in the conversion to SSA. The
+    block has four instructions: \llvm{load}, \llvm{add}, \llvm{store} and
+    \llvm{ret}. For instance, \llvm{\%1 = add i32 \%0, 1} is an addition
+    (\llvm{add}), has result type \llvm{i32} and assigns to
+    \llvm{\%1} the sum of variable \llvm{\%0} and integer
+    literal \llvm{1}.}
+  \label{fig:ex-llvm}
+\end{figure}
+
+The introduction to the LLVM that follows is focused in the features
+that are relevant for the representation of B
+implementations. Figure~\ref{fig:llvm-grammar} presents a grammar of this subset
+of the LLVM. 
+
+\begin{figure}
+  \begin{center}
+    \begin{tabular}{rcl}
+      \nt{module} & ::= & \ListOf{\nt{item}} \\
+      \nt{item} & ::= & \nt{const\_decl} \alt \nt{function\_decl} \alt \nt{type\_def} 
+      \alt \nt{const\_def} \alt \nt{var\_def} \alt \nt{function\_def} \\
+      \nt{const\_decl} & ::= & \nt{name} \llvm{=} \llvm{external} \llvm{constant} \nt{type} \\
+      \nt{type\_def} & ::= & \nt{name} \llvm{=} \llvm{type} \nt{type} \\
+      \nt{type} & ::= & \llvm{void} \alt \nt{itype} \alt \llvm{\{} \ListOf{\nt{type}} \llvm{\}} \alt \nt{type}\llvm{*} \\
+      \nt{const\_def} & ::= & \nt{name} \llvm{=} \llvm{constant} \nt{type} \nt{iliteral} \\
+      \nt{var\_def} & ::= & \nt{name} \llvm{=} \llvm{common} \llvm{global} \nt{type} \llvm{zeroinitializer} \\
+      \nt{function\_decl} & ::= & \llvm{declare} \nt{type} \nt{name} \llvm{(} \ListOf{\nt{type}} \llvm{)}\\
+      \nt{function\_def} & ::= & \llvm{define} \nt{type} \nt{name} \llvm{(} \ListOf{\nt{param}} \llvm{)} \llvm{\{} \ListOf{\nt{block}} \llvm{\}} \\
+      \nt{param} & ::= & \nt{type} \nt{name} \\
+      \nt{block} & ::= & \nt{lbl} \llvm{:} \ListOf{\nt{inst}} \\
+      \nt{inst} & ::=  & \nt{name} \llvm{=} \llvm{alloca} \nt{type} \\
+      & \alt & \nt{name} \llvm{=} \lalt \llvm{add} \alt \llvm{sub} \alt \llvm{mul} \alt \llvm{sdiv} \alt \llvm{srem} \ralt \nt{itype} \nt{exp} \llvm{,} \nt{exp} \\
+      & \alt & \nt{name} \llvm{=} \llvm{icmp} \lalt \llvm{eq} \alt \llvm{sub} \alt \llvm{mul} \alt \llvm{sdiv} \alt \llvm{srem} \ralt \llvm{i1} \nt{exp} \llvm{,} \nt{exp}\\
+      & \alt & \nt{name} \llvm{=} \llvm{call} \nt{type} \llvm{(} \ListOf{\nt{arg}} \llvm{)} \\
+      & \alt & \nt{name} \llvm{=} \llvm{getelementptr} \nt{type} \llvm{*} \nt{exp}\llvm{,} \nt{index}\llvm{,} \nt{index} \\
+      & \alt & \nt{name} \llvm{=} \llvm{load} \nt{type} \nt{exp} \\
+      & \alt & \llvm{store} \nt{type} \nt{exp}, \nt{type} \llvm{*} \nt{exp} \\
+      & \alt & \llvm{br} \llvm{i1} \nt{exp} \llvm{,} \llvm{label} \nt{lbl} \llvm{,} \llvm{label} \nt{lbl} \\
+      & \alt & \llvm{br} \llvm{label} \nt{lbl} \\
+%       & \alt & \llvm{switch} \nt{type} \nt{exp} \llvm{,} \llvm{branch} \nt{lbl} \llvm{[} \ListOf{\nt{branch}} \llvm{]} \\
+      & \alt & \llvm{ret} \lalt \nt{type} \nt{exp} \alt \llvm{void} \ralt \\
+      \nt{exp} & ::= & \nt{name} \alt \nt{iliteral} \alt \llvm{getelementptr} \llvm{(} \nt{type} \nt{exp} \llvm{,} \nt{index} \llvm{,} \nt{index} \llvm{)} \\
+      \nt{index} & ::= & \nt{itype} \nt{iliteral} \\
+      \nt{branch} & ::= & \nt{iliteral} \nt{iliteral} \nt{lbl} \\
+      \nt{arg} & ::= & \nt{type} \nt{exp}
+    \end{tabular}
+  \end{center}
+  \caption{Grammar of the target LLVM subset: \nt{itype}, \nt{iliteral}, \nt{lbl}
+    and \nt{name} correspond respectively to integer types, integer literals,
+    labels and names. Choices are separated by \alt and optionally delimited by
+    \lalt and \ralt.  The \ListOf{} superscript denotes a comma-separated list of
+    elements of the annotated entity.}
+  \label{fig:llvm-grammar}
+\end{figure}
+
+LLVM programs are organized into modules, one per translation unit. A module may
+contain declarations of external entities (functions, constants) and definitions
+of internal items (functions, variables, constants). All data is explicitly
+typed. The name and type of external entities must be declared.  All names,
+e.g. non-reserved identifiers, shall start with \llvm{@}, when they are global,
+or\llvm{\%}, when they are local. For instance, \llvm{@max = external constant
+  i32} declares \llvm{@max} as a 32-bit integer constant and \llvm{declare void
+  @inc(i32*)} declares \llvm{@inc} as a function having as parameter a pointer
+to an integer and \llvm{void} as a return type.
+
+The type system contains the empty type \llvm{void}, an infinite, countable
+number of integer types, one for each possible bit width (e.g. \llvm{i8} is the
+type for 8-bit integers), and type constructors pointer (monadic \llvm{$\cdot$
+  *}) and structure (polyadic \llvm{\{$\cdots$\}}). For instance \llvm{\{ i8*,
+  i8, i8 \}} is the type for structures with three fields, the first having as
+type pointer to \llvm{i8}. Grammar rule \nt{type\_def} states how types are
+named, e.g.: \llvm{\%T1 = type \{i32, i32\}} and \llvm{\%T2 = type \{\%T1 *,
+  \%T1 *\}}. Note that there is no \llvm{void *} type in the LLVM, instead
+pointer values are of integer types. 
+
+Local entities are constants, variables or functions. An example of constant
+definition is \llvm{@secret = constant i32 42}, it is composed of a name, type
+and value. The elements of a variable definition are the name, type and code
+generation attributes, e.g \llvm{@count = common global i32 zeroinitializer}.
+Attributes \llvm{common}, \llvm{global} and \llvm{zeroinitializer} provide
+information for target code generation: linkage type (the variable is merged
+with other of the same name), the scope (global) and initialization of the
+variable (zeroed is mandatory for common linkage). LLVM defines other attributes
+for these aspects, but they are not needed in this work and their presentation
+is omitted.  Function definitions are composed of the signature and body. The
+signature contains the return type, name, parameters, and attributes for target
+code generation. Attribute \llvm{nounwind} states that the function never
+generate exceptions. The body is a sequence of blocks of instructions in
+single-static assignment (SSA) form, i.e. are such that each variable may be
+assigned exactly once.
+
+The grammar rule \nt{inst} describes the different kind of
+instructions. Instruction \llvm{alloca} allocates a memory block the size of the
+given type from the stack segment. This and the following classes of
+instructions assign the resulting value to a fresh variable. Arithmetic
+operations are binary, and include signed quotient and reminder. Arithmetic
+comparisons compare two values according to the first operand and return a 1-bit
+integer value.  Instruction \llvm{call} invokes the given function with the
+given arguments and assigns the result to a fresh variable, which is of the
+given type.  In general, \llvm{getelementptr} gets the address of an element in
+an aggregate object through indexing. In the target LLVM subset, aggregate
+objects are structures, the first index has type \llvm{i32} and value \llvm{0}
+to select the first structure at the given location \nt{exp}, and the second
+index selects a field in that structure.  Instruction \llvm{load} assigns to a
+fresh variable \nt{name} the contents of a memory address of type \nt{type}
+specified by \nt{exp} (e.g. in fig.~\ref{fig:ex-llvm}).  Instruction
+\llvm{store} writes a value to memory address (again, see
+fig.~\ref{fig:ex-llvm}).  Instruction \llvm{br} has two forms.  In the first
+form, it directs conditionally the control flow to one of two blocks.  If the
+given expression evaluates to \llvm{1}, control goes to the first block,
+otherwise to the second. In the second form, the control jumps unconditionally
+to the given block.
+% Instruction \llvm{switch} directs the
+% control flow to one of several blocks. The given expression is evaluated and
+% control goes to the first branch with the matching value, or to the default
+% branch (appearing first in the instruction).  
+Finally, instruction \llvm{ret}
+ends the current function call, optionally returning a value.
+
+The expression language is limited to names (local and global), integer literals
+and selection of an element in a structure.
+
+\section{Translation: a Bird's-Eye View}
+\label{sec:overview}
+
+The translation unit is the B implementation, say \B{M}, and is mapped to a LLVM
+module, say \llvm{M}. A B implementation \B{M} has several sections, each
+translated as follows:
+\begin{enumerate}
+\item Visibility clauses provide access to definitions found in external
+  B components and are translated to external declarations in LLVM.
+\item Constants and value definitions are translated to LLVM constants. To avoid
+  name conflicts, a B constant named \B{cst} is translated to a LLVM constant
+  named \llvm{@M\$cst} (the rules for name construction avoid possible conflicts).
+\item To encode the implementation state, the translation produces a
+  structure type, named \llvm{\%M\$state\$}, and an instance of that type, named
+  \llvm{@M\$self\$}. All the variables and instances of imported machines
+  are encoded as elements of that structure.  Also, for each operation of each
+  imported machine, an external function declaration is produced.
+\item Each operation \B{op} of the implementation is translated into the
+  definition of a function named \llvm{@M\$op}; also the translation produces a
+  special function \llvm{@M\$init\$} responsible for the initialization.
+
+  The parameter list of the functions thus produced contain one item for each
+  input and output of the corresponding operation, and one item of type
+  \llvm{\%M\$state\$*}, to pass the address of the structure encoding the
+  state of the implementation and its modification by the callee. The return
+  type is always \llvm{void}.
+\end{enumerate}
+This approach assumes that information on external B components used in \B{M} is
+available during translation. To fulfill this hypothesis, the translation
+produces an ``interface'' artifact containing the information that the
+translation of an importation of \B{M} in a client machine
+requires. Figure~\ref{fig:skel} summarizes the translation principles by
+providing the structure of both the interface and the LLVM implementation thus
+produced.
+
+\begin{figure}
+  \begin{center}
+    (a) Structure of the interface artifact produced from a B implementation \B{M}:
+    \begin{tabbing}
+      foo \= foo \= \kill
+      \textit{(references to imported components)} \\
+      \llvm{\%M\$state\$ = type \{ \ListOf{\nt{type}} \}} \\
+      \llvm{declare void @M\$init\$(\%M\$state\$*)} \\
+      \textit{for each constant} \B{cst} \textit{generate} \\
+      \> \llvm{@M\$cst = constant \nt{itype} \nt{iliteral}} \\
+      \textit{for each operation} \B{op} \textit{generate} \\
+      \> \llvm{declare void @M\$op(\%M\$state\$*, \ListOf{\nt{type}})} \\
+    \end{tabbing}
+    (b) Structure of the LLVM module produced from a B implementation \B{M}:
+    \begin{tabbing}
+      foo \= foo \= \kill
+      \textit{for each imported component} \B{Q} \textit{generate} \\
+      \> \llvm{\%Q\$state\$ = type \{ \ListOf{\nt{type}} \}} \\
+      \> \llvm{declare void @Q\$init\$(\%Q\$state\$*)} \\
+      \> \textit{for each constant} \B{cst} \textit{generate} \\
+      \> \> \llvm{@Q\$cst = external constant \nt{itype}} \\
+      \> \textit{for each operation} \B{op} \textit{generate} \\
+      \> \> \llvm{declare void @Q\$op(\%Q\$state\$*, \ListOf{\nt{type}})} \\
+      \textit{for each constant} \B{cst} \textit{generate} \\
+      \> \llvm{@M\$cst = constant \nt{itype} \nt{iliteral}} \\
+      \llvm{\%M\$state\$ = type \{ \ListOf{\nt{type}} \}} \\
+      \llvm{@M\$self\$ = common global \%M\$state\$ zeroinitializer} \\
+      \llvm{define void @M\$init\$(\%M\$state\$* \%self\$) \{} \\
+      \> \llvm{\ListOf{\nt{block}}} \\
+      \> \llvm{exit: ret void} \\
+      \llvm{\}} \\
+      \textit{for each operation} \B{op} \textit{generate} \\
+      \> \llvm{define void @M\$op(\%M\$state\$* \%self\$, \ListOf{\nt{param}}) \{} \\
+      \> \> \llvm{\ListOf{\nt{block}}} \\
+      \> \> \llvm{exit: ret void} \\
+      \> \llvm{\}}
+    \end{tabbing}
+  \end{center}
+  \caption{Skeleton of the artifacts produced by the translation.}
+  \label{fig:skel}
+\end{figure}
+
+The detailed presentation of the translation of the different elements of a B
+implementation is divided into:
+\begin{description}
+\item[Modularity] constructs to combine B components are described in
+  sec.~\ref{sec:module}.
+\item[Data] translation is briefly described sec.~\ref{sec:data}, including
+  the encoding of B data types.
+\item[Expressions] and conditions are codified as LLVM instruction blocks, as
+  described in section~\ref{sec:expr}.
+\item[Control] flow, instructions are translated to LLVM instructions as
+  discussed in sec.~\ref{sec:control}, which also presents the encoding
+  of B operations and initialization.
+\end{description}
+
+Code generation is defined with a set of rules defined by structural
+recursion. For each grammatical construct, a code generation function is
+defined: $\trad{~}{\B{Oper}}$ for operations, $\trad{~}{\B{Inst}}$ for
+instructions, $\trad{~}{\B{Expr}}$ for expressions and so forth. Each such
+function usually produces a text corresponding to bits of LLVM source code. It
+may have additional parameter and results. The symbol $\sep$ is used to clearly
+separate composed results. Auxiliary functions are introduced for
+conveniency. To abbreviate the presentation, we denote
+$\trad{~}{\ListOf{\B{A}}}$ as the translation function for sequences of \B{A}
+elements, defined as the concatenation of the application of $\trad{~}{\B{A}}$
+to the elements of the sequence.
+
+In those rules, $\PH{t}$ indicates a text place-holder where the value of $t$
+shall be inserted and $\nl$ denotes a new line. For instance, we define
+$\local(\B{n}) \isdef \llvm{"\%\PH{\B{n.id}}"}$ as a function that given an
+element \B{n} of the abstract syntax tree returns the corresponding LLVM local
+name, obtained by prepending character \% to its identifier; and $\Global(\B{n})
+\isdef \llvm{"@\PH{\B{n.root.id}}\$\PH{\B{n.id}}"}$ yields the corresponding
+LLVM global name, composed by special characters (to avoid name conflicts), the
+name of the component where it is defined and its own name. Also $\state(\B{M})
+\isdef \llvm{"\%\PH{\B{M.id}}\$state\$"}$ yields the name of the type for the
+state of component \B{M}. We assume an unlimited supply of labels and local
+variables: we use $\lbl$ to return a fresh LLVM label and $\variable$ for a
+fresh local variable name.
+
+\section{Translation: Modularity Aspects}
+\label{sec:module}
+
+The translation of a B module produces two artifacts: an interface and an (LLVM)
+implementation. In the following, we describe how they are produced.
+
+\subsection{Interface}
+
+The definition of the interface $\intf(\B{M})$ of a component \B{M} has four
+key elements, as shown in figure~\ref{fig:skel} (b):
+\begin{enumerate}
+\item $\intf(\B{M})_u$ is the list of used components: $\intf(\B{M})_u \isdef \B{M.imp}$.
+
+\item $\intf(\B{M})_t$ is a textual description of the type representing the
+  state of the component, i.e. a structure with one element per imported
+  component and variable:
+\begin{small}
+$$\intf(\B{M})_t \isdef \llvm{"\{\PH{\trad{\B{M.imp}}{\ListOf{\B{Impo}}}_t} \PH{\trad{\B{M.var}}{\ListOf{\B{Vari}}}_t} \}"},$$
+\end{small}
+where $\trad{\B{i}}{\B{Impo}}_t \isdef \llvm{\state(\B{i})}$ and
+$\trad{\B{v}}{\B{Vari}}_t \isdef \trad{\B{v.type}}{\B{Type}}$.
+
+\item $\intf(\B{M})_c$ is the definition of the component constants. It maps
+the constant names to their type:
+$\intf(\B{M})_c \isdef \trad{\B{M.const}}{\ListOf{\B{Cons}}}$ and
+$\trad{\B{c}}{\B{Cons}} \isdef \B{c} \mapsto \trad{\B{c.type}}{\B{Type}}$.
+
+\item $\intf(\B{M})_o$ represents the operation declarations. It maps
+operation names to the list of input parameter types and output parameter
+types:
+$\intf(\B{M})_o \isdef \trad{\B{M.op}}{\ListOf{\B{Oper}}}_t$ and
+$\trad{\B{o}}{\B{Oper}}_t \isdef \B{o} \mapsto ( \trad{\B{o.inp}}{\ListOf{inp}} \sep \trad{\B{o.out}}{\ListOf{out}} )$, where
+$\trad{\B{i}}{inp} \isdef \trad{\B{i.type}}{\B{Type}}$ and
+$\trad{\B{o}}{out} \isdef \llvm{"\PH{\trad{\B{o.type}}{\B{Type}}}*"}$.
+\end{enumerate}
+
+\subsection{Implementation}
+
+The actual LLVM source code is generated following the template shown in
+figure~\ref{fig:skel} (a), as follows:
+\begin{align*}
+  \lefteqn{\trad{\B{i}, \intf}{\B{Impl}} \isdef
+  \llvm{"\PH{\trad{\B{i.imp}, \intf}{\ListOf{IType}}}} 
+  \quad \PH{\trad{\B{i.imp}, \intf}{\ListOf{IInit}}}
+  \quad \PH{\trad{\B{i.imp}, \intf}{\ListOf{ICons}}}} \\
+& \llvm{\PH{\trad{\B{i.imp}, \intf}{\ListOf{IOper}}}
+  \quad \PH{\trad{\B{i.id}, \B{i.const}}{\ListOf{\B{Cons}}}}
+  \quad \PH{\trad{\B{i}}{State}}} \\
+& \llvm{@\PH{\B{i.id}}\$self\$ = common global \PH{\state(\B{i.id})} zeroinitializer \nl} \\
+& \llvm{\PH{\trad{\B{i.init}}{Init}} 
+  \quad \PH{\trad{\B{i.op}}{\ListOf{\B{Oper}}}}"}
+\end{align*}
+We shall now define each rule referenced in this template.
+\begin{enumerate}
+\item For the type definitions corresponding to the state of the imported
+  components: $\trad{i, \intf}{IType} \isdef \llvm{"\PH{\state(\B{i})} =
+    type \PH{\intf(\B{i})_t}\nl"}$.
+\item For the declarations of the initialization functions in the imported
+  components: $\trad{\B{i}, \intf}{Init} \isdef \llvm{"declare void
+    @\PH{\B{i.id}}\$init\$(\PH{\state(\B{i.id})}*)\nl"}$.
+\item For the definitions of the imported constants: $\trad{\B{i}, \intf}{ICons}
+  \isdef \trad{$\intf(\B{i})_c$}{\ListOf{Cons}}$, where
+  \noindent $\trad{$\B{c} \mapsto t)$}{Cons} \isdef \llvm{"\PH{\Global(\B{c})} =
+    external constant \PH{t}\nl"}$.
+\item For the declarations of the imported operations: $\trad{\B{i},
+    \intf}{IOper} = \trad{\B{i.id}, $\intf(\B{i})_o$}{\ListOf{Oper}}$ where
+  $\trad{\B{Q}, $\B{op} \mapsto (i, o)$}{Oper} = \llvm{"declare void
+    \PH{\Global(\B{op})}(\PH{\state(\B{Q})}*,\PH{i},\PH{o})"}$.
+\item The translation of constant definitions is presented in section~\ref{sec:data}.
+\item For the definition of the type for component states: \\
+\noindent$\trad{\B{M}}{State} \isdef
+\llvm{"\PH{\state(\B{M})} = type \PH{\intf(\B{M})_t}\nl"}$.
+\item For the initialization, the definition of a function is generated. It
+  first initializes the imported modules and then the current module (see
+  section~\ref{sec:control}).
+\item For each operation, a function definition is generated (see
+  section~\ref{sec:control}).
+\end{enumerate}
+Let $\idx$ be a function that maps each imported machine and state variable to
+its position (starting from zero).
+\section{Translation: Data}
+\label{sec:data}
+
+The translation presented in this paper is currently limited to integers and
+booleans. In the case of integers, the translation is based on the supposition
+that the B0 definition of \B{INT} is the range $-2^{31}.. 2^{31}-1$. We have
+$\trad{BOOL}{\B{Type}} \isdef \llvm{i1}$ and $\trad{INT}{\B{Type}} \isdef
+\llvm{i32}$.
+
+B constants are translated to constants in the LLVM program, as described in the
+following rule, where parameter \B{c} denote the constant, $M$ the name of the
+module and $\Global$ is the mapping between source and target identifiers. Two
+results are produced: the LLVM source code and an updated identifier mapping:
+\begin{small}
+\begin{align*}
+  \trad{\B{c}}{\B{Cons}} \isdef \llvm{"\PH{\Global(\B{c})} = constant \PH{\trad{\B{c.type}}{\B{Type}}} \PH{\trad{\B{c.val}}{\B{Expr}}} \nl"}
+\end{align*}
+\end{small}
+
+The definition of the translation for expressions is described next in
+section~\ref{sec:expr}.
+
+\section{Translation: Expressions
+  \label{sec:expr}}
+
+To evaluate a composed expression using the LLVM, one must first generate a
+sequence of instructions to evaluate each argument, the resulting value being
+stored in a temporary variable, and second generate an instance of the LLVM
+instruction corresponding to the expression argument.  Translation of
+expressions is defined as functions that take as input some class of expressions
+and produce a triple of strings $p \sep v \sep t$, where $p$ is a possibly empty
+sequence of instructions required in the evaluation (e.g.  for the
+sub-expressions), $v$ is the LLVM expression representing the resulting value,
+and $t$ represents the LLVM type of the expression. In the case of composed
+predicates, though, the evaluation is different as boolean operations need to be
+implemented with conditional and unconditional jumps.
+
+To facilitate the defintiion of rules that apply to similar cases, we introduce
+mapping $\opmap$, that associates B operators to corresponding LLVM keywords:
+$$\opmap = \{ 
+\begin{array}[t]{l}
+  = \mapsto \llvm{"eq"}, 
+  \ne \mapsto \llvm{"ne"}, 
+  < \mapsto \llvm{"slt"}, 
+  \le \mapsto \llvm{"sle"}, 
+  > \mapsto \llvm{"sgt"}, 
+  \ge \mapsto \llvm{"sge"}, \\
+  + \mapsto \llvm{"add"} \}.
+  \end{array}
+$$
+
+\paragraph{Atomic expressions} have a simple translation. In the case of
+literals, one only needs to issue the corresponding LLVM literal:
+$\trad{TRUE}{\B{Lit}} \isdef \llvm{""} \sep \llvm{"1"} \sep \llvm{"i1"}$,
+$\trad{FALSE}{\B{Lit}} \isdef \llvm{""} \sep \llvm{"0"} \sep \llvm{"i1"}$ and
+$\trad{l}{\B{Lit}} \isdef \llvm{""} \sep \llvm{"\PH{l}"} \sep \llvm{"i32"}$ when
+$\B{l.type} = \B{INT}$.
+
+For identifiers, three cases are possible: global constants, local variables,
+and module state variables. For state variables, the translation issues
+statements to assign the address of the corresponding element in the state
+structure to pointer variable $p$ and then dereference $p$ to assign $v$:
+\begin{align*}
+\lefteqn{\trad{n}{\B{Name}} \isdef \LET t = \trad{n.type}{\B{Type}} \IN} \\
+& \IF \B{n} \mbox{ is a constant } \THEN \llvm{""} \sep \Global(\B{n}) \sep t \\
+& \ELSIF \B{n} \mbox{ is a local variable } \THEN 
+\llvm{""} \sep \local(\B{n}) \sep t \\
+& \ELSE (\B{n} \mbox{ is a state variable }) \LET p = \variable \AND v = \variable \IN \\
+& \quad \llvm{"\PH{p} = getelementptr \%self\$, i32 0, i32 \PH{\idx(\B{n})} \nl} \\
+& \quad \llvm{\PH{v} = load \PH{t}* \PH{p}\nl"} \sep v \sep t
+\end{align*}
+
+\paragraph{Comparisons} are formed by the application of a relational operator
+to two expressions. 
+
+The code responsible for evaluating a comparison \B{r} is defined by the
+following rule. First both arguments are evaluated in $p_1$ and $p_2$, and then
+an instance of the LLVM comparison instruction \llvm{icmp} is used to compare
+the temporary variables $v_1$ and $v_2$, of type $t_1 = t_2$, storing the result
+in the fresh variable $v$.
+\begin{align*}
+\lefteqn{\trad{r}{\B{Comp}} \isdef
+  \LET
+  p_1 \sep v_1 \sep t_1 = \trad{r.arg1}{\B{Expr}} \AND
+  p_2 \sep v_2 \sep t_2 = \trad{r.arg2}{\B{Expr}}} \\
+& \IN \LET v = \variable \IN \\
+& \llvm{"\PH{p_1}\quad\PH{p_2}\quad\PH{v} = icmp \PH{\opmap(\B{r.op})} \PH{t_1} \PH{v_1} \PH{v_2} \nl"} \sep v
+\end{align*}
+   
+\paragraph{Arithmetic operations}\DD{Actually some arithmetic operations are not binary and different translation rules shall be written.} have a similar 
+structure and interpretation as comparisons. Here is the rule for binary
+arithmetic operations:
+\begin{align*}
+\lefteqn{\trad{r}{\B{Term}} \isdef
+  \LET
+  p_1 \sep v_1 \sep t_1 = \trad{r.arg1}{\B{Expr}} \AND
+  p_2 \sep v_2 \sep t_2 = \trad{r.arg2}{\B{Expr}}} \\
+& \IN \LET v = \variable \IN \\
+& \llvm{"\PH{p_1}\quad\PH{p_2}\quad\PH{v} = i32 \PH{\opmap(\B{r.op})} \PH{t_1} \PH{v_1} \PH{v_2} \nl"} \sep v \sep \llvm{i32}
+\end{align*}
+   
+Next is the translation of the unary \B{succ} operator:
+\begin{align*}
+  \trad{n}{\B{succ}} \isdef & \textbf{ let } p \sep v \sep t =
+  \trad{n.arg}{\B{expr}} \IN \LET w = \variable \IN \\
+  & \llvm{"\PH{p} \quad \PH{w} = add i32 1, \PH{v} \nl"} \sep w \sep \llvm{i32}
+\end{align*}
+
+\paragraph{Predicates}
+The translation of conditions takes as input a condition node \B{n}, as well as
+two labels $\ell_t$ and $\ell_f$ that correspond to program locations where the
+execution shall jump when the condition is evaluted to true or false,
+respectively.  The first rule defines the translation of an atomic relation:
+\begin{align*}
+  \lefteqn{\trad{n, $\ell_t$, $\ell_f$}{\B{Form}} \isdef
+  \textbf{ let } p \sep v = \trad{n}{\B{Comp}} \IN} \\
+  & \llvm{"\PH{p} \quad br i1 \PH{v}, label \PH{\ell_t}, label \PH{\ell_f} \nl"}
+\end{align*}
+
+\noindent The translation for negation is simply: $\trad{not f, $\ell_t$,
+  $\ell_f$}{\B{not}} \isdef \trad{f, $\ell_f$, $\ell_t$}{\B{Form}}$.  The
+following rule handles the case of conjunctions. Note that it produces code with
+a ``short-cut'' when the evaluation of the first argument yields false:
+\begin{align*}
+\begin{split}
+  \lefteqn{\trad{n, $\ell_t$, $\ell_f$}{\B{and}} \isdef \LET \ell = \lbl \IN} \\
+  & \LET p_1 = \trad{n.arg1, $\ell$, $\ell_f$}{\B{Form}}
+  \AND p_2 = \trad{n.arg2, $\ell_t$, $\ell_f$}{\B{Form}} \IN \\
+  & \quad \llvm{"\PH{p_1} \PH{\ell} :  \nl \PH{p_2}"}
+\end{split}
+\end{align*}
+The definition of the translation for disjunctions is similar and is omitted.
+
+\section{Translation: Control Flow and Instructions
+\label{sec:control}}
+
+This section addresses how operations in B implementations are translated to
+LLVM functions. It also discusses initialization, which might be seen as a
+special kind of operation. For operations, the presentation of the translation
+is divided into three steps: the signature, the local data, and the body
+instructions.
+
+The signature of the function is composed of the name of the function, the
+result type, the name and type of the parameters. The signature may carry other
+information such as linkage, visibility, calling convention, etc. The B parser
+provides this information after the type checking phase has been completed.  On
+the one hand LLVM functions may only have one result, on the other hand B0
+operations may produce several results. The translation of output parameters
+will be function parameters passed by reference, i.e. they are pointers. For
+uniformity of treatment, the return type of the produced LLVM functions is
+\llvm{void}. Translation of operation headers is defined in
+sec.~\ref{sec:trad-header}. The memory to store local variables is allocated on
+the stack, using the \llvm{alloca} instruction. We describe a function in
+sec.~\ref{sec:trad-alloc} that, applied to a B operation, returns the name and
+type of its local variables used in the operation. These names are translated to
+conform to LLVM restrictions. The body of the operation has to be transformed to
+a sequence of LLVM blocks of statements. For each kind of instruction one (or
+more) translation function is defined. The details are provided in
+section~\ref{sec:trad-instr}.  The results of the translation of each aspect are
+combined as follows:
+\begin{align*}
+\begin{split}
+  \lefteqn{\trad{\B{op}}{\B{oper}} \isdef} \\
+  & \LET h = \trad{\B{op}}{sig} \AND   a = \trad{\B{op.body}}{alloc} \AND i = \trad{\B{op.body}, \llvm{exit}}{\ListOf{\B{Inst}}}_L \IN  \\
+  & \llvm{"define void \PH{h} \{\nl} \\
+  & \quad \llvm{entry:\nl} \\
+  & \quad \quad \PH{a} \\
+  & \quad \quad \PH{i} \\
+  & \quad \llvm{exit: ret void\nl} \\
+  & \llvm{\}\nl"}
+\end{split}
+\end{align*}
+
+Initialization of a B implementation shares many characteristics with operations
+but needs to deal with initialization of imported modules. It is discussed in
+sec.~\ref{sec:trad-init}.
+
+\subsection{Sub-routines signatures}
+\label{sec:trad-header}
+
+The following rule specifies the translation of operation headers. Its
+parameters are the operation identifier, inputs, outputs, the name of the
+machine it belongs to, and the results are the LLVM function definition
+header: \\
+\noindent$\trad{\B{o}}{sig} \isdef \llvm{"\PH{\Global(\B{o})}(\PH{\state(\B{o.root})}* \%self\$, \PH{\trad{\B{o.inp}}{\ListOf{inp}}}, \PH{\trad{\B{o.out}}{\ListOf{out}}})"}$
+
+Next are the rules defining the translation of individual input and output
+parameters. They have local scope and they are translated by prepending
+\llvm{\%}:
+\begin{align*}
+  \trad{i}{inp} \isdef 
+  \llvm{"\PH{\trad{i.type}{\B{Type}}} \PH{\local(\B{i})}"} \quad \quad
+  \trad{o}{out} \isdef 
+  \llvm{"\PH{\trad{o.type}{\B{Type}}}* \PH{\local(\B{o})}"}
+\end{align*}
+
+\subsection{Stack allocation}
+\label{sec:trad-alloc}
+
+B operations may have local variables, in which case the translator needs to
+issue LLVM stack allocation instructions. Such instructions have two arguments:
+the type of values to store, and a temporary variable that is assigned the
+address (see figure~\ref{fig:llvm-grammar} for the concrete syntax). The
+generation of stack allocation code visits the parse tree of the operation body
+in a pre-order depth-first traversal, generating one statement for each local
+variable declaration found. The detailed definition of this traversal is omitted
+for space reasons. For each B0 variable \B{v} found, a LLVM name is thus
+created.
+\begin{align*}
+  \trad{v}{alloc} \isdef 
+  \llvm{"\PH{\local(\B{v})} = alloca \PH{\trad{v.type}{\B{Type}}} \nl"}
+\end{align*}
+
+After the stack allocations, the LLVM source code contains the statements that
+encodes the instructions in the body of the operation, as described in the
+following section.
+
+\subsection{Translation of instructions}
+\label{sec:trad-instr}
+
+Function $\trad{\B{il}, $\ell$}{\ListOf{\B{Inst}}}_L$ takes as input a sequence
+of B instructions \B{il} and a label $\ell$ and produces the source code of a
+LLVM block with $\ell$ as exit point. It is defined as follows: \DD{Rewrite so
+  that the temporary variable names are generated in the correct order.}
+
+\begin{align*}
+\trad{\B{il}, $\ell$}{\ListOf{\B{Inst}}}_L \isdef & \IF \B{il} \mbox{ is empty} \THEN \llvm{"br label \%\PH{\ell} \nl"} \\
+& \ELSE \LET \B{i}, \B{il'} = \B{il}  \AND p = \trad{il', $\ell$}{\ListOf{\B{Inst}}}_L \IN \\
+& \quad \IF \B{i} \mbox{ is \B{If} or \B{While}} \THEN \LET \ell' = \lbl \IN \llvm{"\PH{\trad{i, $\ell'$}{\B{Inst}}} \PH{\ell'}: \PH{p}"} \\
+& \quad \ELSE \llvm{"\PH{\trad{i}{\B{Inst}}} \PH{p}"}
+\end{align*}
+
+Eventually, $\trad{}{\B{Inst}}$ defines the translation for individual
+instructions. Its definition is specialized for each class of instructions as
+detailed in the rest of this section. Note that a new block is created after
+each \B{If} and \B{While} instruction.
+
+\paragraph{While instructions} are translated in two blocks of instructions:
+block $\ell_1$ evaluates the loop condition and block $\ell_2$ executes the loop
+body:
+\begin{align*}
+\begin{split}
+\trad{w, $\ell$}{\B{While}} \isdef 
+  & \LET \ell_1 = \lbl \AND \ell_2 = \lbl \AND c \sep v = \trad{w.cond}{\B{Pred}} \IN \\
+  & \llvm{"\PH{\ell_1} : \PH{c}} \\
+  & \llvm{br i1 \PH{v}, label \PH{\ell_2}, label \PH{\ell} \nl} \\
+  & \llvm{\PH{\ell_2} : \PH{\trad{i.body, $\ell_1$}{\ListOf{\B{Inst}}}_L}}
+\end{split}
+\end{align*}
+
+\paragraph{If instructions} are sequences of possibly conditional blocks of
+instructions, i.e. branches. After a branch is executed, control must go
+to the next block $\ell$.
+\begin{align*}
+  \trad{i, $\ell$}{\B{If}}_L \isdef \trad{i.branches, $\ell$}{\ListOf{\B{IfBr}}}
+\end{align*}
+To translate conditional branches, one must first generate code to evaluate the
+condition of the branch, followed by an LLVM conditional branching statement,
+translate the body of the branch, and add an unconditional branch to the block
+following the corresponding \B{If} statement.  The translation for branches has
+as arguments a branch \B{b}, the remaining branches \B{bl}, the lexicon, and the
+label $\ell$ of the block following the \B{If} statement they belong to. The
+following definition applies for the case of conditional branches:
+\begin{align*}
+\begin{split}
+  \trad{\B{b bl}, $\ell$}{\ListOf{\B{IfBr}}} \isdef & \LET \ell_1 = \lbl \AND \ell_2 = \lbl \IN \\
+  & \llvm{"\PH{\trad{b.cond, $\ell_1$, $\ell_2$}{\B{Pred}}} } \\
+  & \llvm{\PH{\ell_1} : \PH{\trad{b.body, $\ell$}{\ListOf{\B{Inst}}}_L}} \\
+  & \llvm{\PH{\ell_2} : \PH{\trad{bl, $\ell$}{\ListOf{\B{IfBr}}}}"} \\
+\end{split}
+\end{align*}
+The following rule handles the case of the last branch, which might have a condition or not:
+\begin{align*}
+\begin{split}
+  \trad{\B{b}, $\ell$}{\ListOf{\B{IfBr}}} \isdef & \IF \B{b.cond} = \text{None} \THEN
+  \trad{b.body, $\ell$}{\ListOf{Inst}}_L\\
+  & \ELSE \LET \ell_1 = \lbl \IN \\
+  & \llvm{"\PH{\trad{b.cond, $\ell_1$, $\ell$}{\B{Pred}}} } \\
+  & \llvm{\PH{\ell_1} : \PH{\trad{b.body, $\ell$}{\ListOf{\B{Inst}}}_L}}
+\end{split}
+\end{align*}
+
+\paragraph{Becomes equal instructions} must evaluate the target and the source
+of the assignment, and then copy the result of the latter in the former, using
+the LLVM instruction \llvm{store}. The evaluation of the target is defined with
+$\trad{}{lv}$, which yields the corresponding LLVM source code $l$ and the
+variable $p$ containing the assigned location. The evaluation of the source
+yields the corresponding code $r$, the variable $v$ holding the result, and its
+type $t$.
+\begin{align*}
+\begin{split}
+  \trad{a}{\B{Beq}} \isdef 
+  & \LET l \sep p = \trad{i.lhs}{lv} \AND r \sep v \sep t = \trad{i.rhs}{\B{Expr}} \IN \\
+  & \llvm{"\PH{l}} \\
+  & \llvm{\PH{r}} \\
+  & \llvm{store \PH{t} \PH{v}, \PH{t}* \PH{p} \nl"}
+%   & l \conc r \conc 
+%   \llvm{"store "} \conc t \conc \texttt{" "} \conc v \conc \llvm{", "}
+%   \conc t \conc \llvm{"* "} \conc p \conc \nl
+\end{split}
+\end{align*}
+The assignment target may be either local to the operation or a state
+variable. In the former case, it can be referenced by the corresponding LLVM
+identifier. In the latter case, it is represented as an element of the state
+structure $\Sigma$, and its address must be calculated and assigned to a new temporary
+variable.
+\begin{align*}
+\lefteqn{\trad{n}{lv} \isdef} \\
+& \quad \IF \mbox{\B{n} is a local variable} \THEN \llvm{""}, \local(\B{n}) \\
+& \quad \ELSE \LET v = \variable \AND t = \trad{n.type}{\B{Type}} \IN \\
+& \quad \quad \llvm{"\PH{v} = getelementptr \PH{\state(\B{n.root})}* \%self\$,} \\
+& \quad \quad \quad \llvm{i32 0, i32 \PH{\idx(\B{n})} \nl"} \sep v
+\end{align*}
+
+\paragraph{Call up} instructions apply B operations with some values and obtain
+results. The LLVM code generated must include instructions to evaluate the
+operation arguments, the address of the variables receiving the results as well
+as an instance of the LLVM \llvm{call} instruction. In addition, the proposed
+translation includes as argument the address of a structure storing the state of
+the component corresponding to this operation. Note that this component may be
+either the implementation being translated, or an instance of an imported
+machine.
+\begin{align*}
+  \trad{c}{\B{Call}} \isdef 
+  & \LET p_i \sep il = \trad{c.inp}{\ListOf{Inp}} \AND p_o \sep ol = 
+  \trad{c.out}{\ListOf{Out}} \AND \\
+  & \quad id = \IF \B{c.pre} = \text{None} \THEN \Global(\B{c}) \ELSE \llvm{"@\PH{c.pre}\$\PH{c.id}"} \AND \\
+  & \quad ty = \IF \B{c.pre} = \text{None} \THEN \state(\B{c.root}) \ELSE \llvm{"\%\PH{c.pre}\$state\$"} \AND \\
+  & \quad val = \IF \B{c.pre} = \text{None} \THEN \llvm{"\%self\$"} \ELSE \\
+  & \quad \quad \llvm{"getelementptr \PH{\state(\B{n.root})} \%self\$, i32 0, i32 \PH{\idx(\B{c.pre})}"}\\
+  & \IN \\
+  & \quad \llvm{"\PH{p_i}} \\
+  & \quad \llvm{\PH{p_o}} \\
+  & \quad \llvm{call void \PH{id}(\PH{ty}* \PH{val}, \PH{il}, \PH{ol}) \nl"}
+\end{align*}
+The translation of input and output arguments produces two code snippets. The
+first corresponds to the LLVM instruction sequence $p$ responsible for
+evaluating the argument, and the second to the type $t$ and name $v$ of the
+variable storing the resulting value:
+\begin{align*}
+  \trad{i}{Inp} \isdef 
+  & \LET p \sep v \sep t = \trad{i}{\B{Expr}} \IN p \sep \llvm{"\PH{t} \PH{v}"}\\
+  \trad{o}{Out} \isdef 
+  & \LET p \sep v \sep t = \trad{o}{\B{Expr}} \IN p \sep \llvm{"\PH{t}* \PH{v}"}
+\end{align*}
+
+\paragraph{Block instructions} are structuring constructs that have no
+operational intent; their translation is that of their body: $\trad{i,
+  $\ell$}{\B{Blk}} \isdef \trad{i.body, $\ell$}{\ListOf{\B{Inst}}}$.
+
+
+\subsection{Initialization}
+\label{sec:trad-init}
+
+Initialization is done is two steps: first all imported modules are initialized,
+second the initialization clause is executed.
+\begin{align*}
+  \trad{i}{Init} \isdef
+  & \llvm{"define void @\PH{\B{i.id}}\$init\$() \{ \nl"} \\
+  & \quad\llvm{\PH{\trad{i.impl}{\ListOf{InitImp}}}} \\
+  & \quad\llvm{\PH{\trad{i.init, "exit"}{\ListOf{\B{Inst}}}_L}} \\
+  & \quad\llvm{exit: ret void \nl} \\
+  & \llvm{\}"}
+\end{align*}
+The initialization of an imported module is performed by a call to the
+corresponding initialization function:
+\begin{align*}
+  \lefteqn{\trad{m}{InitImp} \isdef } \\
+  & \LET \ell = \lbl \IN \\
+  & \quad \llvm{"\PH{\ell} = getelementptr \PH{\state(\B{m.root})}* \%self\$, i32 0, i32 \PH{\idx(\B{m})}\nl}\\
+  & \quad \llvm{call void @\PH{\B{m.id}}\$init\$(\PH{\state(\B{m})}*
+    \PH{\ell})"}
+\end{align*}
+
+\section{Validation}
+\label{sec:validation}
+
+Before implementing this translation, we want validate the rules that define it.
+For this, we follow a pragmatic approach, based on testing and simulation of the
+generated LLVM artifacts, and using the existing LLVM tool set.  
+
+First, we define a sample set of small B implementation modules, that contain
+all the B constructs handled in the translation. For each such module, the rules
+are applied manually, yielding a LLVM module. This LLVM module is then amended
+with extra code that have two purposes:
+\begin{itemize}
+\item a standalone executable may be generated from it;
+\item the executable creates an instance of the B implementation, applies the
+  initialization code, and offers to the user the choice to interactively invoke
+  all the operations of the implementation; after initialization and each
+  operation application the state of the implementation is printed. 
+\end{itemize}
+
+The LLVM tools that are employed are:
+\begin{description}
+\item[llvm-as] The LLVM assembler generates LLVM bitcode, invoked, e.g., as
+  follows:
+\begin{verbatim}
+llvm-as-mp-3.1 example-01.llvm -o example-01.bc
+\end{verbatim}
+\item[lli] The LLVM bitcode interpreter, which may be invoked as follows:
+\begin{verbatim}
+lli-mp-3.1 example-01.bc
+\end{verbatim}
+\end{description}
+\section{Conclusion and future work}
+\label{sec:conclusion}
+
+This paper presents the formal specification of a translation from a large
+subset of the B implementation language to LLVM, a modern compiler internal
+language.  Even though this is still a work in progress, the definition is
+self-contained and has a large enough scope to be applied to B implementations
+where the data belongs to basic types. This specification is a blueprint for a
+code synthesis tool for B that is currently being implemented. This tool will be
+distributed as an extension to Atelier-B under an open-source license.
+
+The next step is to extend the scope to the full B implementation language. This
+entails that the translation must be defined for aggregate data types and
+adapted to handle some syntactic sugar. We are also planning for producing a
+LLVM output with debugging information. Such output would be indeed very helpful
+to provide feedback to the user when applying testing to validate the produced
+code.
+
+To prove the verification of the correctness of the translation, we would have
+to define the semantics of both LLVM and B in a unified framework. One possible
+starting point is Vellvm~\cite{vellvm}, a framework to reason about the
+correctness of LLVM programs and transformations. We would then have to extend
+the framework to include B implementation language. Another possible approach
+would be to translate verification conditions from the B development artifacts
+as assertinons in the generated LLVM code. The compiled program would include
+checks that such assertions hold while executing.
+
+\bibliographystyle{plain}
+\bibliography{b2llvm}
+
+\end{document}
+

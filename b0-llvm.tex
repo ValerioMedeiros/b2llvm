@@ -918,34 +918,28 @@ next instruction to be translated. If its value is $\bot$ then it is
 considered missing. Otherwise, it is a valid LLVM label and it shall
 be placed in the LLVM output. An auxiliary definition is helpful to
 handle the production of labels:
-\begin{framed}
-\begin{align}
+\begin{align*}
 \begin{split}
   \trad{}{inst}_{L} &: Instr \times dict \times text \rightarrow text \\
   \trad{i, $D$, $L$}{inst}_L \isdef 
   & \textbf{yields } L \conc \texttt{:} \trad{i, $D$}{inst}  
 \end{split}
-\end{align}
-\end{framed}
+\end{align*}
 
 The signature of the translation function for instructions is
-\begin{framed}
-  \begin{align}
-\begin{split}
-    \trad{}{inst} &: Instr \times dict \rightarrow text
-  \end{split}
-\end{align}
-\end{framed}
+  \begin{align*}
+    \begin{split}
+      \trad{}{inst} &: Instr \times dict \rightarrow text
+    \end{split}
+  \end{align*}
 In the forthcoming sections, the definition of this function is given
 piecewise, according to the kind of instruction being translated. One
 special case is the absence of node representing an instruction:
-\begin{framed}
-  \begin{align}
-\begin{split}
+\begin{align}
+  \begin{split}
     \trad{$\bot$, $D$}{inst} \isdef \textbf{ yields } \texttt{""}
   \end{split}
 \end{align}
-\end{framed}
  
 \subsubsection{Block}
 

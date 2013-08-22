@@ -1,0 +1,46 @@
+IMPLEMENTATION counter_i
+REFINES...
+CONCRETE_VARIABLES
+  value, error
+INVARIANT
+  value : INT & ERROR : BOOL & ...
+INITIALISATION
+  BEGIN
+    value := 0;
+    error := FALSE
+  END
+OPERATIONS
+zero =
+  BEGIN
+    value := 0;
+    error := FALSE
+  END
+inc =
+  IF value < MAXINT
+  THEN
+    value := value + 1
+  ELSE
+    error := TRUE
+  END;
+dec =
+  IF 0 < value
+  THEN
+    value := value - 1
+  ELSE
+    error := TRUE
+  END;
+res <-- valid =
+  BEGIN
+    IF error = TRUE
+    THEN
+      res := FALSE
+    ELSE
+      res := TRUE
+    END
+  END;
+res <-- get =
+  res := value;
+set(avalue) =
+  value := avalue
+END
+\end{lstlisting}

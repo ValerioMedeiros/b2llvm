@@ -1,0 +1,48 @@
+;; -*- mode: asm -*-
+
+%counter_i$state$ = type { i32, i1 }
+@counter_i$self$ = common global %counter_i$state$ zeroinitializer
+
+define void @counter_i$init$(%counter_i$state$ * %self$) {
+entry:
+  %0 = getelementptr %counter_i$state$ * @counter_i$self$, i32 0, i32 0
+  store i32 0, i32 * %0
+  %1 = getelementptr %counter_i$state$ * @counter_i$self$, i32 0, i32 1
+  store i1 0, i1 * %1
+  br label %exit
+exit:
+  ret void
+}
+
+define void @counter_i$zero(%counter_i$state$ * %self$) {
+entry:
+  %0 = getelementptr %counter_i$state$ * %self$, i32 0, i32 0
+  store i32 0, i32 * %0
+  %1 = getelementptr %counter_i$state$ * %self$, i32 0, i32 1
+  store i1 0, i1 * %1
+  br label %exit
+exit:
+  ret void
+}
+
+define void @counter_i$inc(%counter_i$state$ * %self$) {
+entry:
+  %0 = getelementptr %counter_i$state$ * %self$, i32 0, i32 0
+  %1 = load i32* %0
+  %2 = icmp slt i32 %1, 2147483647
+  br i1 %2, label %lbl3, label %lbl4
+lbl3:
+  %3 = getelementptr %counter_i$state$ * %self$, i32 0, i32 0
+  %4 = load i32* %3
+  %5 = add i32 %4, 1
+  %6 = getelementptr %counter_i$state$ * %self$, i32 0, i32 0
+  store i32 %5, i32* %6
+  br label %exit
+lbl4:
+  %7 = getelementptr %counter_i$state$ * %self$, i32 0, i32 1
+  store i1 1, i1* %7
+  br label %exit
+exit:
+  ret void
+}
+
