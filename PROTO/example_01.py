@@ -27,10 +27,19 @@ term1 = { "kind": "Term",
           "op": "+",
           "args" : [value, one] }
 
+term2 = { "kind": "Term",
+          "op": "-",
+          "args" : [value, one] }
+
 comp1 = { "kind": "Comp",
           "op": "<",
           "arg1": value,
           "arg2": max_int }
+
+comp2 = { "kind": "Comp",
+          "op": "<",
+          "arg1": zero,
+          "arg2": value }
 
 inst1 = { "kind": "Beq",
           "lhs": value,
@@ -61,6 +70,20 @@ branch2 = { "kind": "IfBr",
 inst6 = { "kind": "If",
           "branches": [branch1, branch2]}
 
+inst7 = { "kind": "Beq",
+          "lhs": value,
+          "rhs": term2}
+
+branch3 = { "kind": "IfBr",
+            "cond": comp2,
+            "body": inst7 }
+
+branch4 = { "kind": "IfBr",
+            "body": inst5 }
+
+inst8 = { "kind": "If",
+          "branches": [branch3, branch4]}
+
 zero = { "kind": "Oper",
          "id": "zero",
          "inp": [],
@@ -72,7 +95,11 @@ inc = { "kind": "Oper",
         "out": [],
         "body": inst6 }
 
-dec = {}
+dec = { "kind": "Oper",
+        "id": "dec",
+        "inp": [],
+        "out": [],
+        "body": inst8 }
 valid = {}
 get = {}
 set = {}
@@ -81,7 +108,7 @@ counter_i = { "kind": "Impl",
               "id": "counter_i",
               "concrete_variables": [ value, error ],
               "initialisation": [ inst1, inst2 ],
-              "operations": [ zero, inc ] }
+              "operations": [ zero, inc, dec ] }
 
-for n in [value, error, zero, inc]:
+for n in [value, error, zero, inc, dec]:
     n["root"] = counter_i

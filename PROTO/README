@@ -1,0 +1,25 @@
+example-01.bimp: a minimal (incomplete) B implementation
+
+example-01.llvm: the corresponding LLVM-IR code, resulting from the manual
+		 application of the rules
+
+example-01.tex: a LaTeX document to typeset nicely the previous two files
+
+example-01.pdf: the PDF file corresponding to example-01.tex
+
+scaffold-01.llvm: some LLVM-IR code scaffolding example-01.llvm
+		  functions into a program interacting with the user
+		  to test those functions
+
+example-01.bc: the LLVM bitcode resulting from the compilation of the
+	       manually generated LLVM code (example-01.llvm,
+	       scaffold-01.llvm)
+
+translate.py: a prototype implementation of the translation in Python, where
+	      B0 input shall be defined as Python dictionaries
+
+example_01.py: Python encoding of example-01.bimp, suitable for translation
+	       with translate.py
+
+--
+David Deharbe, August 2013.

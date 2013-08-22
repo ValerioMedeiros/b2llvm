@@ -1,3 +1,12 @@
+###
+#
+# Prototype for a LLVM-IR generator for B
+#
+# Caveat: This is the first Python program of the author, and he is aware
+# that an object oriented (or, rather, a class oriented) solution could be
+# appropriate.
+#
+###
 
 ### LLVM IDENTIFIER GENERATION ###
 
@@ -23,7 +32,21 @@ def reset_llvm_names():
     llvm_local_var_counter = 0
     llvm_label_counter = 0
 
+### LLVM names for B operators ###
+
 def llvm_op(str):
+    '''
+    Input:
+        - str: the name of an operator in B0
+    Output: The name of the corresponding LLVM operator
+    Example:
+        >>> llvm_op("=") == eq
+        True
+        >>> llvm_op("+") == add
+        True
+    Note: An error message is printed and the empty string
+    is returned if the translation has not been defined.
+    '''
     if str == "=":
         return "eq"
     elif str == "!=":
@@ -38,6 +61,8 @@ def llvm_op(str):
         return "sge"
     elif str == "+":
         return "add"
+    elif str == "-":
+        return "sub"
     else:
         print("error: operator " + str + " not translated")
         return ""
@@ -49,6 +74,15 @@ def llvm_op(str):
 # function arguments are in the correct syntactic category
 #
 def check_kind(n, s):
+    '''
+    Input:
+       - n: represents a B0 syntactic entity
+       - s: a set of syntactic entity class names
+    Output: None.
+    Description: Checks that the class of n is one in s.
+    Example:
+       >>> check_kind(n, {"IntegerLit, BooleanLit"})
+    '''
     assert(n["kind"] in s)
 
 nl = "\n"
@@ -131,7 +165,7 @@ def translate_name(n):
         p = new_llvm_local_var()
         v = new_llvm_local_var()
         text = ""
-        text += tb + p + " = getelementptr %self$, i32 0, i32 " + str() + nl
+        text += tb + p + " = getelementptr " + state_name(n["root"]) + "*" + sp + "%self$, i32 0, i32 " + str(variable_position(n)) + nl
         text += tb + v + " = load " + t + "* " + p + nl
         return (text, v, t)
     else:
@@ -147,7 +181,7 @@ def translate_term(n):
     v = new_llvm_local_var()
     return (p1 +
             p2 +
-            tb + v + " = " + llvm_op(n["op"]) + t1 + sp + v1 + sp + v2 + nl), v, t1
+            tb + v + " = " + llvm_op(n["op"]) + sp + t1 + sp + v1 + ", " + v2 + nl), v, t1
 
 def translate_expression(n):
     check_kind(n, {"IntegerLit", "BooleanLit", "Vari", "Term"})
@@ -172,12 +206,12 @@ def translate_comp(n, lbl1, lbl2):
     v = new_llvm_local_var()
     return (p1 +
             p2 +
-            tb + v + " = icmp " + llvm_op(n["op"]) + sp+ t1 + sp + v1 + sp + v2 + nl), v
+            tb + v + " = icmp " + llvm_op(n["op"]) + sp + t1 + sp + ", " + v2 + nl), v
 
 def translate_pred(n, lbl1, lbl2):
     if n["kind"] == "Comp":
         text, v = translate_comp(n, lbl1, lbl2)
-        text += tb + "br i1" + sp + v + sp + ", label %" + lbl1 + ", label %" + lbl2
+        text += tb + "br i1" + sp + v + sp + ", label %" + lbl1 + ", label %" + lbl2 + nl
         return text
     else:
         print("not implemented translate_pred for formulas.")
@@ -195,10 +229,10 @@ def translate_lv(n):
 def translate_beq(n):
     global tb, sp, nl
     check_kind(n, {"Beq"})
-    l,p = translate_lv(n["lhs"])
     r,v,t = translate_expression(n["rhs"])
-    return (l + 
-            r + 
+    l,p = translate_lv(n["lhs"])
+    return (r + 
+            l + 
             tb + "store " + t + sp + v + ", " + t + "* " + p + nl)
 
 def translate_if_br(lbr, lbl):
