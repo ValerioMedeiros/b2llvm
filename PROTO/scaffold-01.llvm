@@ -1,3 +1,4 @@
+;; -*- mode: asm -*-
 @.str = private constant [12 x i8] c"value = %i\0A\00", align 1 ; <[12 x i8]*> [#uses=1]
 @.str1 = private constant [12 x i8] c"error = %i\0A\00", align 1 ; <[12 x i8]*> [#uses=1]
 @.str2 = private constant [46 x i8] c"Type 'z': zero, 'i': inc, 'd': dec, 'q': quit\00", align 1 ; <[46 x i8]*> [#uses=1]

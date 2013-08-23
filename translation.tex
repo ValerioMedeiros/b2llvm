@@ -255,7 +255,7 @@ the B method ensures the absence of overflows and underflows.
         \hline
         \multicolumn{3}{|c|}{Expression: \B{Expr}} \\
         \hline
-        \multicolumn{3}{c} {\B{Lit} \alt \B{Term} \alt \B{Pred}} \\
+        \multicolumn{3}{c} {\B{Lit} \alt \B{Term} \alt \B{Pred} \alt \B{Vari}} \\
         \hline
         \multicolumn{3}{|c|}{Term expression: \B{Term}} \\
         \hline
@@ -293,7 +293,6 @@ the B method ensures the absence of overflows and underflows.
     \label{tab:node-attr}
   \end{center}
 \end{figure}
-\DD{Include \B{Vari} as one of the alternative for an \B{Expr}.}
 \DD{Restore \B{Case} and \B{CaseBr}.}
 
 \section{Target LLVM Subset}
@@ -466,9 +465,8 @@ translated as follows:
 \begin{enumerate}
 \item Visibility clauses provide access to definitions found in external
   B components and are translated to external declarations in LLVM.
-\item Constants and value definitions are translated to LLVM constants. To avoid
-  name conflicts, a B constant named \B{cst} is translated to a LLVM constant
-  named \llvm{@M\$cst} (the rules for name construction avoid possible conflicts).
+\item Constants and value definitions are translated to their value in the
+  LLVM platform.
 \item To encode the implementation state, the translation produces a
   structure type, named \llvm{\%M\$state\$}, and an instance of that type, named
   \llvm{@M\$self\$}. All the variables and instances of imported machines
@@ -500,8 +498,6 @@ produced.
       \textit{(references to imported components)} \\
       \llvm{\%M\$state\$ = type \{ \ListOf{\nt{type}} \}} \\
       \llvm{declare void @M\$init\$(\%M\$state\$*)} \\
-      \textit{for each constant} \B{cst} \textit{generate} \\
-      \> \llvm{@M\$cst = constant \nt{itype} \nt{iliteral}} \\
       \textit{for each operation} \B{op} \textit{generate} \\
       \> \llvm{declare void @M\$op(\%M\$state\$*, \ListOf{\nt{type}})} \\
     \end{tabbing}
@@ -511,12 +507,8 @@ produced.
       \textit{for each imported component} \B{Q} \textit{generate} \\
       \> \llvm{\%Q\$state\$ = type \{ \ListOf{\nt{type}} \}} \\
       \> \llvm{declare void @Q\$init\$(\%Q\$state\$*)} \\
-      \> \textit{for each constant} \B{cst} \textit{generate} \\
-      \> \> \llvm{@Q\$cst = external constant \nt{itype}} \\
       \> \textit{for each operation} \B{op} \textit{generate} \\
       \> \> \llvm{declare void @Q\$op(\%Q\$state\$*, \ListOf{\nt{type}})} \\
-      \textit{for each constant} \B{cst} \textit{generate} \\
-      \> \llvm{@M\$cst = constant \nt{itype} \nt{iliteral}} \\
       \llvm{\%M\$state\$ = type \{ \ListOf{\nt{type}} \}} \\
       \llvm{@M\$self\$ = common global \%M\$state\$ zeroinitializer} \\
       \llvm{define void @M\$init\$(\%M\$state\$* \%self\$) \{} \\
@@ -595,11 +587,6 @@ $$\intf(\B{M})_t \isdef \llvm{"\{\PH{\trad{\B{M.imp}}{\ListOf{\B{Impo}}}_t} \PH{
 where $\trad{\B{i}}{\B{Impo}}_t \isdef \llvm{\state(\B{i})}$ and
 $\trad{\B{v}}{\B{Vari}}_t \isdef \trad{\B{v.type}}{\B{Type}}$.
 
-\item $\intf(\B{M})_c$ is the definition of the component constants. It maps
-the constant names to their type:
-$\intf(\B{M})_c \isdef \trad{\B{M.const}}{\ListOf{\B{Cons}}}$ and
-$\trad{\B{c}}{\B{Cons}} \isdef \B{c} \mapsto \trad{\B{c.type}}{\B{Type}}$.
-
 \item $\intf(\B{M})_o$ represents the operation declarations. It maps
 operation names to the list of input parameter types and output parameter
 types:
@@ -633,10 +620,6 @@ We shall now define each rule referenced in this template.
 \item For the declarations of the initialization functions in the imported
   components: $\trad{\B{i}, \intf}{Init} \isdef \llvm{"declare void
     @\PH{\B{i.id}}\$init\$(\PH{\state(\B{i.id})}*)\nl"}$.
-\item For the definitions of the imported constants: $\trad{\B{i}, \intf}{ICons}
-  \isdef \trad{$\intf(\B{i})_c$}{\ListOf{Cons}}$, where
-  \noindent $\trad{$\B{c} \mapsto t)$}{Cons} \isdef \llvm{"\PH{\Global(\B{c})} =
-    external constant \PH{t}\nl"}$.
 \item For the declarations of the imported operations: $\trad{\B{i},
     \intf}{IOper} = \trad{\B{i.id}, $\intf(\B{i})_o$}{\ListOf{Oper}}$ where
   $\trad{\B{Q}, $\B{op} \mapsto (i, o)$}{Oper} = \llvm{"declare void
@@ -662,21 +645,14 @@ that the B0 definition of \B{INT} is the range $-2^{31}.. 2^{31}-1$. We have
 $\trad{BOOL}{\B{Type}} \isdef \llvm{i1}$ and $\trad{INT}{\B{Type}} \isdef
 \llvm{i32}$.
 
-B constants are translated to constants in the LLVM program, as described in the
-following rule, where parameter \B{c} denote the constant, $M$ the name of the
-module and $\Global$ is the mapping between source and target identifiers. Two
-results are produced: the LLVM source code and an updated identifier mapping:
-\begin{small}
-\begin{align*}
-  \trad{\B{c}}{\B{Cons}} \isdef \llvm{"\PH{\Global(\B{c})} = constant \PH{\trad{\B{c.type}}{\B{Type}}} \PH{\trad{\B{c.val}}{\B{Expr}}} \nl"}
-\end{align*}
-\end{small}
+B constants shall be translated to constants in the LLVM program. The
+translation of scalar constants consists in substituting them with their value.
+\DD{The translation of non-scalar constants will be defined in a next version of
+  this document.}  The definition of the translation for expressions is
+described next in section~\ref{sec:expr}.
 
-The definition of the translation for expressions is described next in
-section~\ref{sec:expr}.
-
-\section{Translation: Expressions
-  \label{sec:expr}}
+\section{Translation: Expressions}
+\label{sec:expr}
 
 To evaluate a composed expression using the LLVM, one must first generate a
 sequence of instructions to evaluate each argument, the resulting value being
@@ -717,11 +693,11 @@ statements to assign the address of the corresponding element in the state
 structure to pointer variable $p$ and then dereference $p$ to assign $v$:
 \begin{align*}
 \lefteqn{\trad{n}{\B{Name}} \isdef \LET t = \trad{n.type}{\B{Type}} \IN} \\
-& \IF \B{n} \mbox{ is a constant } \THEN \llvm{""} \sep \Global(\B{n}) \sep t \\
+& \IF \B{n} \mbox{ is a constant } \THEN \trad{n.value}{\B{Expr}} \\
 & \ELSIF \B{n} \mbox{ is a local variable } \THEN 
 \llvm{""} \sep \local(\B{n}) \sep t \\
 & \ELSE (\B{n} \mbox{ is a state variable }) \LET p = \variable \AND v = \variable \IN \\
-& \quad \llvm{"\PH{p} = getelementptr \%self\$, i32 0, i32 \PH{\idx(\B{n})} \nl} \\
+& \quad \llvm{"\PH{p} = getelementptr \PH{\state(\B{n.root})} \%self\$, i32 0, i32 \PH{\idx(\B{n})} \nl} \\
 & \quad \llvm{\PH{v} = load \PH{t}* \PH{p}\nl"} \sep v \sep t
 \end{align*}
 
@@ -756,9 +732,10 @@ arithmetic operations:
    
 Next is the translation of the unary \B{succ} operator:
 \begin{align*}
-  \trad{n}{\B{succ}} \isdef & \textbf{ let } p \sep v \sep t =
-  \trad{n.arg}{\B{expr}} \IN \LET w = \variable \IN \\
-  & \llvm{"\PH{p} \quad \PH{w} = add i32 1, \PH{v} \nl"} \sep w \sep \llvm{i32}
+  \trad{n}{\B{succ}} \isdef & \textbf{ let } p \sep v \sep t = \trad{n.arg}{\B{expr}} \IN  \\
+  & \quad \LET w = \variable \IN \\
+  & \quad \quad \llvm{"\PH{p}} \\
+  & \quad \quad \llvm{\PH{w} = add i32 1, \PH{v} \nl"} \sep w \sep \llvm{i32}
 \end{align*}
 
 \paragraph{Predicates}
@@ -873,16 +850,40 @@ following section.
 \subsection{Translation of instructions}
 \label{sec:trad-instr}
 
+One issue in the translation of instructions is the disruption of the flow graph
+intro a linear sequence of instructions and branches. This requires the creation
+of instruction labels. As a consequence, our definition of the translation of
+instructions has two kinds of rules, those that take a label as parameter, and
+those that do not. Such label parameter indicates where the control should go
+after the corresponding execution is executed.
+
+\begin{align*}
+\trad{\B{i}, $\ell$}{\B{Inst}}_L \isdef
+& \IF \B{i} \mbox{ is \B{If}} \THEN \trad{\B{i}, $\ell$}{\B{If}}_L \\
+& \ELSIF \B{i} \mbox{ is \B{While}} \THEN \trad{\B{i}, $\ell$}{\B{While}}_L \\
+& \ELSIF \B{i} \mbox{ is \B{Blk}} \THEN \trad{\B{i.body}, $\ell$}{\ListOf{\B{Inst}}}_L \\
+& \ELSE \LET p = \trad{\B{i}}{\B{Inst}} \IN \\
+& \quad \llvm{"\PH{p}} \\
+& \quad \llvm{ br label \%\PH{\ell} \nl"}
+\end{align*}
+
 Function $\trad{\B{il}, $\ell$}{\ListOf{\B{Inst}}}_L$ takes as input a sequence
 of B instructions \B{il} and a label $\ell$ and produces the source code of a
-LLVM block with $\ell$ as exit point. It is defined as follows: \DD{Rewrite so
-  that the temporary variable names are generated in the correct order.}
+LLVM block with $\ell$ as exit point. It is defined as follows: 
 
 \begin{align*}
 \trad{\B{il}, $\ell$}{\ListOf{\B{Inst}}}_L \isdef & \IF \B{il} \mbox{ is empty} \THEN \llvm{"br label \%\PH{\ell} \nl"} \\
-& \ELSE \LET \B{i}, \B{il'} = \B{il}  \AND p = \trad{il', $\ell$}{\ListOf{\B{Inst}}}_L \IN \\
-& \quad \IF \B{i} \mbox{ is \B{If} or \B{While}} \THEN \LET \ell' = \lbl \IN \llvm{"\PH{\trad{i, $\ell'$}{\B{Inst}}} \PH{\ell'}: \PH{p}"} \\
-& \quad \ELSE \llvm{"\PH{\trad{i}{\B{Inst}}} \PH{p}"}
+& \ELSE \\
+& \LET \B{i}, \B{il'} = \B{il}  \IN \\
+& \quad \quad \LET p_1 = 
+\begin{array}[t]{l}
+  \IF \B{i} \mbox{ is \B{If} or \B{While}} \THEN \\
+  \quad \LET \ell' = \lbl \IN \llvm{"\PH{\trad{i, $\ell'$}{\B{Inst}}_L} \PH{\ell'}: \PH{p}"} \\
+  \ELSE \llvm{"\PH{\trad{i}{\B{Inst}}} \PH{p}"} \IN
+\end{array} \\
+& \quad \quad \IN \\
+& \quad \quad \quad \LET p_2 = \trad{il', $\ell$}{\ListOf{\B{Inst}}}_L \\
+& \quad \quad \quad \quad \llvm{"\PH{p_1} \PH{p_2}"}
 \end{align*}
 
 Eventually, $\trad{}{\B{Inst}}$ defines the translation for individual
@@ -1075,6 +1076,48 @@ where \verb'counter_i' would be the Python entity representing the parse tree
 root for the B implementation. Again the output generated by the prototype
 is compiled and simulated using off-the-shelf LLVM tools \verb'llvm-as' and
 \verb'lli'.
+
+\begin{center}
+\newcommand{\no}[0]{--}
+\newcommand{\yes}[0]{$\circ$}
+\begin{tabular}{|l|c|c|}
+\hline
+Example nº & 01 & 02 \\
+\hline
+variables & \yes & \yes \\
+constants & \no & \yes \\
+op. input & \yes & \no \\
+op. output & \yes & \no \\
+\hline
+\multicolumn{3}{|c|}{instructions} \\
+\hline
+block & \yes & \no \\
+local var & \no & \no \\
+identity & \no & \no \\
+becomes equal & \yes & \yes \\
+operation call & \no & \no \\
+condition & \yes & \no \\
+case & \no & \no \\
+assertion & \no & \no \\
+sequence & \yes & \yes \\
+while & \no & \no \\
+\hline
+\multicolumn{3}{|c|}{expressions} \\
+\hline
+succ & \no & \yes \\
+pred & \no & \yes \\
++ & \yes & \no \\
+- & \yes & \no \\
+\hline
+\multicolumn{3}{|c|}{formulas} \\
+\hline
+and & \no & \no \\
+or & \no & \no \\
+not & \no & \no \\
+comparison & \yes & \yes \\
+\hline
+\end{tabular}
+\end{center}
 
 \section{Conclusion and future work}
 \label{sec:conclusion}

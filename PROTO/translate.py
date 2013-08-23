@@ -109,6 +109,8 @@ def state_name(n):
     check_kind(n, {"Impl"})
     return "%"+n["id"]+"$state$"
 
+def global_name(n):
+    return "@" + n["root"]["id"] + "$" + n["id"]
 #
 # This function is responsible for building the LLVM type expression for
 # the type corresponding to the state of B0 implementation n.
@@ -161,32 +163,56 @@ def translate_booleanlit(n):
 def translate_name(n):
     check_kind(n, {"Vari"})
     t = translate_type(n["type"])
-    if n["scope"] == "Impl":
+    if n["scope"] == "Oper":
+        return ("", "%"+n["id"], t)
+    elif n["scope"] == "Impl":
         p = new_llvm_local_var()
         v = new_llvm_local_var()
         text = ""
         text += tb + p + " = getelementptr " + state_name(n["root"]) + "*" + sp + "%self$, i32 0, i32 " + str(variable_position(n)) + nl
         text += tb + v + " = load " + t + "* " + p + nl
         return (text, v, t)
-    elif n["scope"] == "Oper":
-        return ("", "%"+n["id"], t)
     else:
         print("error: name translation not supported")
         return ("", "", "")
         
+def translate_unary(n):
+    check_kind(n, {"Term"})
+    assert (n["op"] in {"succ", "pred"})
+    if n["op"] == "succ":
+        p,v,t = translate_expression(n["args"][0])
+        w = new_llvm_local_var()
+        text = ""
+        text += p
+        text += tb + w + " = add i32 1," + sp + v + nl
+        return (text, w, "i32")
+    elif n["op"] == "pred":
+        p,v,t = translate_expression(n["args"][0])
+        w = new_llvm_local_var()
+        text = ""
+        text += p
+        text += tb + w + " = sub i32 " + v + ", 1" + nl
+        return (text, w, "i32")
+    else:
+        print("error: unary operator translation not supported")
+        return ("", "", "")
+
 def translate_term(n):
     global tb, sp, nl
     check_kind(n, {"Term"})
-    assert(len(n["args"]) == 2)
-    p1,v1,t1 = translate_expression(n["args"][0])
-    p2,v2,t2 = translate_expression(n["args"][1])
-    v = new_llvm_local_var()
-    return (p1 +
-            p2 +
-            tb + v + " = " + llvm_op(n["op"]) + sp + t1 + sp + v1 + ", " + v2 + nl), v, t1
+    if n["op"] == "succ" or n["op"] == "pred":
+        return translate_unary(n)
+    else:
+        assert(len(n["args"]) == 2)
+        p1,v1,t1 = translate_expression(n["args"][0])
+        p2,v2,t2 = translate_expression(n["args"][1])
+        v = new_llvm_local_var()
+        return (p1 +
+                p2 +
+                tb + v + " = " + llvm_op(n["op"]) + sp + t1 + sp + v1 + ", " + v2 + nl), v, t1
 
 def translate_expression(n):
-    check_kind(n, {"IntegerLit", "BooleanLit", "Vari", "Term"})
+    check_kind(n, {"IntegerLit", "BooleanLit", "Vari", "Term", "Cons"})
     if n["kind"] == "IntegerLit":
         return translate_integerlit(n)
     elif n["kind"] == "BooleanLit":
@@ -195,6 +221,8 @@ def translate_expression(n):
         return translate_name(n)
     elif n["kind"] == "Term":
         return translate_term(n)
+    elif n["kind"] == "Cons":
+        return translate_expression(n["value"])
     else:
         return ("","","")
 
@@ -377,11 +405,29 @@ def translate_operation(i):
             tb + "ret void\n" +
             "}\n")
 
+### TRANSLATION OF CONSTANT DEFINITIONS
+
+def translate_constant(n):
+    global tb, sp, nl
+    check_kind(n, {"Cons"})
+    if n["type"] not in {"INT", "BOOL"}:
+        print("error: constant " + n["id"] + " cannot be translated")
+    return ""
+
+def translate_constants(n):
+    check_kind(n, {"Impl"})
+    result = ""
+    if "concrete_constants" in n.keys():
+        for const in n["concrete_constants"]:
+            result += translate_constant(const)
+    return result
+
 ### TRANSLATION OF IMPLEMENTATION
 
 def translate_implementation(i):
     check_kind(i, {"Impl"})
     result = ""
+    result += translate_constants(i)
     result += translate_state(i)
     result += "@"+i["id"]+"$self$ = common global " + state_name(i) + " zeroinitializer\n"
     result += translate_init(i)
