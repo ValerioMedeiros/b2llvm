@@ -168,6 +168,8 @@ def translate_name(n):
         text += tb + p + " = getelementptr " + state_name(n["root"]) + "*" + sp + "%self$, i32 0, i32 " + str(variable_position(n)) + nl
         text += tb + v + " = load " + t + "* " + p + nl
         return (text, v, t)
+    elif n["scope"] == "Oper":
+        return ("", "%"+n["id"], t)
     else:
         print("error: name translation not supported")
         return ("", "", "")
@@ -206,7 +208,7 @@ def translate_comp(n, lbl1, lbl2):
     v = new_llvm_local_var()
     return (p1 +
             p2 +
-            tb + v + " = icmp " + llvm_op(n["op"]) + sp + t1 + sp + ", " + v2 + nl), v
+            tb + v + " = icmp " + llvm_op(n["op"]) + sp + t1 + sp + v1 + ", " + v2 + nl), v
 
 def translate_pred(n, lbl1, lbl2):
     if n["kind"] == "Comp":
@@ -223,8 +225,14 @@ def translate_lv(n):
     global tb, nl
     check_kind(n, {"Vari"})
     t = n["type"]
-    v = new_llvm_local_var()
-    return (tb + v + " = getelementptr " + state_name(n["root"])+ "* %self$, i32 0, i32 " + str(variable_position(n)) + nl, v)
+    if n["scope"] == "Impl":
+        v = new_llvm_local_var()
+        return (tb + v + " = getelementptr " + state_name(n["root"])+ "* %self$, i32 0, i32 " + str(variable_position(n)) + nl, v)
+    elif n["scope"] == "Oper":
+        return ("", "%"+n["id"])
+    else:
+        print("unknown scope for variable " + v["id"])
+        return ("", "UNKNOWN")
 
 def translate_beq(n):
     global tb, sp, nl
@@ -316,29 +324,37 @@ def translate_inst_list_label(l, lbl):
         p2 = translate_inst_list_label(l2, lbl)
         return p1 + p2
 
+### TRANSLATION OF OPERATIONS AND INITIALISATION
+
 def translate_init(i):
     global tb, nl
     check_kind(i, {"Impl"})
     reset_llvm_names()
-    result = "define void @"+i["id"]+"$init$() {" + nl
-    result = result + translate_inst_list_label(i["initialisation"], "exit")
-    result = result + "exit:" + nl
-    result = result + tb + "ret void" + nl
-    result = result + "}" + nl
+    result = "define void @"+i["id"]+"$init$"
+    result += "("+state_name(i)+"* %self$) {" + nl
+    result += "entry:" + nl
+    result += translate_inst_list_label(i["initialisation"], "exit")
+    result += "exit:" + nl
+    result += tb + "ret void" + nl
+    result += "}" + nl
     return result;
 
 
 def translate_signature(n):
     check_kind(n, {"Oper"})
     result = ""
-    result += "@"+n["root"]["id"]+"$"+n["id"]+"$"
+    result += "@"+n["root"]["id"]+"$"+n["id"]
     result += "("
     result += state_name(n["root"])
     result += "* %self$"
     for inp in n["inp"]:
-        result += ""
+        t = translate_type(inp["type"])
+        id = inp["id"]
+        result += "," + sp + t + sp + "%" + id
     for out in n["out"]:
-        result += ""
+        t = translate_type(out["type"])
+        id = out["id"]
+        result += "," + sp + t + "*" + sp + "%" + id
     result += ")"
     return result
 
@@ -361,6 +377,8 @@ def translate_operation(i):
             tb + "ret void\n" +
             "}\n")
 
+### TRANSLATION OF IMPLEMENTATION
+
 def translate_implementation(i):
     check_kind(i, {"Impl"})
     result = ""
@@ -370,3 +388,10 @@ def translate_implementation(i):
     for op in i["operations"]:
         result += translate_operation(op)
     return result
+
+def translate(imp, file):
+    openfile = open(file, 'w')
+    filecontents = translate_implementation(imp)
+    openfile.write("; -*- mode: asm -*-"+nl) # enables syntax highlight in emacs
+    openfile.write(filecontents)
+    openfile.close()
