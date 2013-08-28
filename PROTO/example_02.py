@@ -1,3 +1,36 @@
+
+# IMPLEMENTATION
+#    swap_i
+# REFINES
+#    swap
+# CONCRETE_VARIABLES
+#    v1 ,  v2
+# INVARIANT
+#     v1 : INT & v2 : INT
+# INITIALISATION
+#    v1 := 0; v2 := 1
+# OPERATIONS
+#    step =
+#    VAR tmp IN
+#        BEGIN
+#            tmp := v1;
+#            v1 := v2;
+#            v2 := tmp
+#        END
+#    END;
+#    set ( av1 , av2 ) =
+#    BEGIN
+#        v1 := av1;
+#        v2 := av2
+#    END
+#    ;
+#    r1 , r2 <-- get =
+#    BEGIN
+#        r1 := v1;
+#        r2 := v2
+#    END
+# END
+
 value = { "kind": "Vari",
           "id":"value",
           "type": "INT",

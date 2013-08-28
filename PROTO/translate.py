@@ -163,7 +163,13 @@ def translate_booleanlit(n):
 def translate_name(n):
     check_kind(n, {"Vari"})
     t = translate_type(n["type"])
-    if n["scope"] == "Oper":
+    if n["scope"] == "Local":
+        v1 = "%"+n["id"]
+        v2 = new_llvm_local_var()
+        t = translate_type(n["type"])
+        text = tb+ v2 + " = load" + sp + t + "*" + sp + v1 + nl
+        return (text, v2, t)
+    elif n["scope"] == "Oper":
         return ("", "%"+n["id"], t)
     elif n["scope"] == "Impl":
         p = new_llvm_local_var()
@@ -256,7 +262,7 @@ def translate_lv(n):
     if n["scope"] == "Impl":
         v = new_llvm_local_var()
         return (tb + v + " = getelementptr " + state_name(n["root"])+ "* %self$, i32 0, i32 " + str(variable_position(n)) + nl, v)
-    elif n["scope"] == "Oper":
+    elif n["scope"] in {"Oper", "Local"}:
         return ("", "%"+n["id"])
     else:
         print("unknown scope for variable " + v["id"])
@@ -301,14 +307,16 @@ def translate_if(n, lbl):
     return translate_if_br(n["branches"], lbl)
 
 def translate_inst(n):
-    check_kind(n, {"Beq"})
+    check_kind(n, {"Beq", "VarD"})
     if n["kind"] == "Beq":
         return translate_beq(n)
+    elif n["kind"] == "VarD":
+        return translate_inst_list(n)
     else:
         return ""
 
 def translate_inst_label(n, lbl):
-    check_kind(n, {"Blk", "If", "While", "Beq"})
+    check_kind(n, {"Blk", "If", "Beq", "VarD"})
     if n["kind"] == "Blk":
         return translate_inst_list_label(n["body"], lbl)
     elif n["kind"] == "If":
@@ -318,6 +326,10 @@ def translate_inst_label(n, lbl):
         result += translate_beq(n)
         result += tb + "br label %" + lbl + nl
         return result
+    elif n["kind"] == "VarD":
+        return translate_inst_list_label(n["body"], lbl)
+    else:
+        print("error: instruction type unknown")
 
 def translate_inst_list(l):
     if len(l) == 0:
@@ -352,21 +364,41 @@ def translate_inst_list_label(l, lbl):
         p2 = translate_inst_list_label(l2, lbl)
         return p1 + p2
 
+### TRANSLATION OF STACK VARIABLE ALLOCATION
+
+def translate_alloc_var_decl(n):
+    global tb, nl, sp
+    check_kind(n, {"VarD"})
+    result = ""
+    for v in n["vars"]:
+        result += tb+"%"+v["id"]+" = alloca "+translate_type(v["type"])+nl
+    result += translate_alloc_inst_list(n["body"])
+    return result
+
+def translate_alloc_inst(n):
+    check_kind(n, {"Beq", "If", "Blk", "VarD"})
+    if n["kind"] == "Beq":
+        return ""
+    elif n["kind"] == "If":
+        result = ""
+        for br in n["branches"]:
+            result += translate_alloc_inst(br["body"])
+        return result
+    elif n["kind"] == "Blk":
+        return translate_alloc_inst_list(n["body"])
+    elif n["kind"] == "VarD":
+        return translate_alloc_var_decl(n)
+    else:
+        print("error: unknown instruction kind")
+        return ""
+    
+def translate_alloc_inst_list(n):
+    result = ""
+    for inst in n:
+        result += translate_alloc_inst(inst)
+    return result
+
 ### TRANSLATION OF OPERATIONS AND INITIALISATION
-
-def translate_init(i):
-    global tb, nl
-    check_kind(i, {"Impl"})
-    reset_llvm_names()
-    result = "define void @"+i["id"]+"$init$"
-    result += "("+state_name(i)+"* %self$) {" + nl
-    result += "entry:" + nl
-    result += translate_inst_list_label(i["initialisation"], "exit")
-    result += "exit:" + nl
-    result += tb + "ret void" + nl
-    result += "}" + nl
-    return result;
-
 
 def translate_signature(n):
     check_kind(n, {"Oper"})
@@ -386,24 +418,33 @@ def translate_signature(n):
     result += ")"
     return result
 
-def translate_alloc(n):
-    check_kind(n, {"Blk","Beq", "If"})
-    return ""
+def translate_init(i):
+    global tb, nl
+    check_kind(i, {"Impl"})
+    reset_llvm_names()
+    result = "define void @"+i["id"]+"$init$"
+    result += "("+state_name(i)+"* %self$) {" + nl
+    result += "entry:" + nl
+    result += translate_alloc_inst_list(i["initialisation"])
+    result += translate_inst_list_label(i["initialisation"], "exit")
+    result += "exit:" + nl
+    result += tb + "ret void" + nl
+    result += "}" + nl
+    return result;
 
 def translate_operation(i):
     global tb
     check_kind(i, {"Oper"})
     reset_llvm_names()
-    h = translate_signature(i)
-    a = translate_alloc(i["body"])
-    i = translate_inst_label(i["body"], "exit")
-    return ("define void " + h + "{\n" + 
-            "entry:\n" +
-            a +
-            i +
-            "exit:\n" +
-            tb + "ret void\n" +
-            "}\n")
+    result = ""
+    result += "define void" + translate_signature(i) + "{" + nl
+    result += "entry:" + nl
+    result += translate_alloc_inst(i["body"])
+    result += translate_inst_label(i["body"], "exit")
+    result += "exit:" + nl
+    result += tb + "ret void" + nl
+    result += "}" + nl
+    return result
 
 ### TRANSLATION OF CONSTANT DEFINITIONS
 

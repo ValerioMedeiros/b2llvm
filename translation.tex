@@ -1080,41 +1080,46 @@ is compiled and simulated using off-the-shelf LLVM tools \verb'llvm-as' and
 \begin{center}
 \newcommand{\no}[0]{--}
 \newcommand{\yes}[0]{$\circ$}
-\begin{tabular}{|l|c|c|}
+\begin{tabular}{|l|c|c|c|}
 \hline
-Example nº & 01 & 02 \\
+Example nº & 01 & 02 & 03 \\
 \hline
-variables & \yes & \yes \\
-constants & \no & \yes \\
-op. input & \yes & \no \\
-op. output & \yes & \no \\
+variables & \yes & \yes & \yes \\
+constants & \no & \yes & \no \\
+op. input & \yes & \no & \yes \\
+op. output & \yes & \no & \yes \\
 \hline
-\multicolumn{3}{|c|}{instructions} \\
+\multicolumn{4}{|c|}{instructions} \\
 \hline
-block & \yes & \no \\
-local var & \no & \no \\
-identity & \no & \no \\
-becomes equal & \yes & \yes \\
-operation call & \no & \no \\
-condition & \yes & \no \\
-case & \no & \no \\
-assertion & \no & \no \\
-sequence & \yes & \yes \\
-while & \no & \no \\
+block & \yes & \no & \yes \\
+local var & \no & \no & \yes \\
+identity & \no & \no & \yes \\
+becomes equal & \yes & \yes & \yes \\
+operation call & \no & \no & \no\\
+condition & \yes & \no & \no\\
+case & \no & \no & \no\\
+assertion & \no & \no & \no\\
+sequence & \yes & \yes & \yes\\
+while & \no & \no & \no\\
 \hline
-\multicolumn{3}{|c|}{expressions} \\
+\multicolumn{4}{|c|}{expressions} \\
 \hline
-succ & \no & \yes \\
-pred & \no & \yes \\
-+ & \yes & \no \\
-- & \yes & \no \\
+int lit & \yes & \yes & \yes \\
+bool lit & \yes & \yes & \no \\
+vars & \yes & \yes & \yes \\
+loc. vars & \no & \no & \yes \\
+const & \no & \yes & \no \\ 
+succ & \no & \yes & \no \\
+pred & \no & \yes & \no \\
++ & \yes & \no & \no \\
+- & \yes & \no & \no \\
 \hline
-\multicolumn{3}{|c|}{formulas} \\
+\multicolumn{4}{|c|}{formulas} \\
 \hline
-and & \no & \no \\
-or & \no & \no \\
-not & \no & \no \\
-comparison & \yes & \yes \\
+and & \no & \no & \no \\
+or & \no & \no & \no \\
+not & \no & \no & \no \\
+$<$ & \yes & \yes & \no \\
 \hline
 \end{tabular}
 \end{center}
