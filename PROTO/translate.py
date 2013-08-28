@@ -268,11 +268,57 @@ def translate_pred(n):
         print("not implemented translation for such predicate")
         return ("", "")
 
+def translate_and(n, lbl1, lbl2):
+    check_kind(n, {"Form"})
+    assert(n["op"] == "and")
+    assert(len(n["args"]) == 2)
+    arg1 = n["args"][0]
+    arg2 = n["args"][1]
+    lbl = new_llvm_label()
+    p1 = translate_form(arg1, lbl, lbl2)
+    p2 = translate_form(arg2, lbl1, lbl2)
+    result = ""
+    result += p1
+    result += lbl + ":" + nl
+    result += p2
+    return result
+
+def translate_or(n, lbl1, lbl2):
+    check_kind(n, {"Form"})
+    assert(n["op"] == "or")
+    assert(len(n["args"]) == 2)
+    arg1 = n["args"][0]
+    arg2 = n["args"][1]
+    lbl = new_llvm_label()
+    p1 = translate_form(arg1, lbl1, lbl)
+    p2 = translate_form(arg2, lbl1, lbl2)
+    result = ""
+    result += p1
+    result += lbl + ":" + nl
+    result += p2
+    return result
+
+def translate_not(n, lbl1, lbl2):
+    check_kind(n, {"Form"})
+    assert(n["op"] == "not")
+    return translate_form(n["args"][0], lbl2, lbl1)
+
 def translate_form(n, lbl1, lbl2):
+    check_kind(n, {"Comp", "Form"})
     if n["kind"] == "Comp":
         text, v = translate_comp(n)
         text += tb + "br i1" + sp + v + sp + ", label %" + lbl1 + ", label %" + lbl2 + nl
         return text
+    elif n["kind"] == "Form":
+        if n["op"] == "and":
+            return translate_and(n, lbl1, lbl2)
+        elif n["op"] == "or":
+            return translate_or(n, lbl1, lbl2)
+        elif n["op"] == "not":
+            return translate_not(n, lbl1, lbl2)
+        else:
+            print("error: unrecognized formula")
+            return ""
     else:
         print("not implemented translate_form for formulas.")
         return ""
@@ -316,7 +362,7 @@ def translate_if_br(lbr, lbl):
         result += lbl_2 + ":\n"
         result += translate_if_br(lbr2, lbl)
     else:
-        if "cond" not in br.keys():
+        if "cond" not in br.keys() or br["cond"] == None:
             result = translate_inst_label(br["body"], lbl)
         else:
             lbl_1 = new_llvm_label()

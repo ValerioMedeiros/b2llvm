@@ -1,0 +1,40 @@
+IMPLEMENTATION
+   mult_i
+REFINES
+   mult
+CONSTANTS
+   THR
+VALUES
+   THR = 2
+CONCRETE_VARIABLES
+   op1 ,
+   op2
+INVARIANT
+    op1: INT & op2: INT
+INITIALISATION
+   op1 := 0;
+   op2 := 0
+OPERATIONS
+   inc1 = op1 := succ(op1);
+   dec1 = op1 := pred(op1);
+   inc2 = op2 := succ(op2);
+   dec2 = op2 := pred(op2);
+   res <-- both =
+   IF op1 > THR and op2 > THR THEN
+     res := TRUE
+   ELSE
+     res := FALSE
+   END;
+   res <-- some =
+   IF op1 > THR or op2 > THR THEN
+     res := TRUE
+   ELSE
+     res := FALSE
+   END;
+   res <-- none =
+   IF not(op1 > THR) and not (op2 > THR) THEN
+     res := TRUE
+   ELSE
+     res := FALSE
+   END
+END

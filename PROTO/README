@@ -5,16 +5,18 @@ translate.py: a prototype implementation of the translation in Python, where
 bimp.py: a Python module providing constructors for the Python data structures
 	employed in translate.py
 
-example-01.bimp, example-02.bimp, example-03.bimp, example-04.bimp:
+example-01.bimp, example-02.bimp, example-03.bimp, example-04.bimp,
+example-05.bimp:
 	several B implementations used to validate the b2llvm translation.
 
-example_01.py, example_02.py, example_03.py, example_04.py:
+example_01.py, example_02.py, example_03.py, example_04.py, example_05.py:
 	rudimentary Python representations of the B implementations.
 
 scaffold-01.llvm: LLVM-IR scaffolding for animating example-01 and
 	example-02
-scaffold-02.llvm: LLVM-IR scaffolding for animating example-03
-scaffold-03.llvm: LLVM-IR scaffolding for animating example-04
+scaffold-03.llvm: LLVM-IR scaffolding for animating example-03
+scaffold-04.llvm: LLVM-IR scaffolding for animating example-04
+scaffold-05.llvm: LLVM-IR scaffolding for animating example-05
 
 The process to generate the LLVM code corresponding to a B implementation is
 the following:

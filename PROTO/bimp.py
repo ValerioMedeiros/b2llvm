@@ -5,6 +5,10 @@ BOOL = "BOOL"
 
 ### TERMINALS ###
 
+def make_const(id, type, value):
+    return { "kind": "Cons", "id": id, "type": type, "value" : value }
+
+
 def make_var(name, type, scope):
     return { "kind": "Vari", "id": name, "type": type, "scope": scope }
 
@@ -13,6 +17,9 @@ def make_imp_var(name, type):
 
 def make_loc_var(name, type):
     return make_var(name, type, "Local")
+
+def make_arg_var(name, type):
+    return make_var(name, type, "Oper")
 
 def make_intlit(value):
     return { "kind": "IntegerLit", "value": str(value)}
@@ -46,6 +53,21 @@ def make_comp(op, arg1, arg2):
 def make_lt(term1, term2):
     return make_comp("<", term1, term2)
 
+def make_gt(term1, term2):
+    return make_comp(">", term1, term2)
+
+def make_form(op, args):
+    return { "kind": "Form", "op": op, "args" : args }
+
+def make_and(arg1, arg2):
+    return make_form("and", [arg1, arg2])
+
+def make_or(arg1, arg2):
+    return make_form("or", [arg1, arg2])
+
+def make_not(arg):
+    return make_form("not", [arg])
+
 ### INSTRUCTIONS ###
 
 def make_beq(lhs, rhs):
@@ -56,6 +78,12 @@ def make_blk(body):
 
 def make_var_decl(vars, body):
     return { "kind": "VarD", "vars": vars, "body": body }
+
+def make_if_br(cond, body):
+    return { "kind": "IfBr", "cond": cond, "body": body}
+
+def make_if(branches):
+    return { "kind": "If", "branches": branches }
 
 def make_while(cond, body):
     return { "kind": "While", "cond": cond, "body": body }
