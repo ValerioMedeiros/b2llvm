@@ -16,18 +16,35 @@
 llvm_local_var_counter = 0
 llvm_label_counter = 0
 def new_llvm_local_var():
+    '''
+    Input: None
+    Output: A string representing a LLVM local variable. This string
+    is composed by the prefix "%" followed by a number. Function
+    reset_llvm_names is responsible for zeroing that number.
+    '''
     global llvm_local_var_counter
     result = "%"+str(llvm_local_var_counter)
     llvm_local_var_counter += 1
     return result
 
 def new_llvm_label():
+    '''
+    Input: None
+    Output: A string representing a LLVM instruction label. This string
+    is composed by the prefix "label" followed by a number. Function
+    reset_llvm_names is responsible for zeroing that number.
+    '''
     global llvm_label_counter
     result = "label"+str(llvm_label_counter)
     llvm_label_counter += 1
     return result
 
 def reset_llvm_names():
+    '''
+    Output: None
+    The role of this function is to zero the counters used to build
+    label and local variable identifiers.
+    '''
     global llvm_local_var_counter, llvm_label_counter
     llvm_local_var_counter = 0
     llvm_label_counter = 0
@@ -234,7 +251,7 @@ def translate_expression(n):
 
 ### TRANSLATION OF CONDITIONS ###
 
-def translate_comp(n, lbl1, lbl2):
+def translate_comp(n):
     global tb, sp, nl
     check_kind(n, {"Comp"})
     p1,v1,t1 = translate_expression(n["arg1"])
@@ -244,13 +261,20 @@ def translate_comp(n, lbl1, lbl2):
             p2 +
             tb + v + " = icmp " + llvm_op(n["op"]) + sp + t1 + sp + v1 + ", " + v2 + nl), v
 
-def translate_pred(n, lbl1, lbl2):
+def translate_pred(n):
     if n["kind"] == "Comp":
-        text, v = translate_comp(n, lbl1, lbl2)
+        return translate_comp(n)
+    else:
+        print("not implemented translation for such predicate")
+        return ("", "")
+
+def translate_form(n, lbl1, lbl2):
+    if n["kind"] == "Comp":
+        text, v = translate_comp(n)
         text += tb + "br i1" + sp + v + sp + ", label %" + lbl1 + ", label %" + lbl2 + nl
         return text
     else:
-        print("not implemented translate_pred for formulas.")
+        print("not implemented translate_form for formulas.")
         return ""
 
 ### TRANSLATION OF INSTRUCTIONS ###
@@ -286,7 +310,7 @@ def translate_if_br(lbr, lbl):
         lbl_1 = new_llvm_label()
         lbl_2 = new_llvm_label()
         result = ""
-        result += translate_pred(br["cond"], lbl_1, lbl_2)
+        result += translate_form(br["cond"], lbl_1, lbl_2)
         result += lbl_1 + ":\n"
         result += translate_inst_label(br["body"], lbl)
         result += lbl_2 + ":\n"
@@ -297,7 +321,7 @@ def translate_if_br(lbr, lbl):
         else:
             lbl_1 = new_llvm_label()
             result = ""
-            result += translate_pred(br["cond"], lbl_1, lbl)
+            result += translate_form(br["cond"], lbl_1, lbl)
             result += lbl1 + ":\n"
             result += translate_inst_label(br["body"].lbl)
     return result
@@ -305,6 +329,22 @@ def translate_if_br(lbr, lbl):
 def translate_if(n, lbl):
     check_kind(n, {"If"})
     return translate_if_br(n["branches"], lbl)
+
+def translate_while(n, lbl):
+    global nl, tb, sp
+    check_kind(n, {"While"})
+    lbl1 = new_llvm_label()
+    (c, v) = translate_pred(n["cond"])
+    lbl2 = new_llvm_label()
+    body = translate_inst_list_label(n["body"], lbl1)
+    result = ""
+    result += tb + "br label %" + lbl1 + nl
+    result += lbl1 + ":" + nl
+    result += c
+    result += tb + "br i1 " + v + ", label %" + lbl2 + ", label %" + lbl +nl
+    result += lbl2 + ":" + nl
+    result += body
+    return result
 
 def translate_inst(n):
     check_kind(n, {"Beq", "VarD"})
@@ -316,11 +356,13 @@ def translate_inst(n):
         return ""
 
 def translate_inst_label(n, lbl):
-    check_kind(n, {"Blk", "If", "Beq", "VarD"})
+    check_kind(n, {"Blk", "If", "Beq", "VarD", "While"})
     if n["kind"] == "Blk":
         return translate_inst_list_label(n["body"], lbl)
     elif n["kind"] == "If":
         return translate_if(n, lbl)
+    elif n["kind"] == "While":
+        return translate_while(n, lbl)
     elif n["kind"] == "Beq":
         result = ""
         result += translate_beq(n)
@@ -376,7 +418,7 @@ def translate_alloc_var_decl(n):
     return result
 
 def translate_alloc_inst(n):
-    check_kind(n, {"Beq", "If", "Blk", "VarD"})
+    check_kind(n, {"Beq", "If", "Blk", "VarD", "While"})
     if n["kind"] == "Beq":
         return ""
     elif n["kind"] == "If":
@@ -384,7 +426,7 @@ def translate_alloc_inst(n):
         for br in n["branches"]:
             result += translate_alloc_inst(br["body"])
         return result
-    elif n["kind"] == "Blk":
+    elif n["kind"] in {"Blk", "While"}: 
         return translate_alloc_inst_list(n["body"])
     elif n["kind"] == "VarD":
         return translate_alloc_var_decl(n)

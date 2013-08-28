@@ -1,0 +1,62 @@
+IMPLEMENTATION
+   mult_i
+REFINES
+   mult
+CONCRETE_VARIABLES
+   op1 ,
+   op2 ,
+   res ,
+   ok
+INVARIANT
+    op1: INT & op2: INT & res: INT & ok: BOOL
+INITIALISATION
+   op1 := 0;
+   op2 := 0;
+   res := 0;
+   ok := TRUE
+OPERATIONS
+   inc1 =
+   BEGIN
+       op1 := succ(op1);
+       ok := FALSE
+   END
+   ;
+
+   dec1 =
+   BEGIN
+       op1 := pred(op1);
+       ok := FALSE
+   END
+   ;
+
+   inc2 =
+   BEGIN
+       op2 := succ(op2);
+       ok := FALSE
+   END
+   ;
+
+   dec2 =
+   BEGIN
+       op2 := pred(op2);
+       ok := FALSE
+   END
+   ;
+
+   calc =
+   VAR acc, idx IN
+       acc := 0;
+       idx := 0;
+       WHILE idx < op2 DO
+           idx := succ(idx);
+           acc := acc + op1
+       INVARIANT
+           idx: 0..op2 &
+           acc = op1 * idx
+       VARIANT
+           op2 - idx
+       END;
+       res := acc;
+       ok := TRUE
+   END
+END

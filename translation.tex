@@ -746,7 +746,7 @@ respectively.  The first rule defines the translation of an atomic relation:
 \begin{align*}
   \lefteqn{\trad{n, $\ell_t$, $\ell_f$}{\B{Form}} \isdef
   \textbf{ let } p \sep v = \trad{n}{\B{Comp}} \IN} \\
-  & \llvm{"\PH{p} \quad br i1 \PH{v}, label \PH{\ell_t}, label \PH{\ell_f} \nl"}
+  & \llvm{"\PH{p} \quad br i1 \PH{v}, label \%\PH{\ell_t}, label \%\PH{\ell_f} \nl"}
 \end{align*}
 
 \noindent The translation for negation is simply: $\trad{not f, $\ell_t$,
@@ -898,8 +898,9 @@ body:
 \begin{split}
 \trad{w, $\ell$}{\B{While}} \isdef 
   & \LET \ell_1 = \lbl \AND \ell_2 = \lbl \AND c \sep v = \trad{w.cond}{\B{Pred}} \IN \\
-  & \llvm{"\PH{\ell_1} : \PH{c}} \\
-  & \llvm{br i1 \PH{v}, label \PH{\ell_2}, label \PH{\ell} \nl} \\
+  & \llvm{"br label \%\PH{\ell_1} \nl} \\
+  & \llvm{\PH{\ell_1} : \PH{c}} \\
+  & \llvm{br i1 \PH{v}, label \%\PH{\ell_2}, label \%\PH{\ell} \nl} \\
   & \llvm{\PH{\ell_2} : \PH{\trad{i.body, $\ell_1$}{\ListOf{\B{Inst}}}_L}}
 \end{split}
 \end{align*}
@@ -1080,46 +1081,46 @@ is compiled and simulated using off-the-shelf LLVM tools \verb'llvm-as' and
 \begin{center}
 \newcommand{\no}[0]{--}
 \newcommand{\yes}[0]{$\circ$}
-\begin{tabular}{|l|c|c|c|}
+\begin{tabular}{|l|c|c|c|c|}
 \hline
-Example nº & 01 & 02 & 03 \\
+Example nº & 01 & 02 & 03 & 04\\
 \hline
-variables & \yes & \yes & \yes \\
-constants & \no & \yes & \no \\
-op. input & \yes & \no & \yes \\
-op. output & \yes & \no & \yes \\
+variables & \yes & \yes & \yes & \yes \\
+constants & \no & \yes & \no & \no \\
+op. input & \yes & \no & \yes & \no \\
+op. output & \yes & \no & \yes & \no \\
 \hline
-\multicolumn{4}{|c|}{instructions} \\
+\multicolumn{5}{|c|}{instructions} \\
 \hline
-block & \yes & \no & \yes \\
-local var & \no & \no & \yes \\
-identity & \no & \no & \yes \\
-becomes equal & \yes & \yes & \yes \\
-operation call & \no & \no & \no\\
-condition & \yes & \no & \no\\
-case & \no & \no & \no\\
-assertion & \no & \no & \no\\
-sequence & \yes & \yes & \yes\\
-while & \no & \no & \no\\
+block & \yes & \no & \yes & \yes\\
+local var & \no & \no & \yes & \yes \\
+identity & \no & \no & \yes & \no \\
+becomes equal & \yes & \yes & \yes & \yes \\
+operation call & \no & \no & \no & \no \\
+condition & \yes & \no & \no & \no \\
+case & \no & \no & \no & \no \\
+assertion & \no & \no & \no & \no\\
+sequence & \yes & \yes & \yes & \yes \\
+while & \no & \no & \no & \yes \\
 \hline
-\multicolumn{4}{|c|}{expressions} \\
+\multicolumn{5}{|c|}{expressions} \\
 \hline
-int lit & \yes & \yes & \yes \\
-bool lit & \yes & \yes & \no \\
-vars & \yes & \yes & \yes \\
-loc. vars & \no & \no & \yes \\
-const & \no & \yes & \no \\ 
-succ & \no & \yes & \no \\
-pred & \no & \yes & \no \\
-+ & \yes & \no & \no \\
-- & \yes & \no & \no \\
+int lit & \yes & \yes & \yes & \yes \\
+bool lit & \yes & \yes & \no & \yes \\
+vars & \yes & \yes & \yes & \yes \\
+loc. vars & \no & \no & \yes & \yes \\
+const & \no & \yes & \no & \no \\ 
+succ & \no & \yes & \no & \yes \\
+pred & \no & \yes & \no & \yes \\
++ & \yes & \no & \no & \yes \\
+- & \yes & \no & \no & \no\\
 \hline
-\multicolumn{4}{|c|}{formulas} \\
+\multicolumn{5}{|c|}{formulas} \\
 \hline
-and & \no & \no & \no \\
-or & \no & \no & \no \\
-not & \no & \no & \no \\
-$<$ & \yes & \yes & \no \\
+and & \no & \no & \no & \no \\
+or & \no & \no & \no & \no \\
+not & \no & \no & \no & \no \\
+$<$ & \yes & \yes & \no & \no\\
 \hline
 \end{tabular}
 \end{center}

@@ -168,7 +168,7 @@ set = { "kind": "Oper",
         "out": [],
         "body": inst14 }
 
-counter_i = { "kind": "Impl",
+root = { "kind": "Impl",
               "id": "counter_i",
               "concrete_variables": [ value, error ],
               "initialisation": [ inst1, inst2 ],
