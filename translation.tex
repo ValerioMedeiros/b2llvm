@@ -185,9 +185,6 @@ the B method ensures the absence of overflows and underflows.
         \B{type} & : & \B{Type} \\
         \B{scope} & : & \B{Impl} \alt \B{Oper}
         \\
-      \end{tabular}
-      & &
-      \begin{tabular}[t]{rcl}
         \hline
         \multicolumn{3}{|c|}{Operation: \B{Oper}} \\
         \hline
@@ -196,11 +193,14 @@ the B method ensures the absence of overflows and underflows.
         \B{out} & : & seq \B{Vari} \\
         \B{body} & : & \B{Inst}
         \\
+      \end{tabular}
+      & &
+      \begin{tabular}[t]{rcl}
         \hline
         \multicolumn{3}{|c|}{Instruction: \B{Inst}} \\
         \hline
         \multicolumn{3}{c}{\B{Blk} \alt \B{VarD} \alt \B{If} \alt \B{BEq} \alt } \\
-        \multicolumn{3}{c}{\B{Call} \alt \B{While} \alt \B{Case}} \\
+        \multicolumn{3}{c}{\B{Call} \alt \B{While} \alt \B{Case}} \alt \B{Skip} \\
         \hline
         \multicolumn{3}{|c|}{Block: \B{Blk}} \\
         \hline
@@ -227,12 +227,17 @@ the B method ensures the absence of overflows and underflows.
         \B{inp} & : & seq \B{Expr} \\
         \B{out} & : & seq \B{Name}
         \\
-%         \\
-%         \hline
-%         \multicolumn{3}{|c|}{Case conditional: \B{Case}} \\
-%         \hline
-%         \B{expr} & : & \B{Expr} \\
-%         \B{branches} & : & seq \B{CaseBr}
+        \hline
+        \multicolumn{3}{|c|}{Case conditional: \B{Case}} \\
+        \hline
+        \B{expr} & : & \B{Expr} \\
+        \B{branches} & : & seq \B{CaseBr}
+        \\
+        \hline
+        \multicolumn{3}{|c|}{Case branch: \B{CaseBr}} \\
+        \hline
+        \B{val} & : & seq \B{Value} \\
+        \B{body} & : & \B{Inst} \\
       \end{tabular}
       & &
       \begin{tabular}[t]{rcl}
@@ -247,11 +252,6 @@ the B method ensures the absence of overflows and underflows.
         \hline
         \B{cond} & : & opt \B{Pred} \\
         \B{body} & : & \B{Inst} \\
-%         \hline
-%         \multicolumn{3}{|c|}{Case branch: \B{CaseBr}} \\
-%         \hline
-%         \B{val} & : & seq \B{Value} \\
-%         \B{body} & : & \B{Inst} \\
         \hline
         \multicolumn{3}{|c|}{Expression: \B{Expr}} \\
         \hline
@@ -294,6 +294,7 @@ the B method ensures the absence of overflows and underflows.
   \end{center}
 \end{figure}
 \DD{Restore \B{Case} and \B{CaseBr}.}
+\DD{Specify \B{Skip}.}
 
 \section{Target LLVM Subset}
 \label{sec:llvm}
@@ -969,6 +970,80 @@ variable.
 & \quad \quad \quad \llvm{i32 0, i32 \PH{\idx(\B{n})} \nl"} \sep v
 \end{align*}
 
+\paragraph{Case instructions} are formed by an expression, and a list of case
+branches, each of which has a list of values and an instruction block.
+Optionally, there might be a default branch, and we consider that, in this case,
+the list of values is empty. 
+
+The translation to the LLVM IR uses its switch statement. It is composed of a
+variable, a default jump and a jump table. The jump table is a sequence of pairs
+formed by a value, and an instruction label. In the following, \llvm{\%val} is
+the variable, \llvm{\%otherwise} is the default label, and the jump table has
+three entries. The first corresponds to the case where the value of \llvm{\%val}
+is \llvm{0}, in which case the execution jumps to the label \llvm{onzero}.
+\begin{verbatim}
+switch i32 %val, label %otherwise [ i32 0, label %onzero
+                                    i32 1, label %onone
+                                    i32 2, label %ontwo ]
+\end{verbatim}
+
+The translation of the case statement first consists in producing the code $p$
+to evaluate the expression tested in the statement. When that code completes
+execution, the value is stored in variable $v$ of type $t$. Then the jump table
+$j$ and the code $b$ of the different branches are generated. This generation
+takes also as parameters labels $\ell$ and $\ell_o$.
+\begin{align*}
+  \trad{v, $\ell$}{\B{Case}} \isdef & \LET p \sep v \sep t = \trad{v.expr}{\B{Expr}} \IN \\
+  & \LET \ell_o = \lbl \IN \\
+  & \LET j, b = \trad{v.branches, $\ell_o$, $\ell$}{\ListOf{CaseBr}} \IN \\
+  & \quad \llvm{"\PH{p}} \\
+  & \quad \llvm{switch \PH{t} \PH{v}, label \%\PH{\ell_o} [ \PH{j} ] \PH{b}"}
+\end{align*}
+
+The following rule defines the composition of the translation of the different
+branches of a case statement. Again, this translation has two parts: bits of the
+jump table $j$, and instruction blocks $b$. If a case branch has several values,
+then several entries need to be created in the jump table. This is the role
+of the translation function $\trad{}{\B{ListOf{CaseVal}}}$.
+\begin{align*}
+  \trad{b bl, $\ell_o$, $\ell_e$}{\ListOf{\B{CaseBr}}} \isdef 
+  & \LET \ell = \lbl \IN \\
+  & \LET j, b = \trad{bl, $\ell_o$, $\ell_e$}{\ListOf{\B{CaseBr}}} \IN \\
+  & \quad \llvm{"\PH{\trad{b.values, $\ell$}{\ListOf{\B{CaseVal}}}} \PH{j}"}
+  \sep \\
+  & \quad
+  \llvm{"\PH{\ell}: \nl \PH{\trad{b.body, $\ell_e$}{\ListOf{Inst}}_L} \PH{b}"}
+\end{align*}
+This rule handles the last branch of a case statement, and needs to test if
+that branch is a default branch or not. If not, then one needs to be artificially
+created (as this is mandatory in the LLVM-IR switch statement):
+\begin{align*}
+  \trad{b, $\ell_o$, $\ell_e$}{\ListOf{\B{CaseBr}}} \isdef 
+  & \IF \B{b.values} = \text{None} \THEN \\
+  & \quad \llvm{""} \sep \llvm{"\PH{\ell_o}: \nl \PH{\trad{b.body, $\ell_e$}{\ListOf{Inst}}_L}"} \\
+  & \ELSE \LET \ell_b = \lbl \IN \\
+  & \quad \trad{b.values, $\ell_b$}{\ListOf{\B{CaseVal}}} \sep \\
+  & \quad \llvm{"\PH{\ell_b}: \nl \PH{\trad{b.body, $\ell_e$}{\ListOf{Inst}}_L}} \\
+  & \quad \quad \llvm{\PH{\ell_o}: \nl br label \% \PH{\ell_e}}
+\end{align*}
+
+The following rules specifies that the values of a case branch are translated in
+order, their translations being concatenated to form the result. The parameter
+$\ell$ is the label of the instruction block containing the translation of the
+branch body:
+\begin{align*}
+  \trad{v, $\ell$}{\ListOf{\B{CaseVal}}} \isdef & \trad{v, $\ell$}{\B{CaseVal}} \\
+  \trad{v vl, $\ell$}{\ListOf{\B{CaseVal}}} \isdef & 
+  \llvm{"\PH{\trad{v, $\ell$}{\B{CaseVal}}} \PH{\trad{vl, $\ell$}{\ListOf{\B{CaseVal}}}}"}
+\end{align*}
+
+This rule defines how a single value of a case branch is translated, namely
+as an entry in the jump table of a switch statement:
+\begin{align*}
+  \trad{v, $\ell$}{\B{CaseVal}} \isdef & \LET p \sep v \sep t = \trad{v}{\B{Expr}} \IN \\
+  & \quad \llvm{"\PH{t} \PH{v}, label \%\PH{\ell} \nl"}
+\end{align*}
+
 \paragraph{Call up} instructions apply B operations with some values and obtain
 results. The LLVM code generated must include instructions to evaluate the
 operation arguments, the address of the variables receiving the results as well
@@ -1117,47 +1192,48 @@ For each test file, indicates the B0 constructs found in the implementation.
 \begin{center}
 \newcommand{\no}[0]{--}
 \newcommand{\yes}[0]{$\circ$}
-\begin{tabular}{|l|c|c|c|c|c|}
+\begin{tabular}{|l|c|c|c|c|c|c|}
 \hline
-Example nº & 01 & 02 & 03 & 04 & 05\\
+Example nº & 01 & 02 & 03 & 04 & 05 & 06 \\
 \hline
-variables & \yes & \yes & \yes & \yes & \yes\\
-constants & \no & \yes & \no & \no & \yes\\
-op. input & \yes & \no & \yes & \no & \no \\
-op. output & \yes & \no & \yes & \no & \no \\
+variables & \yes & \yes & \yes & \yes & \yes & \yes\\
+constants & \no & \yes & \no & \no & \yes & \no \\
+op. input & \yes & \no & \yes & \no & \no & \no \\
+op. output & \yes & \no & \yes & \no & \no & \no \\
 \hline
-\multicolumn{6}{|c|}{instructions} \\
+\multicolumn{7}{|c|}{instructions} \\
 \hline
-block & \yes & \no & \yes & \yes & \no\\
-local var & \no & \no & \yes & \yes & \no \\
-identity & \no & \no & \yes & \no & \no \\
-becomes equal & \yes & \yes & \yes & \yes & \yes\\
-operation call & \no & \no & \no & \no & \no \\
-condition & \yes & \no & \no & \no & \yes\\
-case & \no & \no & \no & \no & \no \\
-assertion & \no & \no & \no & \no & \no \\
-sequence & \yes & \yes & \yes & \yes & \no \\
-while & \no & \no & \no & \yes & \no \\
+block & \yes & \no & \yes & \yes & \no & \yes\\
+local var & \no & \no & \yes & \yes & \no & \yes \\
+identity & \no & \no & \yes & \no & \no & \no \\
+becomes equal & \yes & \yes & \yes & \yes & \yes & \yes\\
+operation call & \no & \no & \no & \no & \no & \no \\
+condition & \yes & \no & \no & \no & \yes & \no \\
+case & \no & \no & \no & \no & \no & \yes \\
+assertion & \no & \no & \no & \no & \no & \no \\
+sequence & \yes & \yes & \yes & \yes & \no & \yes \\
+while & \no & \no & \no & \yes & \no & \no\\
 \hline
-\multicolumn{6}{|c|}{expressions} \\
+\multicolumn{7}{|c|}{expressions} \\
 \hline
-int lit & \yes & \yes & \yes & \yes & \yes\\
-bool lit & \yes & \yes & \no & \yes & \yes\\
-vars & \yes & \yes & \yes & \yes & \no \\
-loc. vars & \no & \no & \yes & \yes & \no \\
-const & \no & \yes & \no & \no & \yes\\ 
-succ & \no & \yes & \no & \yes & \yes\\
-pred & \no & \yes & \no & \yes & \yes\\
-+ & \yes & \no & \no & \yes & \no \\
-- & \yes & \no & \no & \no & \no\\
+int lit & \yes & \yes & \yes & \yes & \yes & \yes\\
+bool lit & \yes & \yes & \no & \yes & \yes & \no \\
+vars & \yes & \yes & \yes & \yes & \no & \yes \\
+loc. vars & \no & \no & \yes & \yes & \no & \yes \\
+const & \no & \yes & \no & \no & \yes & \no \\ 
+succ & \no & \yes & \no & \yes & \yes & \no \\
+pred & \no & \yes & \no & \yes & \yes & \no \\
++ & \yes & \no & \no & \yes & \no & \yes \\
+- & \yes & \no & \no & \no & \no & \no \\
+* & \no & \no & \no & \no & \no & \yes \\
 \hline
-\multicolumn{6}{|c|}{formulas} \\
+\multicolumn{7}{|c|}{formulas} \\
 \hline
-and & \no & \no & \no & \no & \yes\\
-or & \no & \no & \no & \no & \yes\\
-not & \no & \no & \no & \no & \yes\\
-$<$ & \yes & \yes & \no & \no & \no\\
-$>$ & \no & \no & \no & \no & \yes \\
+and & \no & \no & \no & \no & \yes & \no \\
+or & \no & \no & \no & \no & \yes & \no \\
+not & \no & \no & \no & \no & \yes & \no \\
+$<$ & \yes & \yes & \no & \no & \no & \no \\
+$>$ & \no & \no & \no & \no & \yes & \no \\
 \hline
 \end{tabular}
 \end{center}

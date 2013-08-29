@@ -80,6 +80,8 @@ def llvm_op(str):
         return "add"
     elif str == "-":
         return "sub"
+    elif str == "*":
+        return "mul"
     else:
         print("error: operator " + str + " not translated")
         return ""
@@ -105,6 +107,7 @@ def check_kind(n, s):
 nl = "\n"
 sp = " "
 tb = "  "
+tb2 = tb*2
 
 ### TYPE TRANSLATION ###
 
@@ -392,6 +395,53 @@ def translate_while(n, lbl):
     result += body
     return result
 
+def translate_case_val_list(vl, lbl):
+    global tb2, sp, nl
+    result = ""
+    for v in vl:
+        p, v, t = translate_expression(v)
+        result += tb2 + t + sp + v + ", label %" + lbl + nl
+    return result
+
+def translate_case_branch_list(bl, lblo, lble):
+    br = bl[0]
+    bl2 = bl[1:]
+    j, b = "", ""
+    if bl2 == []:
+        if "val" not in br.keys() or br["val"] == [] or br["val"] == None:
+            b += tb + lblo + ":" + nl
+            b += translate_inst_label(br["body"], lble)
+        else:
+            lbl = new_llvm_label()
+            j += translate_case_val_list(br["val"], lbl)
+            b += tb + lbl + ":" + nl
+            b += translate_inst_label(br["body"], lble)
+            b += tb + lblo + ":" + nl
+            b += tb + "branch label %" + lble
+    else:
+        lbl = new_llvm_label()
+        j += translate_case_val_list(br["val"], lbl)
+        b += lbl + ":" + nl
+        b += translate_inst_label(br["body"], lble)
+        j2, b2 = translate_case_branch_list(bl2, lblo, lble)
+        j += j2
+        b += b2
+    return j, b
+
+def translate_case(n, lbl):
+    global nl, tb, sp
+    check_kind(n, {"Case"})
+    p,v,t = translate_expression(n["expr"])
+    lblo = new_llvm_label()
+    j, b = translate_case_branch_list(n["branches"], lblo, lbl)
+    result = ""
+    result += p
+    result += tb + "switch " + t + sp + v + ", label %" + lblo + "[" + nl
+    result += j
+    result += tb + "]" + nl
+    result += b
+    return result
+
 def translate_inst(n):
     check_kind(n, {"Beq", "VarD"})
     if n["kind"] == "Beq":
@@ -402,9 +452,11 @@ def translate_inst(n):
         return ""
 
 def translate_inst_label(n, lbl):
-    check_kind(n, {"Blk", "If", "Beq", "VarD", "While"})
+    check_kind(n, {"Beq", "Blk", "Case", "If", "VarD", "While"})
     if n["kind"] == "Blk":
         return translate_inst_list_label(n["body"], lbl)
+    elif n["kind"] == "Case":
+        return translate_case(n, lbl)
     elif n["kind"] == "If":
         return translate_if(n, lbl)
     elif n["kind"] == "While":
@@ -442,7 +494,7 @@ def translate_inst_list_label(l, lbl):
     else:
         i = l[0]
         l2 = l[1:]
-        if i["kind"] in {"If", "While"}:
+        if i["kind"] in {"Case", "If", "While"}:
             lbl2 = new_llvm_label()
             p1 = translate_inst_label(i, lbl2) + lbl2 + ":\n"
         elif i["kind"] in {"Blk"}:
@@ -464,10 +516,10 @@ def translate_alloc_var_decl(n):
     return result
 
 def translate_alloc_inst(n):
-    check_kind(n, {"Beq", "If", "Blk", "VarD", "While"})
+    check_kind(n, {"Beq", "Blk", "Case", "If", "VarD", "While"})
     if n["kind"] == "Beq":
         return ""
-    elif n["kind"] == "If":
+    elif n["kind"] in {"Case", "If"}:
         result = ""
         for br in n["branches"]:
             result += translate_alloc_inst(br["body"])

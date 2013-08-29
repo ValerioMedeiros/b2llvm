@@ -47,6 +47,9 @@ def make_pred(term):
 def make_sum(term1, term2):
     return make_term("+", [term1, term2])
 
+def make_prod(term1, term2):
+    return make_term("*", [term1, term2])
+
 def make_comp(op, arg1, arg2):
     return { "kind": "Comp", "op": op, "arg1": arg1, "arg2": arg2 }
 
@@ -84,6 +87,12 @@ def make_if_br(cond, body):
 
 def make_if(branches):
     return { "kind": "If", "branches": branches }
+
+def make_case_br(values, body):
+    return { "kind": "CaseBr", "val": values, "body": body }
+
+def make_case(expression, branches):
+    return { "kind": "Case", "expr": expression, "branches": branches }
 
 def make_while(cond, body):
     return { "kind": "While", "cond": cond, "body": body }
