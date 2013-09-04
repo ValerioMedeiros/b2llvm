@@ -45,7 +45,9 @@
 \newcommand{\local}[0]{\ensuremath{\sf\lambda}}
 \newcommand{\opmap}[0]{\ensuremath{\sf\Omega}}
 \newcommand{\idx}[0]{\ensuremath{\sf\Pi}}
-\newcommand{\state}[0]{\ensuremath{\sf\Sigma}}
+\newcommand{\state}[0]{\ensuremath{\sf\Theta}}
+\newcommand{\self}[0]{\ensuremath{\sf\Sigma}}
+\newcommand{\init}[0]{\ensuremath{\mathsf{I}}}
 \newcommand{\tradi}[2]{\ensuremath{\langle \textsf{#1} \rangle^{\textit{#2}}}}
 
 \newcommand{\DD}[1]{\marginpar{\tiny{DD: #1}}}
@@ -123,7 +125,7 @@ translation. For instance, and for the purpose of the translation, the relevant
 components of a B implementation are: \B{id}, the name identifying the
 implementation within the project; \B{see}, a set of references to other modules
 containing definitions used in the implementation; \B{const}, a set of constant
-names, their type and their values; \B{imp}, a sequence of optionally
+names, their type and their values; \B{impo}, a sequence of optionally
 prefixed B machines corresponding to external modules instantiated in the
 implementation; \B{var}, a set of variable names, their type and possibly
 additional functional restrictions forming the rest of the state; \B{init}, a
@@ -161,17 +163,24 @@ the B method ensures the absence of overflows and underflows.
         \multicolumn{3}{|c|}{Implementation: \B{Impl}} \\
         \hline
         \B{id} & : & \B{Name} \\
-        \B{see} & : & seq \B{Name} \\
-        \B{imp} & : & seq \B{Impo} \\
+        \B{see} & : & seq \B{Mach} \\
+        \B{impo} & : & seq \B{Impo} \\
         \B{const} & : & seq \B{Cons} \\
         \B{var} & : & seq \B{Vari} \\
         \B{init} & : & seq \B{Inst} \\
-        \B{op} & : & seq \B{Oper} \\
+        \B{op} & : & seq \B{Oper} 
+        \\
         \hline
         \multicolumn{3}{|c|}{Imported machine: \B{Impo}} \\
         \hline
+        \B{mach} & : & \B{Mach} \\
+        \B{pre} & : & opt \B{Name} 
+        \\
+        \hline
+        \multicolumn{3}{|c|}{Machine: \B{Mach}} \\
+        \hline
         \B{id} & : & \B{Name} \\
-        \B{pre} & : & opt \B{Name} \\
+        \B{impl} & : & \B{Impl} \\
         \hline
         \multicolumn{3}{|c|}{Constant: \B{Cons}} \\
         \hline
@@ -185,6 +194,9 @@ the B method ensures the absence of overflows and underflows.
         \B{type} & : & \B{Type} \\
         \B{scope} & : & \B{Impl} \alt \B{Oper}
         \\
+      \end{tabular}
+      & &
+      \begin{tabular}[t]{rcl}
         \hline
         \multicolumn{3}{|c|}{Operation: \B{Oper}} \\
         \hline
@@ -193,14 +205,11 @@ the B method ensures the absence of overflows and underflows.
         \B{out} & : & seq \B{Vari} \\
         \B{body} & : & \B{Inst}
         \\
-      \end{tabular}
-      & &
-      \begin{tabular}[t]{rcl}
         \hline
         \multicolumn{3}{|c|}{Instruction: \B{Inst}} \\
         \hline
         \multicolumn{3}{c}{\B{Blk} \alt \B{VarD} \alt \B{If} \alt \B{BEq} \alt } \\
-        \multicolumn{3}{c}{\B{Call} \alt \B{While} \alt \B{Case}} \alt \B{Skip} \\
+        \multicolumn{3}{c}{\B{Call} \alt \B{While} \alt \B{Case} \alt \B{Skip}} \\
         \hline
         \multicolumn{3}{|c|}{Block: \B{Blk}} \\
         \hline
@@ -232,15 +241,15 @@ the B method ensures the absence of overflows and underflows.
         \hline
         \B{expr} & : & \B{Expr} \\
         \B{branches} & : & seq \B{CaseBr}
-        \\
+      \end{tabular}
+      & &
+      \begin{tabular}[t]{rcl}
         \hline
         \multicolumn{3}{|c|}{Case branch: \B{CaseBr}} \\
         \hline
         \B{val} & : & seq \B{Value} \\
-        \B{body} & : & \B{Inst} \\
-      \end{tabular}
-      & &
-      \begin{tabular}[t]{rcl}
+        \B{body} & : & \B{Inst}
+        \\
         \hline
         \multicolumn{3}{|c|}{While loop: \B{While}} \\
         \hline
@@ -293,7 +302,6 @@ the B method ensures the absence of overflows and underflows.
     \label{tab:node-attr}
   \end{center}
 \end{figure}
-\DD{Restore \B{Case} and \B{CaseBr}.}
 \DD{Specify \B{Skip}.}
 
 \section{Target LLVM Subset}
@@ -367,7 +375,7 @@ of the LLVM.
       \nt{block} & ::= & \nt{lbl} \llvm{:} \ListOf{\nt{inst}} \\
       \nt{inst} & ::=  & \nt{name} \llvm{=} \llvm{alloca} \nt{type} \\
       & \alt & \nt{name} \llvm{=} \lalt \llvm{add} \alt \llvm{sub} \alt \llvm{mul} \alt \llvm{sdiv} \alt \llvm{srem} \ralt \nt{itype} \nt{exp} \llvm{,} \nt{exp} \\
-      & \alt & \nt{name} \llvm{=} \llvm{icmp} \lalt \llvm{eq} \alt \llvm{sub} \alt \llvm{mul} \alt \llvm{sdiv} \alt \llvm{srem} \ralt \llvm{i1} \nt{exp} \llvm{,} \nt{exp}\\
+      & \alt & \nt{name} \llvm{=} \llvm{icmp} \lalt \llvm{eq} \alt \llvm{ne} \alt \llvm{sgt} \alt \llvm{sge} \alt \llvm{slt} \alt \llvm{sle} \ralt \llvm{i1} \nt{exp} \llvm{,} \nt{exp}\\
       & \alt & \nt{name} \llvm{=} \llvm{call} \nt{type} \llvm{(} \ListOf{\nt{arg}} \llvm{)} \\
       & \alt & \nt{name} \llvm{=} \llvm{getelementptr} \nt{type} \llvm{*} \nt{exp}\llvm{,} \nt{index}\llvm{,} \nt{index} \\
       & \alt & \nt{name} \llvm{=} \llvm{load} \nt{type} \nt{exp} \\
@@ -457,6 +465,11 @@ ends the current function call, optionally returning a value.
 The expression language is limited to names (local and global), integer literals
 and selection of an element in a structure.
 
+To conclude, we make no assumption on the existence of a library to obtain
+resources managed by the operating system, such as dynamic memory allocation. In
+the absence of such resource, all data must be allocated either statically, or
+on the current stack frame, by using the \llvm{alloca} instruction.
+
 \section{Translation: a Bird's-Eye View}
 \label{sec:overview}
 
@@ -477,32 +490,40 @@ translated as follows:
   definition of a function named \llvm{@M\$op}; also the translation produces a
   special function \llvm{@M\$init\$} responsible for the initialization.
 
-  The parameter list of the functions thus produced contain one item for each
+  The parameter list of the functions thus produced contains one item for each
   input and output of the corresponding operation, and one item of type
   \llvm{\%M\$state\$*}, to pass the address of the structure encoding the
   state of the implementation and its modification by the callee. The return
   type is always \llvm{void}.
 \end{enumerate}
-This approach assumes that information on external B components used in \B{M} is
-available during translation. To fulfill this hypothesis, the translation
-produces an ``interface'' artifact containing the information that the
-translation of an importation of \B{M} in a client machine
-requires. Figure~\ref{fig:skel} summarizes the translation principles by
-providing the structure of both the interface and the LLVM implementation thus
-produced.
+The translation is designed to support modular B development. In a B
+implementation, one may reuse existing components, by instantiating (the B term
+is \emph{importing} so-called library machines. Such library machines have their
+own development and implementation. Borrowing terminology from the
+object-oriented world, one may view library machines as classes, and the B
+implementation as an object that contains instances of those classes. In
+practice, different from most OO languages, such instances are not references,
+but the actual objects. We consider this necessary as dynamic memory allocation
+is precluded.
+
+To translate the instantiations of library machines in an implementation, the
+translator needs to have access to the following information on those machines
+and their respective implementation:
+\begin{itemize}
+\item for each library machine \B{M}, the corresponding implementation, denoted
+  \B{M.impl}.
+\item for such implementation, the type of the state and the signature of the
+  operations.
+\end{itemize}
+Note that, when translating the implementation of a library machine, no instance
+shall be generated. It is in the implementation of the main design, that we call
+the \emph{top-level} component, that such instances are created.
+
+Figure~\ref{fig:skel} summarizes the translation principles by providing the
+structure of the LLVM implementation thus produced.
 
 \begin{figure}
   \begin{center}
-    (a) Structure of the interface artifact produced from a B implementation \B{M}:
-    \begin{tabbing}
-      foo \= foo \= \kill
-      \textit{(references to imported components)} \\
-      \llvm{\%M\$state\$ = type \{ \ListOf{\nt{type}} \}} \\
-      \llvm{declare void @M\$init\$(\%M\$state\$*)} \\
-      \textit{for each operation} \B{op} \textit{generate} \\
-      \> \llvm{declare void @M\$op(\%M\$state\$*, \ListOf{\nt{type}})} \\
-    \end{tabbing}
-    (b) Structure of the LLVM module produced from a B implementation \B{M}:
     \begin{tabbing}
       foo \= foo \= \kill
       \textit{for each imported component} \B{Q} \textit{generate} \\
@@ -511,7 +532,6 @@ produced.
       \> \textit{for each operation} \B{op} \textit{generate} \\
       \> \> \llvm{declare void @Q\$op(\%Q\$state\$*, \ListOf{\nt{type}})} \\
       \llvm{\%M\$state\$ = type \{ \ListOf{\nt{type}} \}} \\
-      \llvm{@M\$self\$ = common global \%M\$state\$ zeroinitializer} \\
       \llvm{define void @M\$init\$(\%M\$state\$* \%self\$) \{} \\
       \> \llvm{\ListOf{\nt{block}}} \\
       \> \llvm{exit: ret void} \\
@@ -520,10 +540,12 @@ produced.
       \> \llvm{define void @M\$op(\%M\$state\$* \%self\$, \ListOf{\nt{param}}) \{} \\
       \> \> \llvm{\ListOf{\nt{block}}} \\
       \> \> \llvm{exit: ret void} \\
-      \> \llvm{\}}
+      \> \llvm{\}} \\
+      \textit{if this is the top-level component, generate} \\
+      \> \llvm{@M\$self\$ = common global \%M\$state\$ zeroinitializer}
     \end{tabbing}
   \end{center}
-  \caption{Skeleton of the artifacts produced by the translation.}
+  \caption{Structure of the LLVM module produced from a B implementation \B{M}.}
   \label{fig:skel}
 \end{figure}
 
@@ -541,9 +563,9 @@ implementation is divided into:
   of B operations and initialization.
 \end{description}
 
-Code generation is defined with a set of rules defined by structural
-recursion. For each grammatical construct, a code generation function is
-defined: $\trad{~}{\B{Oper}}$ for operations, $\trad{~}{\B{Inst}}$ for
+\paragraph{Notations.} Code generation is defined with a set of rules defined by
+structural recursion. For each grammatical construct, a code generation function
+is defined: $\trad{~}{\B{Oper}}$ for operations, $\trad{~}{\B{Inst}}$ for
 instructions, $\trad{~}{\B{Expr}}$ for expressions and so forth. Each such
 function usually produces a text corresponding to bits of LLVM source code. It
 may have additional parameter and results. The symbol $\sep$ is used to clearly
@@ -560,83 +582,87 @@ element \B{n} of the abstract syntax tree returns the corresponding LLVM local
 name, obtained by prepending character \% to its identifier; and $\Global(\B{n})
 \isdef \llvm{"@\PH{\B{n.root.id}}\$\PH{\B{n.id}}"}$ yields the corresponding
 LLVM global name, composed by special characters (to avoid name conflicts), the
-name of the component where it is defined and its own name. Also $\state(\B{M})
-\isdef \llvm{"\%\PH{\B{M.id}}\$state\$"}$ yields the name of the type for the
-state of component \B{M}. We assume an unlimited supply of labels and local
-variables: we use $\lbl$ to return a fresh LLVM label and $\variable$ for a
-fresh local variable name.
+name of the component where it is defined and its own name.  Also, we define
+three auxiliary functions responsible to produce such identifiers of,
+respectively, the type representing the state of a B module \B{n}, its
+initialization function, and the object carrying its state:
+\begin{align*}
+\state(\B{n}) & \isdef \llvm{"\%\PH{\B{n.id}}\$state\$"} & \text{ (the type for the state)} \\
+\init(\B{n}) & \isdef \llvm{"@\PH{\B{n.id}}\$init\$"} & \text{ (the initialization function)} \\
+\self(\B{n}) & \isdef \llvm{"@\PH{\B{n.id}}\$self\$"} & \text{ (the instance in a top-level module)}
+\end{align*}
+We assume an unlimited supply of labels and local variables: we use $\lbl$ to
+return a fresh LLVM label and $\variable$ for a fresh local variable name.
 
 \section{Translation: Modularity Aspects}
 \label{sec:module}
 
-The translation of a B module produces two artifacts: an interface and an (LLVM)
-implementation. In the following, we describe how they are produced.
-
-\subsection{Interface}
-
-The definition of the interface $\intf(\B{M})$ of a component \B{M} has four
-key elements, as shown in figure~\ref{fig:skel} (b):
-\begin{enumerate}
-\item $\intf(\B{M})_u$ is the list of used components: $\intf(\B{M})_u \isdef \B{M.imp}$.
-
-\item $\intf(\B{M})_t$ is a textual description of the type representing the
-  state of the component, i.e. a structure with one element per imported
-  component and variable:
-\begin{small}
-$$\intf(\B{M})_t \isdef \llvm{"\{\PH{\trad{\B{M.imp}}{\ListOf{\B{Impo}}}_t} \PH{\trad{\B{M.var}}{\ListOf{\B{Vari}}}_t} \}"},$$
-\end{small}
-where $\trad{\B{i}}{\B{Impo}}_t \isdef \llvm{\state(\B{i})}$ and
-$\trad{\B{v}}{\B{Vari}}_t \isdef \trad{\B{v.type}}{\B{Type}}$.
-
-\item $\intf(\B{M})_o$ represents the operation declarations. It maps
-operation names to the list of input parameter types and output parameter
-types:
-$\intf(\B{M})_o \isdef \trad{\B{M.op}}{\ListOf{\B{Oper}}}_t$ and
-$\trad{\B{o}}{\B{Oper}}_t \isdef \B{o} \mapsto ( \trad{\B{o.inp}}{\ListOf{inp}} \sep \trad{\B{o.out}}{\ListOf{out}} )$, where
-$\trad{\B{i}}{inp} \isdef \trad{\B{i.type}}{\B{Type}}$ and
-$\trad{\B{o}}{out} \isdef \llvm{"\PH{\trad{\B{o.type}}{\B{Type}}}*"}$.
-\end{enumerate}
-
-\subsection{Implementation}
-
-The actual LLVM source code is generated following the template shown in
-figure~\ref{fig:skel} (a), as follows:
+The translation of a B implementation to LLVM, following the template sketched
+in Figure~\ref{fig:skel}, is specified by the following rule, where \B{n} is the
+root of the implementation representation and $\top^?$ a boolean indicating if
+\B{n} is the implementation of a top-level component or of a library machine:
 \begin{align*}
-  \lefteqn{\trad{\B{i}, \intf}{\B{Impl}} \isdef
-  \llvm{"\PH{\trad{\B{i.imp}, \intf}{\ListOf{IType}}}} 
-  \quad \PH{\trad{\B{i.imp}, \intf}{\ListOf{IInit}}}
-  \quad \PH{\trad{\B{i.imp}, \intf}{\ListOf{ICons}}}} \\
-& \llvm{\PH{\trad{\B{i.imp}, \intf}{\ListOf{IOper}}}
-  \quad \PH{\trad{\B{i.id}, \B{i.const}}{\ListOf{\B{Cons}}}}
-  \quad \PH{\trad{\B{i}}{State}}} \\
-& \llvm{@\PH{\B{i.id}}\$self\$ = common global \PH{\state(\B{i.id})} zeroinitializer \nl} \\
-& \llvm{\PH{\trad{\B{i.init}}{Init}} 
-  \quad \PH{\trad{\B{i.op}}{\ListOf{\B{Oper}}}}"}
+  \lefteqn{\trad{\B{n}, $\top^?$}{\B{Impl}} \isdef } \\
+  & \llvm{"\PH{\trad{\B{n.impo}, $\emptyset$}{\ListOf{\B{State}}}_{def}}} & \text{defines the type of imported modules} \\
+  & \llvm{\state(\B{n}) = type \PH{\trad{n}{State}_{expr}}} & \text{defines the type of current module} \\
+  & \llvm{\PH{\trad{\B{n.impo}, $\emptyset$}{\ListOf{\B{Bhv}}}_{decl}}} & \text{declares of imported modules operations} \\
+  & \llvm{\PH{\trad{\B{n.init}}{\B{Init}}}} & \text{defines the initialization function} \\
+  & \llvm{\PH{\trad{\B{n.op}}{\ListOf{\B{Oper}}}}} & \text{defines functions implementing operations}\\
+  & \llvm{\PH{\trad{\B{n}, $\top^?$}{\B{Inst}}}"} & \text{creates instance (conditional)}
 \end{align*}
-We shall now define each rule referenced in this template.
-\begin{enumerate}
-\item For the type definitions corresponding to the state of the imported
-  components: $\trad{i, \intf}{IType} \isdef \llvm{"\PH{\state(\B{i})} =
-    type \PH{\intf(\B{i})_t}\nl"}$.
-\item For the declarations of the initialization functions in the imported
-  components: $\trad{\B{i}, \intf}{Init} \isdef \llvm{"declare void
-    @\PH{\B{i.id}}\$init\$(\PH{\state(\B{i.id})}*)\nl"}$.
-\item For the declarations of the imported operations: $\trad{\B{i},
-    \intf}{IOper} = \trad{\B{i.id}, $\intf(\B{i})_o$}{\ListOf{Oper}}$ where
-  $\trad{\B{Q}, $\B{op} \mapsto (i, o)$}{Oper} = \llvm{"declare void
-    \PH{\Global(\B{op})}(\PH{\state(\B{Q})}*,\PH{i},\PH{o})"}$.
-\item The translation of constant definitions is presented in section~\ref{sec:data}.
-\item For the definition of the type for component states: \\
-\noindent$\trad{\B{M}}{State} \isdef
-\llvm{"\PH{\state(\B{M})} = type \PH{\intf(\B{M})_t}\nl"}$.
-\item For the initialization, the definition of a function is generated. It
-  first initializes the imported modules and then the current module (see
-  section~\ref{sec:control}).
-\item For each operation, a function definition is generated (see
-  section~\ref{sec:control}).
-\end{enumerate}
-Let $\idx$ be a function that maps each imported machine and state variable to
-its position (starting from zero).
+
+To handle the importation of a machine, one needs to produce the definition of
+the type for the state of its implementation. Since this implementation may reference
+other modules, the definition is recursive (parameter $A$ is an accumulator to avoid
+duplicating such definitions):
+\begin{align*}
+  \trad{\B{n}, $A$}{\B{State}}_{def} \isdef 
+  & \IF \B{n} \not\in A \THEN \\
+  & \quad \LET \B{m} = \B{n.mach} \IN \\
+  & \quad \quad \LET \B{i} = \B{m.impl} \IN \\
+  & \quad \quad \quad \llvm{"\PH{\trad{\B{i.impo}, $A \cup \{ \B{n} \}$}{\ListOf{\B{State}}}_{def}}} \\
+  & \quad \quad \quad \llvm{\PH{\state(\B{m})} = type \PH{\trad{i}{State}_{expr}} \nl"}
+\end{align*}
+
+The following rules specify how the type representing the state of an
+implementation is generated. It is a structure type, with one element per
+imported machine, and one element per variable. The definition of such type is
+just the enumeration of the type of its elements (the individual elements are
+referenced, not by name, but by position inside the structure):
+\begin{align*}
+  \trad{\B{n}}{\B{State}}_{expr} \isdef & \llvm{"\{ \PH{\trad{\B{n.impo}}{\ListOf{\B{Impo}}}_{expr}},  \PH{\trad{\B{n.var}}{\ListOf{\B{Vari}}}_{expr}} \}"} \\
+  \trad{\B{n}}{\B{Impo}}_{expr} \isdef & \state(\B{n.mach}) \\
+  \trad{\B{n}}{\B{Vari}}_{expr} \isdef & \trad{\B{n.type}}{\B{Type}}
+\end{align*}
+
+The code generation for the functions implementing the initialization and
+operations of imported machine is specified by the following rules. Not that
+this definition needs not be recursive, as only the operations of a directly
+imported machine may be called in an implementation. Again, parameter $A$ plays
+the role of an accumulator to avoid (harmless, but useless) duplicate
+declarations.
+\begin{align*}
+  \trad{\B{n}, $A$}{\B{Bhv}}_{decl} \isdef 
+  & \IF \B{n} \not\in A \THEN \\
+  & \quad \LET \B{m} = \B{n.mach} \IN \\
+  & \quad \quad \LET \B{i} = \B{m.impl} \IN \\
+  & \quad \quad \quad \llvm{declare void \PH{\init(\B{m})}(\PH{\state(\B{m})} *) \nl} \\
+  & \quad \quad \quad \llvm{\PH{\trad{\B{m.op}}{\ListOf{\B{Oper}}}_{decl}}"} \\
+  \trad{\B{n}}{\B{Oper}}_{decl} \isdef &
+  \llvm{"declare void \PH{\Global(\B{n})}(\PH{\state(\B{n.root})}, \PH{\trad{\B{n.inp}}{\ListOf{\B{Inp}}}}, \PH{\trad{\B{n.out}}{\ListOf{\B{Out}}}})"}\\
+  \trad{\B{n}}{\B{inp}}_{decl} \isdef & \trad{\B{n.type}}{\B{Type}} \\
+  \trad{\B{n}}{\B{out}}_{decl} \isdef & \llvm{"\PH{\trad{\B{n.type}}{\B{Type}}}*"}
+\end{align*}
+
+The last rule is responsible for producing the code creating the instance when the
+implementation is that of the top-level component of a design:
+\begin{align*}
+\lefteqn{  \trad{\B{n}, $\top^?$}{\B{Inst}} \isdef } \\
+  & \IF \top^? \THEN \llvm{"\PH{\self(\B{n})} = common global \PH{\state(\B{n})} zeroinitializer \nl"} \\
+  & \ELSE \llvm{""}
+\end{align*}
+
+
 \section{Translation: Data}
 \label{sec:data}
 
@@ -1196,6 +1222,9 @@ For each test file, indicates the B0 constructs found in the implementation.
 \hline
 Example nº & 01 & 02 & 03 & 04 & 05 & 06 \\
 \hline
+\hline
+\multicolumn{7}{|c|}{clauses} \\
+\hline
 variables & \yes & \yes & \yes & \yes & \yes & \yes\\
 constants & \no & \yes & \no & \no & \yes & \no \\
 op. input & \yes & \no & \yes & \no & \no & \no \\
@@ -1213,6 +1242,11 @@ case & \no & \no & \no & \no & \no & \yes \\
 assertion & \no & \no & \no & \no & \no & \no \\
 sequence & \yes & \yes & \yes & \yes & \no & \yes \\
 while & \no & \no & \no & \yes & \no & \no\\
+\hline
+\multicolumn{7}{|c|}{types} \\
+\hline
+INT & \yes & \yes & \yes & \yes & \yes & \yes \\
+BOOL & \yes & \yes & \no & \no & \yes & \no \\
 \hline
 \multicolumn{7}{|c|}{expressions} \\
 \hline
