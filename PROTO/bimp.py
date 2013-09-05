@@ -22,16 +22,27 @@ def make_arg_var(name, type):
     return make_var(name, type, "Oper")
 
 def make_intlit(value):
-    return { "kind": "IntegerLit", "value": str(value)}
-
-zero = make_intlit(0)
-one = make_intlit(1)
+    '''
+    - Input: an integer value
+    Creates an integer literal.
+    '''
+    return { "kind": "IntegerLit", 
+             "value": str(value)}
 
 def make_boollit(value):
+    '''
+    - Input: "FALSE" or "TRUE"
+    Creates a boolean literal.
+    '''
     return { "kind": "BooleanLit",
              "value": value}
-false = make_boollit("FALSE")
-true = make_boollit("TRUE")
+
+FALSE = make_boollit("FALSE")
+TRUE = make_boollit("TRUE")
+
+ZERO = make_intlit(0)
+ONE = make_intlit(1)
+MAXINT = make_intlit(2147483647)
 
 ### COMPOSED EXPRESSIONS ###
 
@@ -46,6 +57,9 @@ def make_pred(term):
 
 def make_sum(term1, term2):
     return make_term("+", [term1, term2])
+
+def make_diff(term1, term2):
+    return make_term("-", [term1, term2])
 
 def make_prod(term1, term2):
     return make_term("*", [term1, term2])
@@ -97,16 +111,46 @@ def make_case(expression, branches):
 def make_while(cond, body):
     return { "kind": "While", "cond": cond, "body": body }
 
+def make_call(op, inp, out, inst=None):
+    '''
+    - Input:
+    op: an operation
+    inp: a sequence of inputs
+    out: a sequence of outputs
+    inst: an element of an imported clause (optional)
+    - Output:
+    an operation call
+    '''
+    return { "kind": "Call", "inp": inp, "out": out, 
+             "inst": inst }
+
 ### COMPONENT ###
 
 def make_oper(id, inp, out, body):
     return { "kind": "Oper", "id": id, "inp": inp, "out": out, "body": body }
 
-def make_implementation(id, vars, consts, init, ops):
+def make_import(mach, prefix = None):
+    '''
+    - Input: 
+    mach: a machine
+    prefix: a string prefix (optional).
+    - Output:
+    Creates an element of an import clause.
+    '''
+    assert(mach["kind"] in { "Mach" })
+    return { "kind": "Impo", "mach": mach, "pre": prefix }
+
+def make_implementation(id, imports, consts, vars, init, ops):
     root = { "kind": "Impl", "id": id,
-             "concrete_variables": vars, "concrete_constants": consts,
+             "imports": imports,
+             "concrete_constants": consts,
+             "concrete_variables": vars, 
              "initialisation": init, "operations": ops }
     for node in root["concrete_variables"]+root["operations"]:
         node["root"] = root
+    return root
+
+def make_machine(id, impl):
+    root = { "kind": "Mach", "id": id, "impl": impl }
     return root
 

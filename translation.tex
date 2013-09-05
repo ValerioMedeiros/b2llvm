@@ -231,10 +231,10 @@ the B method ensures the absence of overflows and underflows.
         \hline
         \multicolumn{3}{|c|}{Operation call: \B{Call}} \\
         \hline
-        \B{op} & : & \B{Name} \\
-        \B{pre} & : & opt \B{Name} \\
+        \B{op} & : & \B{Oper} \\
         \B{inp} & : & seq \B{Expr} \\
-        \B{out} & : & seq \B{Name}
+        \B{out} & : & seq \B{Name} \\
+        \B{inst} & : & opt \B{Impo}
         \\
         \hline
         \multicolumn{3}{|c|}{Case conditional: \B{Case}} \\
@@ -302,7 +302,6 @@ the B method ensures the absence of overflows and underflows.
     \label{tab:node-attr}
   \end{center}
 \end{figure}
-\DD{Specify \B{Skip}.}
 
 \section{Target LLVM Subset}
 \label{sec:llvm}
@@ -481,11 +480,12 @@ translated as follows:
   B components and are translated to external declarations in LLVM.
 \item Constants and value definitions are translated to their value in the
   LLVM platform.
-\item To encode the implementation state, the translation produces a
-  structure type, named \llvm{\%M\$state\$}, and an instance of that type, named
-  \llvm{@M\$self\$}. All the variables and instances of imported machines
-  are encoded as elements of that structure.  Also, for each operation of each
-  imported machine, an external function declaration is produced.
+\item To encode the implementation state, the translation produces a structure
+  type, named \llvm{\%M\$state\$}, and an instance of that type, named
+  \llvm{@M\$self\$}. All the variables and instances of imported machines are
+  encoded as elements of that structure. These elements are referenced by their
+  position in the structure within the LLVM code. Also, for each operation of
+  each imported machine, an external function declaration is produced.
 \item Each operation \B{op} of the implementation is translated into the
   definition of a function named \llvm{@M\$op}; also the translation produces a
   special function \llvm{@M\$init\$} responsible for the initialization.
@@ -583,9 +583,7 @@ name, obtained by prepending character \% to its identifier; and $\Global(\B{n})
 \isdef \llvm{"@\PH{\B{n.root.id}}\$\PH{\B{n.id}}"}$ yields the corresponding
 LLVM global name, composed by special characters (to avoid name conflicts), the
 name of the component where it is defined and its own name.  Also, we define
-three auxiliary functions responsible to produce such identifiers of,
-respectively, the type representing the state of a B module \B{n}, its
-initialization function, and the object carrying its state:
+three auxiliary functions responsible to produce such identifiers:
 \begin{align*}
 \state(\B{n}) & \isdef \llvm{"\%\PH{\B{n.id}}\$state\$"} & \text{ (the type for the state)} \\
 \init(\B{n}) & \isdef \llvm{"@\PH{\B{n.id}}\$init\$"} & \text{ (the initialization function)} \\
@@ -593,6 +591,18 @@ initialization function, and the object carrying its state:
 \end{align*}
 We assume an unlimited supply of labels and local variables: we use $\lbl$ to
 return a fresh LLVM label and $\variable$ for a fresh local variable name.
+
+Finally, we need a function that, given a concrete variable, or an imported
+machine, returns the position of the corresponding element in the structure
+representing the state of the implementation. The position of the elements in
+the structure is the same as the position of corresponding B construct in the
+source code:
+\begin{align*}
+  \idx(\B{n}) & \isdef \mathit{index}(\B{n}, \B{n.root.impo} \conc
+\B{n.root.vari})
+\end{align*}
+where $\mathit{index}(e, s)$ is a function that returns the position of $e$ in
+sequence $s$ and $\conc$ is the concatenation operator for sequences.
 
 \section{Translation: Modularity Aspects}
 \label{sec:module}
@@ -909,60 +919,14 @@ LLVM block with $\ell$ as exit point. It is defined as follows:
   \ELSE \llvm{"\PH{\trad{i}{\B{Inst}}} \PH{p}"} \IN
 \end{array} \\
 & \quad \quad \IN \\
-& \quad \quad \quad \LET p_2 = \trad{il', $\ell$}{\ListOf{\B{Inst}}}_L \\
-& \quad \quad \quad \quad \llvm{"\PH{p_1} \PH{p_2}"}
+& \quad \quad \quad \llvm{"\PH{p_1}} \\
+& \quad \quad \quad \llvm{\PH{\trad{il', $\ell$}{\ListOf{\B{Inst}}}_L}"}
 \end{align*}
 
 Eventually, $\trad{}{\B{Inst}}$ defines the translation for individual
 instructions. Its definition is specialized for each class of instructions as
 detailed in the rest of this section. Note that a new block is created after
 each \B{If} and \B{While} instruction.
-
-\paragraph{While instructions} are translated in two blocks of instructions:
-block $\ell_1$ evaluates the loop condition and block $\ell_2$ executes the loop
-body:
-\begin{align*}
-\begin{split}
-\trad{w, $\ell$}{\B{While}} \isdef 
-  & \LET \ell_1 = \lbl \AND \ell_2 = \lbl \AND c \sep v = \trad{w.cond}{\B{Pred}} \IN \\
-  & \llvm{"br label \%\PH{\ell_1} \nl} \\
-  & \llvm{\PH{\ell_1} : \PH{c}} \\
-  & \llvm{br i1 \PH{v}, label \%\PH{\ell_2}, label \%\PH{\ell} \nl} \\
-  & \llvm{\PH{\ell_2} : \PH{\trad{i.body, $\ell_1$}{\ListOf{\B{Inst}}}_L}}
-\end{split}
-\end{align*}
-
-\paragraph{If instructions} are sequences of possibly conditional blocks of
-instructions, i.e. branches. After a branch is executed, control must go
-to the next block $\ell$.
-\begin{align*}
-  \trad{i, $\ell$}{\B{If}}_L \isdef \trad{i.branches, $\ell$}{\ListOf{\B{IfBr}}}
-\end{align*}
-To translate conditional branches, one must first generate code to evaluate the
-condition of the branch, followed by an LLVM conditional branching statement,
-translate the body of the branch, and add an unconditional branch to the block
-following the corresponding \B{If} statement.  The translation for branches has
-as arguments a branch \B{b}, the remaining branches \B{bl}, the lexicon, and the
-label $\ell$ of the block following the \B{If} statement they belong to. The
-following definition applies for the case of conditional branches:
-\begin{align*}
-\begin{split}
-  \trad{\B{b bl}, $\ell$}{\ListOf{\B{IfBr}}} \isdef & \LET \ell_1 = \lbl \AND \ell_2 = \lbl \IN \\
-  & \llvm{"\PH{\trad{b.cond, $\ell_1$, $\ell_2$}{\B{Pred}}} } \\
-  & \llvm{\PH{\ell_1} : \PH{\trad{b.body, $\ell$}{\ListOf{\B{Inst}}}_L}} \\
-  & \llvm{\PH{\ell_2} : \PH{\trad{bl, $\ell$}{\ListOf{\B{IfBr}}}}"} \\
-\end{split}
-\end{align*}
-The following rule handles the case of the last branch, which might have a condition or not:
-\begin{align*}
-\begin{split}
-  \trad{\B{b}, $\ell$}{\ListOf{\B{IfBr}}} \isdef & \IF \B{b.cond} = \text{None} \THEN
-  \trad{b.body, $\ell$}{\ListOf{Inst}}_L\\
-  & \ELSE \LET \ell_1 = \lbl \IN \\
-  & \llvm{"\PH{\trad{b.cond, $\ell_1$, $\ell$}{\B{Pred}}} } \\
-  & \llvm{\PH{\ell_1} : \PH{\trad{b.body, $\ell$}{\ListOf{\B{Inst}}}_L}}
-\end{split}
-\end{align*}
 
 \paragraph{Becomes equal instructions} must evaluate the target and the source
 of the assignment, and then copy the result of the latter in the former, using
@@ -994,6 +958,81 @@ variable.
 & \quad \ELSE \LET v = \variable \AND t = \trad{n.type}{\B{Type}} \IN \\
 & \quad \quad \llvm{"\PH{v} = getelementptr \PH{\state(\B{n.root})}* \%self\$,} \\
 & \quad \quad \quad \llvm{i32 0, i32 \PH{\idx(\B{n})} \nl"} \sep v
+\end{align*}
+
+\paragraph{Call up} instructions apply B operations with some values and obtain
+results. The LLVM code generator produces instructions to evaluate the operation
+arguments, the address of the variables receiving the results as well as an
+instance of the LLVM \llvm{call} instruction. In addition, the proposed
+translation includes as argument the address of a structure storing the state of
+the component corresponding to this operation. Note that this component may be
+either the implementation being translated (in the case of a so-called local
+operation), or an instance of an imported machine.
+\begin{align*}
+  \trad{c}{\B{Call}} \isdef 
+  & \LET p_i \sep il = \trad{c.inp}{\ListOf{Inp}} \AND p_o \sep ol = 
+  \trad{c.out}{\ListOf{Out}} \AND \\
+  & \quad id = \Global(\B{c}) \AND ty = \state(\B{c.root}) \AND \\
+  & \quad val = \IF \B{c.inst} = \text{None} \THEN \llvm{"\%self\$"} \ELSE \\
+  & \quad \quad \llvm{"getelementptr \%self\$, i32 0, i32 \PH{\idx(\B{c.inst})}"}\\
+  & \IN \\
+  & \quad \llvm{"\PH{p_i}} \\
+  & \quad \llvm{\PH{p_o}} \\
+  & \quad \llvm{call void \PH{id}(\PH{ty}* \PH{val}, \PH{il}, \PH{ol}) \nl"}
+\end{align*}
+The translation of input and output arguments produces two code snippets. The
+first corresponds to the LLVM instruction sequence $p$ responsible for
+evaluating the argument, and the second to the type $t$ and name $v$ of the
+variable storing the resulting value:
+\begin{align*}
+  \trad{i}{Inp} \isdef 
+  & \LET p \sep v \sep t = \trad{i}{\B{Expr}} \IN p \sep \llvm{"\PH{t} \PH{v}"}\\
+  \trad{o}{Out} \isdef 
+  & \LET p \sep v \sep t = \trad{o}{\B{Expr}} \IN p \sep \llvm{"\PH{t}* \PH{v}"}
+\end{align*}
+
+\paragraph{Identity} does nothing and no code is generated:
+\begin{align*}
+\begin{split}
+  \trad{n}{\B{Skip}} \isdef & \llvm{""}
+\end{split}
+\end{align*}
+
+\paragraph{Block instructions} are structuring constructs that have no
+operational intent; their translation is that of their body: $\trad{i,
+  $\ell$}{\B{Blk}} \isdef \trad{i.body, $\ell$}{\ListOf{\B{Inst}}}$.
+
+
+\paragraph{If instructions} are sequences of possibly conditional blocks of
+instructions, i.e. branches. After a branch is executed, control must go
+to the next block $\ell$.
+\begin{align*}
+  \trad{i, $\ell$}{\B{If}}_L \isdef \trad{i.branches, $\ell$}{\ListOf{\B{IfBr}}}
+\end{align*}
+To translate conditional branches, one must first generate code to evaluate the
+condition of the branch, followed by an LLVM conditional branching statement,
+translate the body of the branch, and add an unconditional branch to the block
+following the corresponding \B{If} statement.  The translation for branches has
+as arguments a branch \B{b}, the remaining branches \B{bl}, the lexicon, and the
+label $\ell$ of the block following the \B{If} statement they belong to. The
+following definition applies for the case of conditional branches:
+\begin{align*}
+\begin{split}
+  \trad{\B{b bl}, $\ell$}{\ListOf{\B{IfBr}}} \isdef & \LET \ell_1 = \lbl \AND \ell_2 = \lbl \IN \\
+  & \llvm{"\PH{\trad{b.cond, $\ell_1$, $\ell_2$}{\B{Pred}}} } \\
+  & \llvm{\PH{\ell_1} : \PH{\trad{b.body, $\ell$}{\ListOf{\B{Inst}}}_L}} \\
+  & \llvm{\PH{\ell_2} : \PH{\trad{bl, $\ell$}{\ListOf{\B{IfBr}}}}"} \\
+\end{split}
+\end{align*}
+The following rule handles the case of the last branch, which might have a condition or not:
+\begin{align*}
+\begin{split}
+  \trad{\B{b}, $\ell$}{\ListOf{\B{IfBr}}} \isdef & \IF \B{b.cond} = \text{None} \THEN
+  \trad{b.body, $\ell$}{\ListOf{Inst}}_L\\
+  & \ELSE \LET \ell_1 = \lbl \IN \\
+  & \llvm{"\PH{\trad{b.cond, $\ell_1$, $\ell$}{\B{Pred}}} } \\
+  & \llvm{\PH{\ell_1} : \PH{\trad{b.body, $\ell$}{\ListOf{\B{Inst}}}_L}}
+\end{split}
 \end{align*}
 
 \paragraph{Case instructions} are formed by an expression, and a list of case
@@ -1070,42 +1109,19 @@ as an entry in the jump table of a switch statement:
   & \quad \llvm{"\PH{t} \PH{v}, label \%\PH{\ell} \nl"}
 \end{align*}
 
-\paragraph{Call up} instructions apply B operations with some values and obtain
-results. The LLVM code generated must include instructions to evaluate the
-operation arguments, the address of the variables receiving the results as well
-as an instance of the LLVM \llvm{call} instruction. In addition, the proposed
-translation includes as argument the address of a structure storing the state of
-the component corresponding to this operation. Note that this component may be
-either the implementation being translated, or an instance of an imported
-machine.
+\paragraph{While instructions} are translated in two blocks of instructions:
+block $\ell_1$ evaluates the loop condition and block $\ell_2$ executes the loop
+body:
 \begin{align*}
-  \trad{c}{\B{Call}} \isdef 
-  & \LET p_i \sep il = \trad{c.inp}{\ListOf{Inp}} \AND p_o \sep ol = 
-  \trad{c.out}{\ListOf{Out}} \AND \\
-  & \quad id = \IF \B{c.pre} = \text{None} \THEN \Global(\B{c}) \ELSE \llvm{"@\PH{c.pre}\$\PH{c.id}"} \AND \\
-  & \quad ty = \IF \B{c.pre} = \text{None} \THEN \state(\B{c.root}) \ELSE \llvm{"\%\PH{c.pre}\$state\$"} \AND \\
-  & \quad val = \IF \B{c.pre} = \text{None} \THEN \llvm{"\%self\$"} \ELSE \\
-  & \quad \quad \llvm{"getelementptr \PH{\state(\B{n.root})} \%self\$, i32 0, i32 \PH{\idx(\B{c.pre})}"}\\
-  & \IN \\
-  & \quad \llvm{"\PH{p_i}} \\
-  & \quad \llvm{\PH{p_o}} \\
-  & \quad \llvm{call void \PH{id}(\PH{ty}* \PH{val}, \PH{il}, \PH{ol}) \nl"}
+\begin{split}
+\trad{w, $\ell$}{\B{While}} \isdef 
+  & \LET \ell_1 = \lbl \AND \ell_2 = \lbl \AND c \sep v = \trad{w.cond}{\B{Pred}} \IN \\
+  & \llvm{"br label \%\PH{\ell_1} \nl} \\
+  & \llvm{\PH{\ell_1} : \PH{c}} \\
+  & \llvm{br i1 \PH{v}, label \%\PH{\ell_2}, label \%\PH{\ell} \nl} \\
+  & \llvm{\PH{\ell_2} : \PH{\trad{i.body, $\ell_1$}{\ListOf{\B{Inst}}}_L}}
+\end{split}
 \end{align*}
-The translation of input and output arguments produces two code snippets. The
-first corresponds to the LLVM instruction sequence $p$ responsible for
-evaluating the argument, and the second to the type $t$ and name $v$ of the
-variable storing the resulting value:
-\begin{align*}
-  \trad{i}{Inp} \isdef 
-  & \LET p \sep v \sep t = \trad{i}{\B{Expr}} \IN p \sep \llvm{"\PH{t} \PH{v}"}\\
-  \trad{o}{Out} \isdef 
-  & \LET p \sep v \sep t = \trad{o}{\B{Expr}} \IN p \sep \llvm{"\PH{t}* \PH{v}"}
-\end{align*}
-
-\paragraph{Block instructions} are structuring constructs that have no
-operational intent; their translation is that of their body: $\trad{i,
-  $\ell$}{\B{Blk}} \isdef \trad{i.body, $\ell$}{\ListOf{\B{Inst}}}$.
-
 
 \subsection{Initialization}
 \label{sec:trad-init}
