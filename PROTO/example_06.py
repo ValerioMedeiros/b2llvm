@@ -38,44 +38,44 @@
 #     END
 # END
 
-from bimp import *
+import bimp
 
-v1 = make_imp_var("v1", INT)
-v2 = make_imp_var("v2", INT)
+v1 = bimp.make_imp_var("v1", bimp.INT)
+v2 = bimp.make_imp_var("v2", bimp.INT)
 
-one = make_intlit(1)
-two = make_intlit(2)
-three = make_intlit(3)
+two = bimp.make_intlit(2)
+three = bimp.make_intlit(3)
 
-inst1 = make_beq(v1, zero)
-inst2 = make_beq(v2, zero)
+inst1 = bimp.make_beq(v1, bimp.ZERO)
+inst2 = bimp.make_beq(v2, bimp.ZERO)
 
-sum = make_loc_var("sum", INT)
-term1 = make_sum(v1, v2)
-inst3 = make_beq(sum, term1)
+sum = bimp.make_loc_var("sum", bimp.INT)
+term1 = bimp.make_sum(v1, v2)
+inst3 = bimp.make_beq(sum, term1)
 
-term2 = make_sum(v1, one)
-inst4 = make_beq(v1, term2)
-br1 = make_case_br([zero], inst4)
+term2 = bimp.make_sum(v1, bimp.ONE)
+inst4 = bimp.make_beq(v1, term2)
+br1 = bimp.make_case_br([bimp.ZERO], inst4)
 
-term3 = make_sum(v2, one)
-inst5 = make_beq(v2, term3)
-br2 = make_case_br([one], inst5)
+term3 = bimp.make_sum(v2, bimp.ONE)
+inst5 = bimp.make_beq(v2, term3)
+br2 = bimp.make_case_br([bimp.ONE], inst5)
 
-term4 = make_prod(v1, two)
-inst6 = make_beq(v1, term4)
-br3 = make_case_br([two,three], inst6)
+term4 = bimp.make_prod(v1, two)
+inst6 = bimp.make_beq(v1, term4)
+br3 = bimp.make_case_br([two,three], inst6)
 
-inst7 = make_blk([inst1, inst2])
-br4 = make_case_br([], inst7)
+inst7 = bimp.make_blk([inst1, inst2])
+br4 = bimp.make_case_br([], inst7)
 
-inst8 = make_case(sum, [br1, br2, br3, br4])
+inst8 = bimp.make_case(sum, [br1, br2, br3, br4])
 
-inst9 = make_var_decl([sum], [inst3, inst8])
-step = make_oper("step", [], [], inst9)
+inst9 = bimp.make_var_decl([sum], [inst3, inst8])
+step = bimp.make_oper("step", [], [], inst9)
 
-vars = [v1, v2]
+imports = []
 consts = []
+vars = [v1, v2]
 init = [inst1, inst2]
 ops = [step]
-root = make_implementation("switch_i", vars, consts, init, ops)
+root = bimp.make_implementation("switch_i", imports, consts, vars, init, ops)

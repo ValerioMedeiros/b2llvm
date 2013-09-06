@@ -73,6 +73,9 @@ def make_lt(term1, term2):
 def make_gt(term1, term2):
     return make_comp(">", term1, term2)
 
+def make_eq(term1, term2):
+    return make_comp("=", term1, term2)
+
 def make_form(op, args):
     return { "kind": "Form", "op": op, "args" : args }
 
@@ -86,6 +89,9 @@ def make_not(arg):
     return make_form("not", [arg])
 
 ### INSTRUCTIONS ###
+
+def make_skip():
+    return { "kind": "Skip" }
 
 def make_beq(lhs, rhs):
     return { "kind": "Beq", "lhs": lhs, "rhs": rhs}
@@ -121,7 +127,7 @@ def make_call(op, inp, out, inst=None):
     - Output:
     an operation call
     '''
-    return { "kind": "Call", "inp": inp, "out": out, 
+    return { "kind": "Call", "op": op, "inp": inp, "out": out, 
              "inst": inst }
 
 ### COMPONENT ###
@@ -146,7 +152,7 @@ def make_implementation(id, imports, consts, vars, init, ops):
              "concrete_constants": consts,
              "concrete_variables": vars, 
              "initialisation": init, "operations": ops }
-    for node in root["concrete_variables"]+root["operations"]:
+    for node in imports + vars + ops:
         node["root"] = root
     return root
 

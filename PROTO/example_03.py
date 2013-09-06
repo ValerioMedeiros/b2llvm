@@ -30,117 +30,33 @@
 #    END
 # END
 
-v1 = { "kind": "Vari",
-       "id":"v1",
-       "type": "INT",
-       "scope": "Impl" }
+import bimp
 
-v2 = { "kind": "Vari",
-       "id":"v2",
-       "type": "INT",
-       "scope": "Impl" }
-
-ilit0 = { "kind": "IntegerLit",
-          "value": "0"}
-
-ilit1 = { "kind": "IntegerLit",
-          "value": "1"}
-
-r1 = { "kind": "Vari",
-       "id": "r1",
-       "type": "INT",
-       "scope": "Oper" }
-
-r2 = { "kind": "Vari",
-       "id": "r2",
-       "type": "INT",
-       "scope": "Oper" }
-
-av1 = { "kind": "Vari",
-        "id":"av1",
-        "type": "INT",
-        "scope": "Oper" }
-
-av2 = { "kind": "Vari",
-        "id":"av2",
-        "type": "INT",
-        "scope": "Oper" }
-
-tmp = { "kind": "Vari",
-        "id":"tmp",
-        "type": "INT",
-        "scope": "Local" }
-
-
-inst1 = { "kind": "Beq",
-          "lhs": v1,
-          "rhs": ilit0}
-
-inst2 = { "kind": "Beq",
-          "lhs": v2,
-          "rhs": ilit1}
-
-inst3 = { "kind": "Beq",
-          "lhs": tmp,
-          "rhs": v1}
-
-inst4 = { "kind": "Beq",
-          "lhs": v1,
-          "rhs": v2}
-
-inst5 = { "kind": "Beq",
-          "lhs": v2,
-          "rhs": tmp}
-
-inst6 = { "kind": "VarD",
-          "vars": [tmp],
-          "body": [inst3, inst4, inst5] }
-
-inst7 = { "kind": "Beq",
-          "lhs": v1,
-          "rhs": av1 }
-
-inst8 = { "kind": "Beq",
-          "lhs": v2,
-          "rhs": av2 }
-
-inst9 = { "kind": "Blk",
-          "body": [inst7, inst8] }
-
-inst10 = { "kind": "Beq",
-           "lhs": r1,
-           "rhs": v1 }
-
-inst11 = { "kind": "Beq",
-           "lhs": r2,
-           "rhs": v2 }
-
-inst12 = { "kind": "Blk",
-          "body": [inst10, inst11] }
-
-step = { "kind": "Oper",
-         "id": "step",
-         "inp": [],
-         "out": [],
-         "body": inst6 }
-
-set = { "kind": "Oper",
-        "id": "set",
-        "inp": [av1, av2],
-        "out": [],
-        "body":  inst9 }
-
-get = { "kind": "Oper",
-        "id": "get",
-        "inp": [],
-        "out": [r1, r2],
-        "body": inst12 }
-
-root = { "kind": "Impl",
-         "id": "swap_i",
-         "concrete_variables": [ v1, v2 ],
-         "initialisation": [ inst1, inst2 ],
-         "operations": [ set, get, step ] }
-
-for n in [v1, v2, step, set, get]:
-    n["root"] = root
+v1 = bimp.make_imp_var("v1", bimp.INT)
+v2 = bimp.make_imp_var("v2", bimp.INT)
+r1 = bimp.make_arg_var("r1", bimp.INT)
+r2 = bimp.make_arg_var("r2", bimp.INT)
+av1 = bimp.make_arg_var("av1", bimp.INT)
+av2 = bimp.make_arg_var("av2", bimp.INT)
+tmp = bimp.make_arg_var("tmp", bimp.INT)
+inst1 = bimp.make_beq(v1, bimp.ZERO)
+inst2 = bimp.make_beq(v2, bimp.ONE)
+inst3 = bimp.make_beq(tmp, v1)
+inst4 = bimp.make_beq(v1, v2)
+inst5 = bimp.make_beq(v2, tmp)
+inst6 = bimp.make_var_decl([tmp], [inst3, inst4, inst5])
+inst7 = bimp.make_beq(v1, av1)
+inst8 = bimp.make_beq(v2, av2)
+inst9 = bimp.make_blk([inst7, inst8])
+inst10 = bimp.make_beq(r1, v1)
+inst11 = bimp.make_beq(r2, v2)
+inst12 = bimp.make_blk([inst10, inst11])
+step = bimp.make_oper("step", [], [], inst6)
+set = bimp.make_oper("set", [av1, av2], [], inst9)
+get = bimp.make_oper("get", [], [r1, r2], inst12)
+imports = []
+consts = []
+vars = [v1, v2]
+init = [inst1, inst2]
+ops = [set, get, step]
+root = bimp.make_implementation("swap_i", imports, consts, vars, init, ops)

@@ -50,57 +50,59 @@
 #    END
 # END
 
-from bimp import *
+import bimp
 
-op1 = make_imp_var("op1", INT)
-op2 = make_imp_var("op2", INT)
-res = make_imp_var("res", INT)
-ok = make_imp_var("ok", BOOL)
+op1 = bimp.make_imp_var("op1", bimp.INT)
+op2 = bimp.make_imp_var("op2", bimp.INT)
+res = bimp.make_imp_var("res", bimp.INT)
+ok = bimp.make_imp_var("ok", bimp.BOOL)
 
-inst1 = make_beq(op1, zero)
-inst2 = make_beq(op2, zero)
-inst3 = make_beq(res, zero)
-inst4 = make_beq(ok, true)
+inst1 = bimp.make_beq(op1, bimp.ZERO)
+inst2 = bimp.make_beq(op2, bimp.ZERO)
+inst3 = bimp.make_beq(res, bimp.ZERO)
+inst4 = bimp.make_beq(ok, bimp.TRUE)
 
-term1 = make_succ(op1)
-inst5 = make_beq(op1, term1)
-inst6 = make_beq(ok, false)
-inst7 = make_blk([inst5, inst6])
+term1 = bimp.make_succ(op1)
+inst5 = bimp.make_beq(op1, term1)
+inst6 = bimp.make_beq(ok, bimp.FALSE)
+inst7 = bimp.make_blk([inst5, inst6])
 
-inc1 = make_oper("inc1", [], [], inst7)
+inc1 = bimp.make_oper("inc1", [], [], inst7)
 
-term2 = make_pred(op1)
-inst8 = make_beq(op1, term2)
-inst9 = make_blk([inst8, inst6])
+term2 = bimp.make_pred(op1)
+inst8 = bimp.make_beq(op1, term2)
+inst9 = bimp.make_blk([inst8, inst6])
 
-dec1 = make_oper("dec1", [], [], inst9)
+dec1 = bimp.make_oper("dec1", [], [], inst9)
 
-term3 = make_succ(op2)
-inst10 = make_beq(op2, term3)
-inst11 = make_blk([inst10, inst6])
+term3 = bimp.make_succ(op2)
+inst10 = bimp.make_beq(op2, term3)
+inst11 = bimp.make_blk([inst10, inst6])
 
-inc2 = make_oper("inc2", [], [], inst11)
+inc2 = bimp.make_oper("inc2", [], [], inst11)
 
-term4 = make_pred(op2)
-inst12 = make_beq(op2, term4)
-inst13 = make_blk([inst12, inst6])
+term4 = bimp.make_pred(op2)
+inst12 = bimp.make_beq(op2, term4)
+inst13 = bimp.make_blk([inst12, inst6])
 
-dec2 = make_oper("dec2", [], [], inst13)
+dec2 = bimp.make_oper("dec2", [], [], inst13)
 
-acc = make_loc_var("acc", INT)
-idx = make_loc_var("idx", INT)
-inst14 = make_beq(acc, zero)
-inst15 = make_beq(idx, zero)
-inst16 = make_beq(idx, make_succ(idx))
-inst17 = make_beq(acc, make_sum(acc, op1))
-cond1 = make_lt(idx, op2)
-inst18 = make_while(cond1, [inst16, inst17])
-inst19 = make_beq(res, acc)
-inst20 = make_beq(ok, true)
-inst21 = make_var_decl([acc, idx],[inst14, inst15, inst18, inst19, inst20])
-calc = make_oper("calc", [], [], inst21)
+acc = bimp.make_loc_var("acc", bimp.INT)
+idx = bimp.make_loc_var("idx", bimp.INT)
+inst14 = bimp.make_beq(acc, bimp.ZERO)
+inst15 = bimp.make_beq(idx, bimp.ZERO)
+inst16 = bimp.make_beq(idx, bimp.make_succ(idx))
+inst17 = bimp.make_beq(acc, bimp.make_sum(acc, op1))
+cond1 = bimp.make_lt(idx, op2)
+inst18 = bimp.make_while(cond1, [inst16, inst17])
+inst19 = bimp.make_beq(res, acc)
+inst20 = bimp.make_beq(ok, bimp.TRUE)
+inst21 = bimp.make_var_decl([acc, idx],[inst14, inst15, inst18, inst19, inst20])
+calc = bimp.make_oper("calc", [], [], inst21)
 
+imports = []
+consts = []
 vars = [op1, op2, res, ok]
 init = [inst1, inst2, inst3, inst4]
 ops = [inc1, dec1, inc2, dec2, calc]
-root = make_implementation("mult_i", vars, [], init, ops)
+root = bimp.make_implementation("mult_i", imports, consts, vars, init, ops)

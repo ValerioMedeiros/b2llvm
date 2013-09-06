@@ -49,6 +49,47 @@ def reset_llvm_names():
     llvm_local_var_counter = 0
     llvm_label_counter = 0
 
+def instance_name(n):
+    '''
+    - Input:
+      n: A node representing a B implementation
+    - Output:
+      A string for the name of the LLVM variable representing the instance 
+      of that implementation.
+    '''
+    check_kind(n, {"Impl"})
+    return "@"+n["id"]+"$self$"
+
+def state_t_name(n):
+    '''
+    - Input:
+      n: A node representing a B implementation
+    - Output:
+      A string for the name of the LLVM type representing the state of
+      the implementation n.
+    '''
+    check_kind(n, {"Impl"})
+    return "%"+n["id"]+"$state$"
+
+def global_name(n):
+    '''
+    - Input:
+      n: A node representing a B construct
+    - Output:
+      A string for the name of the LLVM construct representing n.
+    '''
+    return "@" + n["root"]["id"] + "$" + n["id"]
+
+def init_name(n):
+    '''
+    - Input:
+      n : a node representing a B implementation
+    - Output:
+    String with the name of the LLVM function encoding the initialization
+    of that implementation.
+    '''
+    return "@"+n["id"]+"$init$"
+
 ### LLVM names for B operators ###
 
 def llvm_op(str):
@@ -82,6 +123,10 @@ def llvm_op(str):
         return "sub"
     elif str == "*":
         return "mul"
+    elif str == "/":
+        return "sdiv"
+    elif str == "mod":
+        return "srem"
     else:
         print("error: operator " + str + " not translated")
         return ""
@@ -109,6 +154,24 @@ sp = " "
 tb = "  "
 tb2 = tb*2
 
+def state_position(n):
+    '''
+    Input:
+      - n: represents a B state variable or imported machine
+    Output:
+      - position of n in the list of imported machines and state variables
+    An error message is printed and the value 0 is returned if n is
+    not found.
+    '''
+    root = n["root"]
+    result = 0
+    for n2 in root["imports"] + root["concrete_variables"]:
+        if n2 == n:
+            return result
+        result += 1
+    print("error: position of imported machine or variable not found in implementation")
+    return 0
+
 ### TYPE TRANSLATION ###
 
 #
@@ -122,27 +185,22 @@ def translate_type(t):
         return "i1"
 
 #
-# Function responsible for producing the name of the type corresponding
-# to the state of B0 implementation n
-#
-def state_name(n):
-    check_kind(n, {"Impl"})
-    return "%"+n["id"]+"$state$"
-
-def global_name(n):
-    return "@" + n["root"]["id"] + "$" + n["id"]
-#
 # This function is responsible for building the LLVM type expression for
 # the type corresponding to the state of B0 implementation n.
 #
 def state_expression(n):
-    check_kind(n, {"Impl"})
+    check_kind(n, {"Impl", "Mach"})
     result = "{"
-    for idx in range(len(n["concrete_variables"])):
-        if idx != 0:
-            result = result + ","
-        result = result + translate_type(n["concrete_variables"][idx]["type"])
-    result = result + "}"
+    components = []
+    for imp in n["imports"]:
+        components += [state_t_name(imp)]
+    for var in n["concrete_variables"]:
+        components += [translate_type(var["type"])]
+    for i in range(len(components)):
+        if i > 0:
+            result += ", "
+        result += components[i]
+    result += "}"
     return result
 
 #
@@ -151,11 +209,11 @@ def state_expression(n):
 #
 def translate_state(n):
     global nl
-    check_kind(n, {"Impl"})
+    check_kind(n, {"Impl", "Mach"})
     if (len(n["concrete_variables"]) == 0):
         return ""
     else:
-        return state_name(n) + " = type " + state_expression(n) + nl
+        return state_t_name(n) + " = type " + state_expression(n) + nl
 
 def variable_position(v):
     check_kind(v, {"Vari"})
@@ -195,7 +253,7 @@ def translate_name(n):
         p = new_llvm_local_var()
         v = new_llvm_local_var()
         text = ""
-        text += tb + p + " = getelementptr " + state_name(n["root"]) + "*" + sp + "%self$, i32 0, i32 " + str(variable_position(n)) + nl
+        text += tb + p + " = getelementptr " + state_t_name(n["root"]) + "*" + sp + "%self$, i32 0, i32 " + str(variable_position(n)) + nl
         text += tb + v + " = load " + t + "* " + p + nl
         return (text, v, t)
     else:
@@ -331,12 +389,12 @@ def translate_form(n, lbl1, lbl2):
 def translate_lv(n):
     global tb, nl
     check_kind(n, {"Vari"})
-    t = n["type"]
+    t = translate_type(n["type"]) + "*"
     if n["scope"] == "Impl":
         v = new_llvm_local_var()
-        return (tb + v + " = getelementptr " + state_name(n["root"])+ "* %self$, i32 0, i32 " + str(variable_position(n)) + nl, v)
+        return (tb + v + " = getelementptr " + state_t_name(n["root"])+ "* %self$, i32 0, i32 " + str(variable_position(n)) + nl, v, t)
     elif n["scope"] in {"Oper", "Local"}:
-        return ("", "%"+n["id"])
+        return ("", "%"+n["id"],t)
     else:
         print("unknown scope for variable " + v["id"])
         return ("", "UNKNOWN")
@@ -345,10 +403,14 @@ def translate_beq(n):
     global tb, sp, nl
     check_kind(n, {"Beq"})
     r,v,t = translate_expression(n["rhs"])
-    l,p = translate_lv(n["lhs"])
+    l,p,_ = translate_lv(n["lhs"])
     return (r + 
             l + 
             tb + "store " + t + sp + v + ", " + t + "* " + p + nl)
+
+def translate_skip(n):
+    check_kind(n, {"Skip"})
+    return ""
 
 def translate_if_br(lbr, lbl):
     assert(len(lbr)>=1)
@@ -371,8 +433,8 @@ def translate_if_br(lbr, lbl):
             lbl_1 = new_llvm_label()
             result = ""
             result += translate_form(br["cond"], lbl_1, lbl)
-            result += lbl1 + ":\n"
-            result += translate_inst_label(br["body"].lbl)
+            result += lbl_1 + ":\n"
+            result += translate_inst_label(br["body"], lbl)
     return result
 
 def translate_if(n, lbl):
@@ -436,23 +498,68 @@ def translate_case(n, lbl):
     j, b = translate_case_branch_list(n["branches"], lblo, lbl)
     result = ""
     result += p
-    result += tb + "switch " + t + sp + v + ", label %" + lblo + "[" + nl
+    result += tb + "switch " + t + sp + v + ", label %" + lblo + " [" + nl
     result += j
     result += tb + "]" + nl
     result += b
     return result
 
+def translate_inputs(n):
+    global sp
+    preamble = ""
+    args = []
+    for elem in n:
+        p,v,t = translate_expression(elem)
+        preamble += p
+        args.append(t + sp + v)
+    return preamble, args
+
+def translate_outputs(n):
+    global sp
+    preamble = ""
+    args = []
+    for elem in n:
+        p,v,t = translate_lv(elem)
+        preamble += p
+        args.append(t + sp + v)
+    return preamble, args
+
+def translate_call(n):
+    global sp
+    check_kind(n, {"Call"})
+    operation = n["op"]
+    pi, il = translate_inputs(n["inp"])
+    po, ol = translate_outputs(n["out"])
+    result = ""
+    result += pi
+    result += po
+    id = global_name(operation)
+    ty = state_name(operation["root"])
+    if n["inst"] == None:
+        val = "%self$"
+    else:
+        val = new_llvm_local_var()
+        result += (tb + val + " = getelementptr " + 
+                   state_name(n["inst"]["root"]) + "* " +
+                   "%self$, i32 0, i32 " + 
+                   str(state_position(n["inst"])) + nl)
+    args = [ty + sp + val] + il + ol
+    result += tb + "call void" + sp + id + "(" + ", ".join(args) + ")" + nl
+    return result
+
 def translate_inst(n):
-    check_kind(n, {"Beq", "VarD"})
+    check_kind(n, {"Beq", "Call", "VarD"})
     if n["kind"] == "Beq":
         return translate_beq(n)
+    elif n["kind"] == "Call":
+        return translate_call(n)
     elif n["kind"] == "VarD":
-        return translate_inst_list(n)
+        return translate_inst_list(n["body"])
     else:
         return ""
 
 def translate_inst_label(n, lbl):
-    check_kind(n, {"Beq", "Blk", "Case", "If", "VarD", "While"})
+    check_kind(n, {"Beq", "Blk", "Call", "Case", "If", "VarD", "While"})
     if n["kind"] == "Blk":
         return translate_inst_list_label(n["body"], lbl)
     elif n["kind"] == "Case":
@@ -461,9 +568,9 @@ def translate_inst_label(n, lbl):
         return translate_if(n, lbl)
     elif n["kind"] == "While":
         return translate_while(n, lbl)
-    elif n["kind"] == "Beq":
+    elif n["kind"] in {"Beq", "Call"}:
         result = ""
-        result += translate_beq(n)
+        result += translate_inst(n)
         result += tb + "br label %" + lbl + nl
         return result
     elif n["kind"] == "VarD":
@@ -516,8 +623,8 @@ def translate_alloc_var_decl(n):
     return result
 
 def translate_alloc_inst(n):
-    check_kind(n, {"Beq", "Blk", "Case", "If", "VarD", "While"})
-    if n["kind"] == "Beq":
+    check_kind(n, {"Beq", "Blk", "Call", "Case", "If", "Skip", "VarD", "While"})
+    if n["kind"] in {"Beq", "Call"}:
         return ""
     elif n["kind"] in {"Case", "If"}:
         result = ""
@@ -545,7 +652,7 @@ def translate_signature(n):
     result = ""
     result += "@"+n["root"]["id"]+"$"+n["id"]
     result += "("
-    result += state_name(n["root"])
+    result += state_t_name(n["root"])
     result += "* %self$"
     for inp in n["inp"]:
         t = translate_type(inp["type"])
@@ -559,11 +666,11 @@ def translate_signature(n):
     return result
 
 def translate_init(i):
-    global tb, nl
+    global tb, nl, sp
     check_kind(i, {"Impl"})
     reset_llvm_names()
-    result = "define void @"+i["id"]+"$init$"
-    result += "("+state_name(i)+"* %self$) {" + nl
+    result = "define void" + sp + init_name(i) 
+    result += "("+state_t_name(i)+"* %self$) {" + nl
     result += "entry:" + nl
     result += translate_alloc_inst_list(i["initialisation"])
     result += translate_inst_list_label(i["initialisation"], "exit")
@@ -603,22 +710,173 @@ def translate_constants(n):
             result += translate_constant(const)
     return result
 
+### TRANSLATION OF INTERFACE
+
+def translate_interface(n):
+    global nl
+    check_kind(n, {"Mach"})
+    result = ""
+    result += translate_state(n)
+    result += "declare void @" + n["id"] + "$("+state_t_name(n)+"*)" + nl
+    for op in n["operations"]:
+        result += "declare void" + translate_signature(op) + nl
+    return result
+
 ### TRANSLATION OF IMPLEMENTATION
 
-def translate_implementation(i):
+def translate_type_expr_impo(n):
+    check_kind(n, {"Impo"})
+    return state_t_name(n["mach"]["impl"])
+
+def translate_type_expr_vari(n):
+    check_kind(n, {"Vari"})
+    return translate_type(n["type"])
+
+def translate_type_expr_impl(n):
+    check_kind(n, {"Impl"})
+    result = ""
+    tl = []
+    for ni in n["imports"]:
+        tl.append(translate_type_expr_impo(ni))
+    for nv in n["concrete_variables"]:
+        tl.append(translate_type_expr_vari(nv))
+    result += "{" + ", ".join(tl) + "}"
+    return result
+
+def translate_type_def_import(n, acc):
+    '''
+    - Input:
+      n: a node representing an element of the import clause in a B 
+      implementation
+    - Output:
+      String corresponding to the definition of the LLVM data types 
+      encoding the state of the imported machine (and of all the 
+      transitively imported machines).
+    '''
+    global nl, sp
+    check_kind(n, {"Mach"})
+    impl = n["impl"]
+    result = translate_type_def_import_list(impl, acc)
+    result += state_t_name(impl)+ " = type "+ translate_type_expr_impl(impl)+ nl
+    return result
+
+def translate_type_def_import_list(n, acc = None):
+    '''
+    - Input:
+      n: a node representing a B implementation
+      acc: a set containing all machines that have already been
+      processed (optional, default being the empty set)
+    - Output:
+      String corresponding to the definition of the LLVM data types 
+      encoding the state of all the imported machines (transitively).
+    '''
+    check_kind(n, {"Impl"})
+    if acc == None:
+        acc = set()
+    result = ""
+    imports = n["imports"]
+    if imports == None:
+        return result
+    for imp in imports:
+        mach = imp["mach"]
+        check_kind(mach, {"Mach"})
+        if mach["id"] not in acc:
+            acc.add(mach["id"])
+            result += translate_type_def_import(mach, acc)
+    return result
+
+def translate_op_decl(n, state_t):
+    '''
+    - Input:
+      n: a node representing an operation in a B implementation
+      state_t: the LLVM type representing the state of the implementation
+    - Output:
+      String corresponding to the declaration of the LLVM function
+      encoding the operation.
+    '''
+    check_kind(n, {"Oper"})
+    # tl: parameter signature of the LLVM function coding n
+    tl = [state_t + "*"]
+    for i in n["inp"]:
+        tl.append(translate_type(i["type"]))
+    for o in n["out"]:
+        tl.append(translate_type(o["type"])+"*")
+    result = ""
+    result += "declare void " + global_name(n) + "(" + ", ".join(tl) + ")" + nl
+    return result
+
+def translate_op_decl_import(n):
+    '''
+    - Input:
+      n: a node representing a B machine
+    - Output:
+      String corresponding to the declaration of the LLVM functions
+      encoding the initialization and operations of the imported machine.
+    '''
+    global nl, sp
+    check_kind(n, {"Mach"})
+    impl = n["impl"]
+    state_t = state_t_name(impl) 
+    result = ""
+    result += "declare void" + sp + init_name(impl) + "(" + state_t + "*)" + nl
+    impl = n["impl"]
+    for op in impl["operations"]:
+        result += translate_op_decl(op, state_t)
+    return result
+
+def translate_op_decl_import_list(n):
+    '''
+    - Input:
+      n: a node representing a B implementation
+      acc: a set containing all the machines that have already
+      been processed (optional, default being empty set)
+    - Output:
+      String corresponding to the declaration of the LLVM functions
+      encoding the initialization and operations of the imported 
+      machines.
+    '''
+    check_kind(n, {"Impl"})
+    result = ""
+    imports = n["imports"]
+    acc = set()
+    if imports == None:
+        return result
+    for i in imports:
+        m = i["mach"]
+        check_kind(m, {"Mach"})
+        if m["id"] not in acc:
+            acc.add(m["id"])
+            result += translate_op_decl_import(m)
+    return result
+
+def translate_implementation(i, toplevel):
+    '''
+    - Input:
+      i: a node representing a B implementation
+      toplevel: a boolean indicating if this implementation is
+      a top-level component (and not a library component)
+    - Output:
+      The text of the LLVM encoding for i.
+    '''
     check_kind(i, {"Impl"})
     result = ""
+    result += translate_type_def_import_list(i)
+    result += state_t_name(i)+ " = type "+ translate_type_expr_impl(i)+ nl
+    result += translate_op_decl_import_list(i)
     result += translate_constants(i)
     result += translate_state(i)
-    result += "@"+i["id"]+"$self$ = common global " + state_name(i) + " zeroinitializer\n"
     result += translate_init(i)
     for op in i["operations"]:
         result += translate_operation(op)
+    if toplevel:
+        result += (instance_name(i) + " = common global " 
+                   + state_t_name(i) + " zeroinitializer" + nl)
     return result
 
-def translate(imp, file):
+def translate(imp, file, toplevel=True):
     openfile = open(file, 'w')
-    filecontents = translate_implementation(imp)
-    openfile.write("; -*- mode: asm -*-"+nl) # enables syntax highlight in emacs
+    filecontents = translate_implementation(imp, toplevel)
+    openfile.write(";;; -*- mode: asm -*-"+nl) # emacs syntax highlight on
+    openfile.write(";;; File generated with b2llvm.\n")
     openfile.write(filecontents)
     openfile.close()

@@ -1,166 +1,64 @@
-
-# IMPLEMENTATION
-#    swap_i
-# REFINES
-#    swap
-# CONCRETE_VARIABLES
-#    v1 ,  v2
-# INVARIANT
-#     v1 : INT & v2 : INT
+# IMPLEMENTATION counter_i
+# REFINES...
+# CONCRETE_CONSTANTS MAX
+# PROPRTIES MAX : INT & MAX = 3
+# CONCRETE_VARIABLES value, error
 # INITIALISATION
-#    v1 := 0; v2 := 1
+#   BEGIN
+#     value := 0;
+#     error := FALSE
+#   END
 # OPERATIONS
-#    step =
-#    VAR tmp IN
-#        BEGIN
-#            tmp := v1;
-#            v1 := v2;
-#            v2 := tmp
-#        END
-#    END;
-#    set ( av1 , av2 ) =
-#    BEGIN
-#        v1 := av1;
-#        v2 := av2
-#    END
-#    ;
-#    r1 , r2 <-- get =
-#    BEGIN
-#        r1 := v1;
-#        r2 := v2
-#    END
+# zero =
+#   BEGIN
+#     value := 0;
+#     error := FALSE
+#   END
+# inc =
+#   IF value < MAX
+#   THEN
+#     value := succ value
+#   ELSE
+#     error := TRUE
+#   END;
+# END
+# dec =
+#   IF 0 < value
+#   THEN
+#     value := pred value
+#   ELSE
+#     error := TRUE
+#   END;
 # END
 
-value = { "kind": "Vari",
-          "id":"value",
-          "type": "INT",
-          "scope": "Impl" }
+import bimp
 
-error = { "kind": "Vari",
-          "id":"error",
-          "type": "BOOL",
-          "scope": "Impl" }
+value = bimp.make_imp_var("value", bimp.INT)
+error = bimp.make_imp_var("error", bimp.INT)
+three = bimp.make_intlit(3)
+max = bimp.make_const("MAX", bimp.INT, three)
 
-ilit1 = { "kind": "IntegerLit",
-          "value": "3"}
+comp1 = bimp.make_lt(value, max)
+comp2 = bimp.make_lt(bimp.ZERO, value)
 
-max = { "kind": "Cons",
-        "id": "MAX",
-        "type": "INT",
-        "value" : ilit1 }
-
-res = { "kind": "Vari",
-        "id": "res",
-        "type": "BOOL",
-        "scope": "Oper" }
-
-res2 = { "kind": "Vari",
-        "id": "res",
-        "type": "INT",
-        "scope": "Oper" }
-
-avalue = { "kind": "Vari",
-           "id":"avalue",
-           "type": "INT",
-           "scope": "Oper" }
-
-zero = { "kind": "IntegerLit",
-          "value": "0"}
-
-false = { "kind": "BooleanLit",
-          "value": "FALSE"}
-
-one = { "kind": "IntegerLit",
-          "value": "1"}
-
-true = { "kind": "BooleanLit",
-          "value": "TRUE"}
-
-term1 = { "kind": "Term",
-          "op": "succ",
-          "args" : [value] }
-
-term2 = { "kind": "Term",
-          "op": "pred",
-          "args" : [value] }
-
-comp1 = { "kind": "Comp",
-          "op": "<",
-          "arg1": value,
-          "arg2": max }
-
-comp2 = { "kind": "Comp",
-          "op": "<",
-          "arg1": zero,
-          "arg2": value }
-
-inst1 = { "kind": "Beq",
-          "lhs": value,
-          "rhs": zero}
-
-inst2 = { "kind": "Beq",
-          "lhs": error,
-          "rhs": false}
-
-inst3 = { "kind": "Blk",
-          "body": [inst1, inst2] }
-
-inst4 = { "kind": "Beq",
-          "lhs": value,
-          "rhs": term1}
-
-inst5 = { "kind": "Beq",
-          "lhs": error,
-          "rhs": true}
-
-branch1 = { "kind": "IfBr",
-            "cond": comp1,
-            "body": inst4 }
-
-branch2 = { "kind": "IfBr",
-            "body": inst5 }
-
-inst6 = { "kind": "If",
-          "branches": [branch1, branch2]}
-
-inst7 = { "kind": "Beq",
-          "lhs": value,
-          "rhs": term2}
-
-branch3 = { "kind": "IfBr",
-            "cond": comp2,
-            "body": inst7 }
-
-branch4 = { "kind": "IfBr",
-            "body": inst5 }
-
-zero = { "kind": "Oper",
-         "id": "zero",
-         "inp": [],
-         "out": [],
-         "body": inst3 }
-
-inc = { "kind": "Oper",
-        "id": "inc",
-        "inp": [],
-        "out": [],
-        "body": inst6 }
-
-inst8 = { "kind": "If",
-          "branches": [branch3, branch4]}
-
-dec = { "kind": "Oper",
-        "id": "dec",
-        "inp": [],
-        "out": [],
-        "body": inst8 }
-
-root = { "kind": "Impl",
-         "id": "counter_i",
-         "concrete_constants": [ max ],
-         "concrete_variables": [ value, error ],
-         "initialisation": [ inst1, inst2 ],
-         "operations": [ zero, inc, dec ] }
-
-for n in [value, error, zero, max, inc, dec]:
-    n["root"] = root
+inst1 = bimp.make_beq(value, bimp.ZERO)
+inst2 = bimp.make_beq(error, bimp.FALSE)
+inst3 = bimp.make_blk([inst1, inst2])
+inst4 = bimp.make_beq(value, bimp.make_succ(value))
+inst5 = bimp.make_beq(error, bimp.TRUE)
+branch1 = bimp.make_if_br(comp1, inst4)
+branch2 = bimp.make_if_br(None, inst5)
+inst6 = bimp.make_if([branch1, branch2])
+inst7 = bimp.make_beq(value, bimp.make_pred(value))
+branch3 = bimp.make_if_br(comp2, inst7)
+branch4 = bimp.make_if_br(None, inst5)
+inst8 = bimp.make_if([branch3, branch4])
+zero = bimp.make_oper("zero", [], [], inst3)
+inc = bimp.make_oper("inc", [], [], inst6)
+dec = bimp.make_oper("dec", [], [], inst8)
+init = [inst3]
+imports = []
+consts = [max]
+vars = [value, error]
+ops = [zero, inc, dec]
+root = bimp.make_implementation("counter_i", imports, consts, vars, init, ops)

@@ -1,178 +1,89 @@
-value = { "kind": "Vari",
-          "id":"value",
-          "type": "INT",
-          "scope": "Impl" }
+# IMPLEMENTATION counter_i
+# CONCRETE_VARIABLES value, error
+# INITIALISATION
+#   BEGIN
+#     value := 0;
+#     error := FALSE
+#   END
+# OPERATIONS
+# zero =
+#   BEGIN
+#     value := 0;
+#     error := FALSE
+#   END
+# inc =
+#   IF value < MAXINT
+#   THEN
+#     value := value + 1
+#   ELSE
+#     error := TRUE
+#   END;
+# dec =
+#   IF 0 < value
+#   THEN
+#     value := value - 1
+#   ELSE
+#     error := TRUE
+#   END;
+# res <-- valid =
+#   BEGIN
+#     IF error = TRUE
+#     THEN
+#       res := FALSE
+#     ELSE
+#       res := TRUE
+#     END
+#   END;
+# res <-- get =
+#   res := value;
+# set(avalue) =
+#   value := avalue
+# END
 
-error = { "kind": "Vari",
-          "id":"error",
-          "type": "BOOL",
-          "scope": "Impl" }
+import bimp
 
-res = { "kind": "Vari",
-        "id": "res",
-        "type": "BOOL",
-        "scope": "Oper" }
+value = bimp.make_imp_var("value", bimp.INT)
+error = bimp.make_imp_var("error", bimp.INT)
+res1 = bimp.make_arg_var("res", bimp.BOOL)
+res2 = bimp.make_arg_var("res", bimp.INT)
+avalue = bimp.make_arg_var("avalue", bimp.INT)
 
-res2 = { "kind": "Vari",
-        "id": "res",
-        "type": "INT",
-        "scope": "Oper" }
+inst1 = bimp.make_beq(value, bimp.ZERO)
+inst2 = bimp.make_beq(error, bimp.FALSE)
+inst3 = bimp.make_blk([inst1, inst2])
+zero = bimp.make_oper("zero", [], [], inst3)
 
-avalue = { "kind": "Vari",
-           "id":"avalue",
-           "type": "INT",
-           "scope": "Oper" }
+inst4 = bimp.make_beq(value, bimp.make_sum(value, bimp.ONE))
+inst5 = bimp.make_beq(error, bimp.TRUE)
+branch1 = bimp.make_if_br(bimp.make_lt(value, bimp.MAXINT), inst4)
+branch2 = bimp.make_if_br(None, inst5)
+inst6 = bimp.make_if([branch1, branch2])
+inc = bimp.make_oper("inc", [], [], inst6)
 
-zero = { "kind": "IntegerLit",
-          "value": "0"}
+inst7 = bimp.make_beq(value, bimp.make_diff(value, bimp.ONE))
+branch3 = bimp.make_if_br(bimp.make_lt(bimp.ZERO, value), inst7)
+branch4 = bimp.make_if_br(None, inst5)
+inst8 = bimp.make_if([branch3, branch4])
+dec = bimp.make_oper("dec", [], [], inst8)
 
-false = { "kind": "BooleanLit",
-          "value": "FALSE"}
+inst9 = bimp.make_beq(res1, bimp.TRUE)
+inst10 = bimp.make_beq(res1, bimp.FALSE)
+branch6 = bimp.make_if_br(bimp.make_eq(error, bimp.TRUE), inst9)
+branch7 = bimp.make_if_br(bimp.make_eq(error, bimp.FALSE), inst10)
+inst11 = bimp.make_if([branch6, branch7])
+inst12 = bimp.make_blk(inst11)
+valid = bimp.make_oper("valid", [], [res1], inst12)
 
-max_int = { "kind": "IntegerLit",
-          "value": "2147483647"}
+inst13 = bimp.make_beq(res2, value)
+get = bimp.make_oper("get", [], [res2], inst13)
 
-one = { "kind": "IntegerLit",
-          "value": "1"}
+inst14 = bimp.make_beq(value, avalue)
+set = bimp.make_oper("set", [avalue], [], inst14)
 
-true = { "kind": "BooleanLit",
-          "value": "TRUE"}
-
-term1 = { "kind": "Term",
-          "op": "+",
-          "args" : [value, one] }
-
-term2 = { "kind": "Term",
-          "op": "-",
-          "args" : [value, one] }
-
-comp1 = { "kind": "Comp",
-          "op": "<",
-          "arg1": value,
-          "arg2": max_int }
-
-comp2 = { "kind": "Comp",
-          "op": "<",
-          "arg1": zero,
-          "arg2": value }
-
-inst1 = { "kind": "Beq",
-          "lhs": value,
-          "rhs": zero}
-
-inst2 = { "kind": "Beq",
-          "lhs": error,
-          "rhs": false}
-
-inst3 = { "kind": "Blk",
-          "body": [inst1, inst2] }
-
-inst4 = { "kind": "Beq",
-          "lhs": value,
-          "rhs": term1}
-
-inst5 = { "kind": "Beq",
-          "lhs": error,
-          "rhs": true}
-
-branch1 = { "kind": "IfBr",
-            "cond": comp1,
-            "body": inst4 }
-
-branch2 = { "kind": "IfBr",
-            "body": inst5 }
-
-inst6 = { "kind": "If",
-          "branches": [branch1, branch2]}
-
-inst7 = { "kind": "Beq",
-          "lhs": value,
-          "rhs": term2}
-
-branch3 = { "kind": "IfBr",
-            "cond": comp2,
-            "body": inst7 }
-
-branch4 = { "kind": "IfBr",
-            "body": inst5 }
-
-inst8 = { "kind": "If",
-          "branches": [branch3, branch4]}
-
-inst9 = { "kind": "Beq",
-          "lhs": res,
-          "rhs": false }
-
-inst10 = { "kind": "Beq",
-           "lhs": res,
-           "rhs": true }
-
-comp3 = { "kind": "Comp",
-          "op": "=",
-          "arg1": error,
-          "arg2": true }
-
-branch5 = { "kind": "IfBr",
-            "cond": comp3,
-            "body": inst9 }
-
-branch6 = { "kind": "IfBr",
-            "body": inst10 }
-
-inst11 = { "kind": "If",
-           "branches": [branch5, branch6] }
-
-inst12 = { "kind": "Blk",
-           "body": [inst11] }
-
-inst13 = { "kind": "Beq",
-           "lhs": res2,
-           "rhs": value }
-
-inst14 = { "kind": "Beq",
-           "lhs": value,
-           "rhs": avalue }
-
-zero = { "kind": "Oper",
-         "id": "zero",
-         "inp": [],
-         "out": [],
-         "body": inst3 }
-inc = { "kind": "Oper",
-        "id": "inc",
-        "inp": [],
-        "out": [],
-        "body": inst6 }
-
-dec = { "kind": "Oper",
-        "id": "dec",
-        "inp": [],
-        "out": [],
-        "body": inst8 }
-
-valid = { "kind": "Oper",
-          "id": "valid",
-          "inp": [],
-          "out": [res],
-          "body": inst12 }
-
-get = { "kind": "Oper",
-        "id": "get",
-        "inp": [],
-        "out": [res2],
-        "body": inst13 }
-
-set = { "kind": "Oper",
-        "id": "set",
-        "inp": [avalue],
-        "out": [],
-        "body": inst14 }
-
-root = { "kind": "Impl",
-              "id": "counter_i",
-              "concrete_variables": [ value, error ],
-              "initialisation": [ inst1, inst2 ],
-              "operations": [ zero, inc, dec, valid, get, set ] }
-
-for n in [value, error, zero, res, res2, avalue, inc, dec, valid, get, set]:
-    n["root"] = counter_i
+imports = []
+consts = []
+vars = [value, error]
+init = [inst3]
+ops = [zero, inc, dec, get, set]
+root = bimp.make_implementation("counter_i",
+                                imports, consts, vars, init, ops)

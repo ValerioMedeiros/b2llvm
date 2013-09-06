@@ -50,12 +50,13 @@ zero = bimp.make_oper("zero", [], [], inst6)
 inc = bimp.make_oper("inc", [], [], inst4)
 get = bimp.make_oper("get", [], [res1], inst5)
 
-counter_i = bimp.make_implementation("counter_i", 
-                                     [],
-                                     [value, error], 
-                                     [], 
-                                     [], 
-                                     [zero, inc, get])
+imports = []
+consts = []
+vars = [value, error]
+init = [inst0, inst1]
+ops = [zero, inc, get]
+
+counter_i = bimp.make_implementation("counter_i", imports, consts, vars, init, ops)
 counter = bimp.make_machine("counter", counter_i)
 
 # IMPLEMENTATION wd_i

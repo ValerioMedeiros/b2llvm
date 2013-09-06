@@ -15,7 +15,7 @@
 \date{May 2013}
 
 \newcommand{\trad}[2]{\ensuremath{\lVert \textsf{#1} \rVert^{\textit{#2}}}}
-\newcommand{\nl}[0]{\text{\Return}}
+\newcommand{\nl}[0]{\ensuremath{\downarrow}}
 \newcommand{\mty}[0]{\texttt{""}}
 \DeclareMathOperator{\conc}{\diamond}
 \DeclareMathOperator{\isdef}{\equiv}
@@ -938,10 +938,10 @@ type $t$.
 \begin{align*}
 \begin{split}
   \trad{a}{\B{Beq}} \isdef 
-  & \LET l \sep p = \trad{i.lhs}{lv} \AND r \sep v \sep t = \trad{i.rhs}{\B{Expr}} \IN \\
+  & \LET l \sep p \sep t'= \trad{i.lhs}{lv} \AND r \sep v \sep t = \trad{i.rhs}{\B{Expr}} \IN \\
   & \llvm{"\PH{l}} \\
   & \llvm{\PH{r}} \\
-  & \llvm{store \PH{t} \PH{v}, \PH{t}* \PH{p} \nl"}
+  & \llvm{store \PH{t} \PH{v}, \PH{t'} \PH{p} \nl"}
 %   & l \conc r \conc 
 %   \llvm{"store "} \conc t \conc \texttt{" "} \conc v \conc \llvm{", "}
 %   \conc t \conc \llvm{"* "} \conc p \conc \nl
@@ -954,10 +954,11 @@ structure $\Sigma$, and its address must be calculated and assigned to a new tem
 variable.
 \begin{align*}
 \lefteqn{\trad{n}{lv} \isdef} \\
-& \quad \IF \mbox{\B{n} is a local variable} \THEN \llvm{""}, \local(\B{n}) \\
-& \quad \ELSE \LET v = \variable \AND t = \trad{n.type}{\B{Type}} \IN \\
+& \LET t = \llvm{"\PH{\trad{\B{n.type}}{Type}} *"} \IN \\
+& \quad \IF \mbox{\B{n} is a local variable} \THEN \llvm{""} \sep \local(\B{n}) \sep t \\
+& \quad \ELSE \LET v = \variable \IN \\
 & \quad \quad \llvm{"\PH{v} = getelementptr \PH{\state(\B{n.root})}* \%self\$,} \\
-& \quad \quad \quad \llvm{i32 0, i32 \PH{\idx(\B{n})} \nl"} \sep v
+& \quad \quad \quad \llvm{i32 0, i32 \PH{\idx(\B{n})} \nl"} \sep v \sep t
 \end{align*}
 
 \paragraph{Call up} instructions apply B operations with some values and obtain
@@ -972,12 +973,16 @@ operation), or an instance of an imported machine.
   \trad{c}{\B{Call}} \isdef 
   & \LET p_i \sep il = \trad{c.inp}{\ListOf{Inp}} \AND p_o \sep ol = 
   \trad{c.out}{\ListOf{Out}} \AND \\
-  & \quad id = \Global(\B{c}) \AND ty = \state(\B{c.root}) \AND \\
-  & \quad val = \IF \B{c.inst} = \text{None} \THEN \llvm{"\%self\$"} \ELSE \\
-  & \quad \quad \llvm{"getelementptr \%self\$, i32 0, i32 \PH{\idx(\B{c.inst})}"}\\
+  & \quad id = \Global(\B{c}) \AND ty = \llvm{"\PH{\state(\B{c.root})} *} \AND \\
+  & \quad val \sep p = \IF \B{c.inst} = \text{None} \\
+  & \quad \quad \THEN \llvm{"\%self\$"} \sep \llvm{""} \\
+  & \quad \quad \ELSE \LET l = \lbl \IN \\
+  & \quad \quad \quad l \sep \\
+  & \quad \quad \quad \llvm{"\PH{l} = getelementptr \PH{ \state({\B{c.inst.root}})} \%self\$, i32 0, i32 \PH{\idx(\B{c.inst})} \nl"} \\
   & \IN \\
   & \quad \llvm{"\PH{p_i}} \\
   & \quad \llvm{\PH{p_o}} \\
+  & \quad \llvm{\PH{p}} \\
   & \quad \llvm{call void \PH{id}(\PH{ty}* \PH{val}, \PH{il}, \PH{ol}) \nl"}
 \end{align*}
 The translation of input and output arguments produces two code snippets. The
@@ -988,7 +993,7 @@ variable storing the resulting value:
   \trad{i}{Inp} \isdef 
   & \LET p \sep v \sep t = \trad{i}{\B{Expr}} \IN p \sep \llvm{"\PH{t} \PH{v}"}\\
   \trad{o}{Out} \isdef 
-  & \LET p \sep v \sep t = \trad{o}{\B{Expr}} \IN p \sep \llvm{"\PH{t}* \PH{v}"}
+  & \LET p \sep v \sep t = \trad{o}{lv} \IN p \sep \llvm{"\PH{t} \PH{v}"}
 \end{align*}
 
 \paragraph{Identity} does nothing and no code is generated:
@@ -1234,56 +1239,58 @@ For each test file, indicates the B0 constructs found in the implementation.
 \begin{center}
 \newcommand{\no}[0]{--}
 \newcommand{\yes}[0]{$\circ$}
-\begin{tabular}{|l|c|c|c|c|c|c|}
+\begin{tabular}{|l|c|c|c|c|c|c|c|}
 \hline
-Example nº & 01 & 02 & 03 & 04 & 05 & 06 \\
+Example nº & 01 & 02 & 03 & 04 & 05 & 06 & 07 \\
 \hline
 \hline
-\multicolumn{7}{|c|}{clauses} \\
+\multicolumn{8}{|c|}{clauses} \\
 \hline
-variables & \yes & \yes & \yes & \yes & \yes & \yes\\
-constants & \no & \yes & \no & \no & \yes & \no \\
-op. input & \yes & \no & \yes & \no & \no & \no \\
-op. output & \yes & \no & \yes & \no & \no & \no \\
+import w.o prefix & \no & \no & \no & \no & \no & \no & \yes \\
+import w prefix & \no & \no & \no & \no & \no & \no & \no \\
+variables & \yes & \yes & \yes & \yes & \yes & \yes & \no \\
+constants & \no & \yes & \no & \no & \yes & \no & \yes \\
+op. input & \yes & \no & \yes & \no & \no & \no & \no \\
+op. output & \yes & \no & \yes & \no & \no & \no & \yes \\
 \hline
-\multicolumn{7}{|c|}{instructions} \\
+\multicolumn{8}{|c|}{instructions} \\
 \hline
-block & \yes & \no & \yes & \yes & \no & \yes\\
-local var & \no & \no & \yes & \yes & \no & \yes \\
-identity & \no & \no & \yes & \no & \no & \no \\
-becomes equal & \yes & \yes & \yes & \yes & \yes & \yes\\
-operation call & \no & \no & \no & \no & \no & \no \\
-condition & \yes & \no & \no & \no & \yes & \no \\
-case & \no & \no & \no & \no & \no & \yes \\
-assertion & \no & \no & \no & \no & \no & \no \\
-sequence & \yes & \yes & \yes & \yes & \no & \yes \\
-while & \no & \no & \no & \yes & \no & \no\\
+block & \yes & \no & \yes & \yes & \no & \yes & \no \\
+local var & \no & \no & \yes & \yes & \no & \yes & \yes \\
+identity & \no & \no & \yes & \no & \no & \no & \no \\
+becomes equal & \yes & \yes & \yes & \yes & \yes & \yes & \yes \\
+operation call & \no & \no & \no & \no & \no & \no & \yes \\
+condition & \yes & \no & \no & \no & \yes & \no & \yes \\
+case & \no & \no & \no & \no & \no & \yes & \no \\
+assertion & \no & \no & \no & \no & \no & \no & \no \\
+sequence & \yes & \yes & \yes & \yes & \no & \yes & \yes \\
+while & \no & \no & \no & \yes & \no & \no & \yes \\
 \hline
-\multicolumn{7}{|c|}{types} \\
+\multicolumn{8}{|c|}{types} \\
 \hline
-INT & \yes & \yes & \yes & \yes & \yes & \yes \\
-BOOL & \yes & \yes & \no & \no & \yes & \no \\
+INT & \yes & \yes & \yes & \yes & \yes & \yes & \yes \\
+BOOL & \yes & \yes & \no & \no & \yes & \no & \yes \\
 \hline
-\multicolumn{7}{|c|}{expressions} \\
+\multicolumn{8}{|c|}{expressions} \\
 \hline
-int lit & \yes & \yes & \yes & \yes & \yes & \yes\\
-bool lit & \yes & \yes & \no & \yes & \yes & \no \\
-vars & \yes & \yes & \yes & \yes & \no & \yes \\
-loc. vars & \no & \no & \yes & \yes & \no & \yes \\
-const & \no & \yes & \no & \no & \yes & \no \\ 
-succ & \no & \yes & \no & \yes & \yes & \no \\
-pred & \no & \yes & \no & \yes & \yes & \no \\
-+ & \yes & \no & \no & \yes & \no & \yes \\
-- & \yes & \no & \no & \no & \no & \no \\
-* & \no & \no & \no & \no & \no & \yes \\
+int lit & \yes & \yes & \yes & \yes & \yes & \yes & \yes \\
+bool lit & \yes & \yes & \no & \yes & \yes & \no & \yes \\
+vars & \yes & \yes & \yes & \yes & \no & \yes & \no \\
+loc. vars & \no & \no & \yes & \yes & \no & \yes & \yes \\
+const & \no & \yes & \no & \no & \yes & \no & \yes \\ 
+succ & \no & \yes & \no & \yes & \yes & \no & \no \\
+pred & \no & \yes & \no & \yes & \yes & \no & \no \\
++ & \yes & \no & \no & \yes & \no & \yes & \yes \\
+- & \yes & \no & \no & \no & \no & \no & \yes \\
+* & \no & \no & \no & \no & \no & \yes & \no \\
 \hline
-\multicolumn{7}{|c|}{formulas} \\
+\multicolumn{8}{|c|}{formulas} \\
 \hline
-and & \no & \no & \no & \no & \yes & \no \\
-or & \no & \no & \no & \no & \yes & \no \\
-not & \no & \no & \no & \no & \yes & \no \\
-$<$ & \yes & \yes & \no & \no & \no & \no \\
-$>$ & \no & \no & \no & \no & \yes & \no \\
+and & \no & \no & \no & \no & \yes & \no & \no \\
+or & \no & \no & \no & \no & \yes & \no & \no \\
+not & \no & \no & \no & \no & \yes & \no & \no \\
+$<$ & \yes & \yes & \no & \no & \no & \no & \yes \\
+$>$ & \no & \no & \no & \no & \yes & \no & \yes \\
 \hline
 \end{tabular}
 \end{center}
