@@ -1131,8 +1131,9 @@ body:
 \subsection{Initialization}
 \label{sec:trad-init}
 
-Initialization is done is two steps: first all imported modules are initialized,
-second the initialization clause is executed.
+Initialization is done is two steps: first all imported modules are
+initialized,\DD{Verify that Python implementation includes call to such
+  initialisation functions.}  second the initialization clause is executed.
 \begin{align*}
   \trad{i}{Init} \isdef
   & \llvm{"define void @\PH{\B{i.id}}\$init\$() \{ \nl"} \\
