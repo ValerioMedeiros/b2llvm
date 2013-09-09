@@ -197,7 +197,7 @@ has_overflown = bimp.make_oper("has_overflown", [], [answer], inst37)
 # END
 
 timer_ops = [tick, reset, start, stop, elapsed, has_overflown]
-wd_i = bimp.make_implementation("wd_i", 
+timer_i = bimp.make_implementation("timer_i", 
                                 timer_imports, 
                                 timer_consts, 
                                 timer_vars, 

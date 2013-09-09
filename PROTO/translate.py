@@ -192,8 +192,8 @@ def state_expression(n):
     check_kind(n, {"Impl", "Mach"})
     result = "{"
     components = []
-    for imp in n["imports"]:
-        components += [state_t_name(imp)]
+    for impo in n["imports"]:
+        components += [state_t_name(impo["mach"]["impl"])]
     for var in n["concrete_variables"]:
         components += [translate_type(var["type"])]
     for i in range(len(components)):
@@ -665,7 +665,37 @@ def translate_signature(n):
     result += ")"
     return result
 
+def translate_import_init_list(n):
+    '''
+    Input:
+      - n: root node of a B implementation AST
+    Output:
+      LLVM source code consisting of the calls to the initialization functions
+      of the instances of machines imported by n.
+    '''
+    global nl, tb
+    check_kind(n, {"Impl"})
+    imports = n["imports"]
+    idx = 0
+    result = ""
+    for impo in imports:
+        mach = impo["mach"]
+        lbl = new_llvm_local_var()
+        m = impo["mach"]
+        result += (tb + lbl + " = getelementptr " + 
+                   state_t_name(n) + "%self$, i32 0, i32 " + str(idx) + nl)
+        result += (tb + "call void " + init_name(m) + 
+                   "(" + state_t_name(m["impl"]) + "* " + lbl + ")" + nl)
+        idx += 1
+    return result
+    
 def translate_init(i):
+    '''
+    Input:
+      - i: root node of a B implementation AST
+    Output:
+    LLVM implementation of the initialization clause of i (a LLVM function).
+    '''
     global tb, nl, sp
     check_kind(i, {"Impl"})
     reset_llvm_names()
@@ -673,6 +703,7 @@ def translate_init(i):
     result += "("+state_t_name(i)+"* %self$) {" + nl
     result += "entry:" + nl
     result += translate_alloc_inst_list(i["initialisation"])
+    result += translate_import_init_list(i)
     result += translate_inst_list_label(i["initialisation"], "exit")
     result += "exit:" + nl
     result += tb + "ret void" + nl

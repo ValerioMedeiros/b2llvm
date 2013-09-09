@@ -131,7 +131,9 @@ implementation; \B{var}, a set of variable names, their type and possibly
 additional functional restrictions forming the rest of the state; \B{init}, a
 sequence of instructions executed upon initialization of the implementation;
 \B{op}, a set of operations, each being an algorithmic description of the
-different functionalities provided by the implementation.
+different functionalities provided by the implementation.\DD{Include the
+possibility that the import is a machine without implementation. Instead it
+has a list of typed, implementable, variables.}
 
 The initialization and the operations are defined as (sequences of)
 instructions. Operations also have a name, inputs and outputs. Possible
@@ -976,9 +978,9 @@ operation), or an instance of an imported machine.
   & \quad id = \Global(\B{c}) \AND ty = \llvm{"\PH{\state(\B{c.root})} *} \AND \\
   & \quad val \sep p = \IF \B{c.inst} = \text{None} \\
   & \quad \quad \THEN \llvm{"\%self\$"} \sep \llvm{""} \\
-  & \quad \quad \ELSE \LET l = \lbl \IN \\
-  & \quad \quad \quad l \sep \\
-  & \quad \quad \quad \llvm{"\PH{l} = getelementptr \PH{ \state({\B{c.inst.root}})} \%self\$, i32 0, i32 \PH{\idx(\B{c.inst})} \nl"} \\
+  & \quad \quad \ELSE \LET v = \variable \IN \\
+  & \quad \quad \quad v \sep \\
+  & \quad \quad \quad \llvm{"\PH{v} = getelementptr \PH{ \state({\B{c.inst.root}})} \%self\$, i32 0, i32 \PH{\idx(\B{c.inst})} \nl"} \\
   & \IN \\
   & \quad \llvm{"\PH{p_i}} \\
   & \quad \llvm{\PH{p_o}} \\
@@ -1132,12 +1134,11 @@ body:
 \label{sec:trad-init}
 
 Initialization is done is two steps: first all imported modules are
-initialized,\DD{Verify that Python implementation includes call to such
-  initialisation functions.}  second the initialization clause is executed.
+initialized,  second the initialization clause is executed.
 \begin{align*}
   \trad{i}{Init} \isdef
   & \llvm{"define void @\PH{\B{i.id}}\$init\$() \{ \nl"} \\
-  & \quad\llvm{\PH{\trad{i.impl}{\ListOf{InitImp}}}} \\
+  & \quad\llvm{\PH{\trad{i, i.impl}{\ListOf{InitImp}}}} \\
   & \quad\llvm{\PH{\trad{i.init, "exit"}{\ListOf{\B{Inst}}}_L}} \\
   & \quad\llvm{exit: ret void \nl} \\
   & \llvm{\}"}
@@ -1145,11 +1146,11 @@ initialized,\DD{Verify that Python implementation includes call to such
 The initialization of an imported module is performed by a call to the
 corresponding initialization function:
 \begin{align*}
-  \lefteqn{\trad{m}{InitImp} \isdef } \\
-  & \LET \ell = \lbl \IN \\
-  & \quad \llvm{"\PH{\ell} = getelementptr \PH{\state(\B{m.root})}* \%self\$, i32 0, i32 \PH{\idx(\B{m})}\nl}\\
-  & \quad \llvm{call void @\PH{\B{m.id}}\$init\$(\PH{\state(\B{m})}*
-    \PH{\ell})"}
+  \lefteqn{\trad{\B{impl}, \B{impo}}{InitImp} \isdef} \\
+  & \LET v = \variable \AND \B{m} = \B{impo.mach} \IN \\
+  & \quad \llvm{"\PH{v} = getelementptr \PH{\state(\B{impl.root})}* \%self\$, i32 0, i32 \PH{\idx(\B{impo})}\nl}\\
+  & \quad \llvm{call void @\PH{\B{m.id}}\$init\$(\PH{\state(\B{m.impl})}*
+    \PH{\ell}) \nl"}
 \end{align*}
 
 \section{Validation}
@@ -1240,58 +1241,58 @@ For each test file, indicates the B0 constructs found in the implementation.
 \begin{center}
 \newcommand{\no}[0]{--}
 \newcommand{\yes}[0]{$\circ$}
-\begin{tabular}{|l|c|c|c|c|c|c|c|}
+\begin{tabular}{|l|c|c|c|c|c|c|c|c|}
 \hline
-Example nº & 01 & 02 & 03 & 04 & 05 & 06 & 07 \\
+Example nº & 01 & 02 & 03 & 04 & 05 & 06 & 07 & 08 \\
 \hline
 \hline
-\multicolumn{8}{|c|}{clauses} \\
+\multicolumn{9}{|c|}{clauses} \\
 \hline
-import w.o prefix & \no & \no & \no & \no & \no & \no & \yes \\
-import w prefix & \no & \no & \no & \no & \no & \no & \no \\
-variables & \yes & \yes & \yes & \yes & \yes & \yes & \no \\
-constants & \no & \yes & \no & \no & \yes & \no & \yes \\
-op. input & \yes & \no & \yes & \no & \no & \no & \no \\
-op. output & \yes & \no & \yes & \no & \no & \no & \yes \\
+import w.o prefix & \no & \no & \no & \no & \no & \no & \yes & \no \\
+import w prefix & \no & \no & \no & \no & \no & \no & \no & \yes \\
+variables & \yes & \yes & \yes & \yes & \yes & \yes & \no & \yes \\
+constants & \no & \yes & \no & \no & \yes & \no & \yes & \yes \\
+op. input & \yes & \no & \yes & \no & \no & \no & \no & \no \\
+op. output & \yes & \no & \yes & \no & \no & \no & \yes & \yes \\
 \hline
-\multicolumn{8}{|c|}{instructions} \\
+\multicolumn{9}{|c|}{instructions} \\
 \hline
-block & \yes & \no & \yes & \yes & \no & \yes & \no \\
-local var & \no & \no & \yes & \yes & \no & \yes & \yes \\
-identity & \no & \no & \yes & \no & \no & \no & \no \\
-becomes equal & \yes & \yes & \yes & \yes & \yes & \yes & \yes \\
-operation call & \no & \no & \no & \no & \no & \no & \yes \\
-condition & \yes & \no & \no & \no & \yes & \no & \yes \\
-case & \no & \no & \no & \no & \no & \yes & \no \\
-assertion & \no & \no & \no & \no & \no & \no & \no \\
-sequence & \yes & \yes & \yes & \yes & \no & \yes & \yes \\
-while & \no & \no & \no & \yes & \no & \no & \yes \\
+block & \yes & \no & \yes & \yes & \no & \yes & \no & \yes \\
+local var & \no & \no & \yes & \yes & \no & \yes & \yes & \yes \\
+identity & \no & \no & \yes & \no & \no & \no & \no & \no \\
+becomes equal & \yes & \yes & \yes & \yes & \yes & \yes & \yes & \yes \\
+operation call & \no & \no & \no & \no & \no & \no & \yes & \yes \\
+condition & \yes & \no & \no & \no & \yes & \no & \yes & \yes \\
+case & \no & \no & \no & \no & \no & \yes & \no & \no \\
+assertion & \no & \no & \no & \no & \no & \no & \no & \no \\
+sequence & \yes & \yes & \yes & \yes & \no & \yes & \yes & \yes \\
+while & \no & \no & \no & \yes & \no & \no & \yes & \no \\
 \hline
-\multicolumn{8}{|c|}{types} \\
+\multicolumn{9}{|c|}{types} \\
 \hline
-INT & \yes & \yes & \yes & \yes & \yes & \yes & \yes \\
-BOOL & \yes & \yes & \no & \no & \yes & \no & \yes \\
+INT & \yes & \yes & \yes & \yes & \yes & \yes & \yes & \yes \\
+BOOL & \yes & \yes & \no & \no & \yes & \no & \yes & \yes \\
 \hline
-\multicolumn{8}{|c|}{expressions} \\
+\multicolumn{9}{|c|}{expressions} \\
 \hline
-int lit & \yes & \yes & \yes & \yes & \yes & \yes & \yes \\
-bool lit & \yes & \yes & \no & \yes & \yes & \no & \yes \\
-vars & \yes & \yes & \yes & \yes & \no & \yes & \no \\
-loc. vars & \no & \no & \yes & \yes & \no & \yes & \yes \\
-const & \no & \yes & \no & \no & \yes & \no & \yes \\ 
-succ & \no & \yes & \no & \yes & \yes & \no & \no \\
-pred & \no & \yes & \no & \yes & \yes & \no & \no \\
-+ & \yes & \no & \no & \yes & \no & \yes & \yes \\
-- & \yes & \no & \no & \no & \no & \no & \yes \\
-* & \no & \no & \no & \no & \no & \yes & \no \\
+int lit & \yes & \yes & \yes & \yes & \yes & \yes & \yes & \yes \\
+bool lit & \yes & \yes & \no & \yes & \yes & \no & \yes & \yes \\
+vars & \yes & \yes & \yes & \yes & \no & \yes & \no & \yes \\
+loc. vars & \no & \no & \yes & \yes & \no & \yes & \yes & \yes \\
+const & \no & \yes & \no & \no & \yes & \no & \yes & \yes\\ 
+succ & \no & \yes & \no & \yes & \yes & \no & \no & \no \\
+pred & \no & \yes & \no & \yes & \yes & \no & \no & \no \\
++ & \yes & \no & \no & \yes & \no & \yes & \yes & \no \\
+- & \yes & \no & \no & \no & \no & \no & \yes & \no \\
+* & \no & \no & \no & \no & \no & \yes & \no & \no \\
 \hline
-\multicolumn{8}{|c|}{formulas} \\
+\multicolumn{9}{|c|}{formulas} \\
 \hline
-and & \no & \no & \no & \no & \yes & \no & \no \\
-or & \no & \no & \no & \no & \yes & \no & \no \\
-not & \no & \no & \no & \no & \yes & \no & \no \\
-$<$ & \yes & \yes & \no & \no & \no & \no & \yes \\
-$>$ & \no & \no & \no & \no & \yes & \no & \yes \\
+and & \no & \no & \no & \no & \yes & \no & \no & \no \\
+or & \no & \no & \no & \no & \yes & \no & \no & \no \\
+not & \no & \no & \no & \no & \yes & \no & \no & \no \\
+$<$ & \yes & \yes & \no & \no & \no & \no & \yes & \yes \\
+$>$ & \no & \no & \no & \no & \yes & \no & \yes & \no \\
 \hline
 \end{tabular}
 \end{center}
