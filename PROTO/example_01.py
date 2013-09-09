@@ -43,7 +43,7 @@
 import bimp
 
 value = bimp.make_imp_var("value", bimp.INT)
-error = bimp.make_imp_var("error", bimp.INT)
+error = bimp.make_imp_var("error", bimp.BOOL)
 res1 = bimp.make_arg_var("res", bimp.BOOL)
 res2 = bimp.make_arg_var("res", bimp.INT)
 avalue = bimp.make_arg_var("avalue", bimp.INT)

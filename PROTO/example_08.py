@@ -83,13 +83,13 @@ timer_init = [inst7, inst8]
 # OPERATIONS
 #     tick =
 #     IF ( is_running = TRUE ) & ( overflow = FALSE )
-cond1 = make_and(make_eq(is_running, bimp.TRUE),
-                 make_eq(overflow, bimp.FALSE))
+cond1 = bimp.make_and(bimp.make_eq(is_running, bimp.TRUE),
+                      bimp.make_eq(overflow, bimp.FALSE))
 #     THEN
 #         VAR hours, minutes, seconds IN
-hours = make_loc_var("hours", bimp.INT)
-minutes = make_loc_var("minutes", bimp.INT)
-seconds = make_loc_var("seconds", bimp.INT)
+hours = bimp.make_loc_var("hours", bimp.INT)
+minutes = bimp.make_loc_var("minutes", bimp.INT)
+seconds = bimp.make_loc_var("seconds", bimp.INT)
 #             hours <-- hh.get;
 #             minutes <-- mm.get;
 #             seconds <-- ss.get;
@@ -97,41 +97,41 @@ inst9 = bimp.make_call(get, [], [hours], imp_hh)
 inst10 = bimp.make_call(get, [], [minutes], imp_mm)
 inst11 = bimp.make_call(get, [], [seconds], imp_ss)
 #             IF (seconds < 59) THEN
-fiftynine = make_intlit(59)
-cond2 = make_lt(seconds, fiftynine)
+fiftynine = bimp.make_intlit(59)
+cond2 = bimp.make_lt(seconds, fiftynine)
 #                 ss.inc
-inst12 = make_call(inc, [], [], imp_ss)
-if_br0 = make_if_br(cond2, inst12)
+inst12 = bimp.make_call(inc, [], [], imp_ss)
+if_br0 = bimp.make_if_br(cond2, inst12)
 #             ELSE
 #                 BEGIN
 #                     ss.zero;
-inst13 = make_call(zero, [], [], imp_ss)
+inst13 = bimp.make_call(zero, [], [], imp_ss)
 #                     IF (minutes < 59) THEN
-cond3 = make_lt(minutes, fiftynine)
+cond3 = bimp.make_lt(minutes, fiftynine)
 #                         mm.inc
-inst14 = make_call(inc, [], [], imp_mm)
-if_br1 = make_if_br(cond3, inst14)
+inst14 = bimp.make_call(inc, [], [], imp_mm)
+if_br1 = bimp.make_if_br(cond3, inst14)
 #                     ELSE
 #                         BEGIN
 #                             mm.zero;
 #                             hh.inc
 #                         END
-inst15 = make_call(zero, [], [], imp_mm)
-inst16 = make_call(inc, [], [], imp_hh)
-inst17 = make_blk([inst15, inst16)
-if_br2 = make_if_br(None, inst17)
+inst15 = bimp.make_call(zero, [], [], imp_mm)
+inst16 = bimp.make_call(inc, [], [], imp_hh)
+inst17 = bimp.make_blk([inst15, inst16])
+if_br2 = bimp.make_if_br(None, inst17)
 #                     END
-inst18 = make_if([if_br1, if_br2])
+inst18 = bimp.make_if([if_br1, if_br2])
 #                 END
-inst19 = make_blk([inst13, inst18])
-if_br3 = make_if_br(None, inst19)
+inst19 = bimp.make_blk([inst13, inst18])
+if_br3 = bimp.make_if_br(None, inst19)
 #             END
-inst20 = make_if([if_br0, if_br3])
+inst20 = bimp.make_if([if_br0, if_br3])
 #         END
-inst21 = make_var_decl([hours, minutes, seconds],
+inst21 = bimp.make_var_decl([hours, minutes, seconds],
                        [inst9, inst10, inst11, inst20])
 #     END;
-tick = make_oper("tick", [], [], inst21)
+tick = bimp.make_oper("tick", [], [], inst21)
 #     reset =
 #     BEGIN
 #         hh.zero;
@@ -139,61 +139,61 @@ tick = make_oper("tick", [], [], inst21)
 #         ss.zero;
 #         overflow := FALSE
 #     END;
-inst22 = make_call(zero, [], [], imp_hh)
-inst23 = make_call(zero, [], [], imp_mm)
-inst24 = make_call(zero, [], [], imp_ss)
-inst25 = make_blk([inst22, inst23, inst24])
-reset = make_oper("reset", [], [], inst25)
+inst22 = bimp.make_call(zero, [], [], imp_hh)
+inst23 = bimp.make_call(zero, [], [], imp_mm)
+inst24 = bimp.make_call(zero, [], [], imp_ss)
+inst25 = bimp.make_blk([inst22, inst23, inst24])
+reset = bimp.make_oper("reset", [], [], inst25)
 #     stop =
 #     IF ( is_running = TRUE)
 #     THEN
 #         is_running := FALSE
 #     END;
-cond4 = make_eq(is_running, bimp.TRUE)
-inst26 = make_beq(is_running, bimp.FALSE)
-inst27 = make_if([make_if_br(cond4, inst26)])
-stop = make_oper("stop", [], [], inst27)
+cond4 = bimp.make_eq(is_running, bimp.TRUE)
+inst26 = bimp.make_beq(is_running, bimp.FALSE)
+inst27 = bimp.make_if([bimp.make_if_br(cond4, inst26)])
+stop = bimp.make_oper("stop", [], [], inst27)
 #     start =
 #     IF ( is_running = FALSE )
 #     THEN
 #         is_running := TRUE
 #     END;
-cond5 = make_eq(is_running, bimp.FALSE)
-inst28 = make_beq(is_running, bimp.TRUE)
-stop = make_oper("stop", [], [], make_if([make_if_br(cond5, inst28)]))
+cond5 = bimp.make_eq(is_running, bimp.FALSE)
+inst28 = bimp.make_beq(is_running, bimp.TRUE)
+start = bimp.make_oper("start", [], [], bimp.make_if([bimp.make_if_br(cond5, inst28)]))
 #     hours , minutes , seconds <-- elapsed =
-el_hours = make_arg_var("hours", bimp.INT)
-el_minutes = make_arg_var("minutes", bimp.INT)
-el_seconds = make_arg_var("seconds", bimp.INT)
+el_hours = bimp.make_arg_var("hours", bimp.INT)
+el_minutes = bimp.make_arg_var("minutes", bimp.INT)
+el_seconds = bimp.make_arg_var("seconds", bimp.INT)
 #     BEGIN
 #         IF ( overflow = TRUE )
-cond6 = make_eq(overflow, bimp.TRUE)
+cond6 = bimp.make_eq(overflow, bimp.TRUE)
 #         THEN
 #             hours := 0 ;
 #             minutes := 0 ;
 #             seconds := 0
-inst29 = make_beq(el_hours, bimp.ZERO)
-inst30 = make_beq(el_minutes, bimp.ZERO)
-inst31 = make_beq(el_seconds, bimp.ZERO)
-if_br4 = make_if_br(cond6, make_blk(inst29, inst30, inst31))
+inst29 = bimp.make_beq(el_hours, bimp.ZERO)
+inst30 = bimp.make_beq(el_minutes, bimp.ZERO)
+inst31 = bimp.make_beq(el_seconds, bimp.ZERO)
+if_br4 = bimp.make_if_br(cond6, bimp.make_blk([inst29, inst30, inst31]))
 #         ELSE
 #             hours <-- hh.get;
 #             minutes <-- mm.get;
 #             seconds <-- ss.get
-inst32 = make_call(get, [], [el_hours], imp_hh)
-inst33 = make_call(get, [], [el_minutes], imp_mm)
-inst34 = make_call(get, [], [el_seconds], imp_ss)
+inst32 = bimp.make_call(get, [], [el_hours], imp_hh)
+inst33 = bimp.make_call(get, [], [el_minutes], imp_mm)
+inst34 = bimp.make_call(get, [], [el_seconds], imp_ss)
 #         END
-if_br5 = make_if_br(None, make_blk(inst32, inst33, inst34))
-inst35 = make_if([if_br4, if_br5])
-inst36 = make_blk([inst35])
+if_br5 = bimp.make_if_br(None, bimp.make_blk([inst32, inst33, inst34]))
+inst35 = bimp.make_if([if_br4, if_br5])
+inst36 = bimp.make_blk([inst35])
 #     END;
-elapsed = make_oper("elapsed", [], [el_hours, el_minutes, el_seconds], inst36)
+elapsed = bimp.make_oper("elapsed", [], [el_hours, el_minutes, el_seconds], inst36)
 #     answer <-- has_overflown =
 #     answer := overflow
-answer = make_arg_var("answer", bimp.BOOL)
-inst37 = make_beq(answer, overflow)
-has_overflown = make_oper("has_overflown", [], [answer], inst37)
+answer = bimp.make_arg_var("answer", bimp.BOOL)
+inst37 = bimp.make_beq(answer, overflow)
+has_overflown = bimp.make_oper("has_overflown", [], [answer], inst37)
 # END
 
 timer_ops = [tick, reset, start, stop, elapsed, has_overflown]

@@ -534,13 +534,13 @@ def translate_call(n):
     result += pi
     result += po
     id = global_name(operation)
-    ty = state_name(operation["root"])
+    ty = state_t_name(operation["root"])
     if n["inst"] == None:
         val = "%self$"
     else:
         val = new_llvm_local_var()
         result += (tb + val + " = getelementptr " + 
-                   state_name(n["inst"]["root"]) + "* " +
+                   state_t_name(n["inst"]["root"]) + "* " +
                    "%self$, i32 0, i32 " + 
                    str(state_position(n["inst"])) + nl)
     args = [ty + sp + val] + il + ol
@@ -861,7 +861,6 @@ def translate_implementation(i, toplevel):
     check_kind(i, {"Impl"})
     result = ""
     result += translate_type_def_import_list(i)
-    result += state_t_name(i)+ " = type "+ translate_type_expr_impl(i)+ nl
     result += translate_op_decl_import_list(i)
     result += translate_constants(i)
     result += translate_state(i)
