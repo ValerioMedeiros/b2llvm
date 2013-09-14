@@ -1,0 +1,297 @@
+<Machine name='wd' type='abstraction'>
+<Concrete_Constants>
+<Identifier value='timeout'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Concrete_Constants>
+<Abstract_Variables>
+<Identifier value='ticker'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Abstract_Variables>
+<Properties>
+<Nary_Predicate operator='&amp;'>
+<Expression_Comparison operator=':'>
+<Identifier value='timeout'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Identifier value='INT'>
+<Attributes>
+<TypeInfo>
+<Unary_Expression operator='POW'>
+<Identifier value='INTEGER' />
+</Unary_Expression>
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Expression_Comparison>
+<Expression_Comparison operator='&gt;'>
+<Identifier value='timeout'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Integer_Litteral value='0'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Litteral>
+</Expression_Comparison>
+</Nary_Predicate>
+</Properties>
+<Invariant>
+<Nary_Predicate operator='&amp;'>
+<Expression_Comparison operator=':'>
+<Identifier value='ticker'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Identifier value='INT'>
+<Attributes>
+<TypeInfo>
+<Unary_Expression operator='POW'>
+<Identifier value='INTEGER' />
+</Unary_Expression>
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Expression_Comparison>
+<Expression_Comparison operator='&gt;='>
+<Identifier value='ticker'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Integer_Litteral value='0'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Litteral>
+</Expression_Comparison>
+<Expression_Comparison operator='&gt;='>
+<Identifier value='timeout'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Identifier value='ticker'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Expression_Comparison>
+</Nary_Predicate>
+</Invariant>
+<Initialisation>
+<Affectation_Substitution>
+<Variables>
+<Identifier value='ticker'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Variables>
+<Values>
+<Integer_Litteral value='0'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Litteral>
+</Values>
+</Affectation_Substitution>
+</Initialisation>
+<Operations>
+<Operation name='start'>
+<Body>
+<Affectation_Substitution>
+<Variables>
+<Identifier value='ticker'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Variables>
+<Values>
+<Identifier value='timeout'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Values>
+</Affectation_Substitution>
+</Body>
+</Operation>
+<Operation name='tick'>
+<Body>
+<If_Substitution>
+<Condition>
+<Expression_Comparison operator='&gt;'>
+<Identifier value='ticker'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Integer_Litteral value='0'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Litteral>
+</Expression_Comparison>
+</Condition>
+<Then>
+<Affectation_Substitution>
+<Variables>
+<Identifier value='ticker'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Variables>
+<Values>
+<Binary_Expression operator='-'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+<Identifier value='ticker'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Integer_Litteral value='1'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Litteral>
+</Binary_Expression>
+</Values>
+</Affectation_Substitution>
+</Then>
+</If_Substitution>
+</Body>
+</Operation>
+<Operation name='expired'>
+<Output_Parameters>
+<Identifier value='res'>
+<Attributes>
+<TypeInfo>
+<Identifier value='BOOL' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Output_Parameters>
+<Body>
+<If_Substitution>
+<Condition>
+<Expression_Comparison operator='='>
+<Identifier value='ticker'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Integer_Litteral value='0'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Litteral>
+</Expression_Comparison>
+</Condition>
+<Then>
+<Affectation_Substitution>
+<Variables>
+<Identifier value='res'>
+<Attributes>
+<TypeInfo>
+<Identifier value='BOOL' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Variables>
+<Values>
+<Boolean_Litteral value='TRUE'>
+<Attributes>
+<TypeInfo>
+<Identifier value='BOOL' />
+</TypeInfo>
+</Attributes>
+</Boolean_Litteral>
+</Values>
+</Affectation_Substitution>
+</Then>
+<Else>
+<Affectation_Substitution>
+<Variables>
+<Identifier value='res'>
+<Attributes>
+<TypeInfo>
+<Identifier value='BOOL' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Variables>
+<Values>
+<Boolean_Litteral value='FALSE'>
+<Attributes>
+<TypeInfo>
+<Identifier value='BOOL' />
+</TypeInfo>
+</Attributes>
+</Boolean_Litteral>
+</Values>
+</Affectation_Substitution>
+</Else>
+</If_Substitution>
+</Body>
+</Operation>
+</Operations>
+</Machine>

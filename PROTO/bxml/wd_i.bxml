@@ -1,0 +1,478 @@
+<Machine name='wd_i' type='implementation'>
+  <Abstraction>wd</Abstraction>
+  <Imports>
+    <Referenced_Machine>
+      <Name>counter</Name>
+    </Referenced_Machine>
+  </Imports>
+  <Values>
+    <Valuation ident='timeout'>
+      <Integer_Litteral value='50'>
+	<Attributes>
+	  <TypeInfo>
+	    <Identifier value='INTEGER' />
+	  </TypeInfo>
+	</Attributes>
+      </Integer_Litteral>
+    </Valuation>
+  </Values>
+  <Concrete_Constants>
+    <Identifier value='timeout'>
+      <Attributes>
+	<TypeInfo>
+	  <Identifier value='INTEGER' />
+	</TypeInfo>
+      </Attributes>
+    </Identifier>
+  </Concrete_Constants>
+  <Invariant>
+    <Nary_Predicate operator='&amp;'>
+      <Expression_Comparison operator='='>
+	<Identifier value='overflow'>
+	  <Attributes>
+	    <TypeInfo>
+	      <Identifier value='BOOL' />
+	    </TypeInfo>
+	  </Attributes>
+	</Identifier>
+	<Boolean_Litteral value='FALSE'>
+	  <Attributes>
+	    <TypeInfo>
+	      <Identifier value='BOOL' />
+	    </TypeInfo>
+	  </Attributes>
+	</Boolean_Litteral>
+      </Expression_Comparison>
+      <Expression_Comparison operator='='>
+	<Binary_Expression operator='-'>
+	  <Attributes>
+	    <TypeInfo>
+	      <Identifier value='INTEGER' />
+	    </TypeInfo>
+	  </Attributes>
+	  <Identifier value='timeout'>
+	    <Attributes>
+	      <TypeInfo>
+		<Identifier value='INTEGER' />
+	      </TypeInfo>
+	    </Attributes>
+	  </Identifier>
+	  <Identifier value='value'>
+	    <Attributes>
+	      <TypeInfo>
+		<Identifier value='INTEGER' />
+	      </TypeInfo>
+	    </Attributes>
+	  </Identifier>
+	</Binary_Expression>
+	<Identifier value='ticker'>
+	  <Attributes>
+	    <TypeInfo>
+	      <Identifier value='INTEGER' />
+	    </TypeInfo>
+	  </Attributes>
+	</Identifier>
+      </Expression_Comparison>
+    </Nary_Predicate>
+  </Invariant>
+  <Initialisation>
+    <VAR_IN>
+      <Variables>
+	<Identifier value='count'>
+	  <Attributes>
+	    <TypeInfo>
+	      <Identifier value='INTEGER' />
+	    </TypeInfo>
+	  </Attributes>
+	</Identifier>
+      </Variables>
+      <Body>
+	<Nary_Substitution operator=';'>
+	  <Affectation_Substitution>
+	    <Variables>
+	      <Identifier value='count'>
+		<Attributes>
+		  <TypeInfo>
+		    <Identifier value='INTEGER' />
+		  </TypeInfo>
+		</Attributes>
+	      </Identifier>
+	    </Variables>
+	    <Values>
+	      <Integer_Litteral value='0'>
+		<Attributes>
+		  <TypeInfo>
+		    <Identifier value='INTEGER' />
+		  </TypeInfo>
+		</Attributes>
+	      </Integer_Litteral>
+	    </Values>
+	  </Affectation_Substitution>
+	  <While>
+	    <Condition>
+	      <Expression_Comparison operator='&lt;'>
+		<Identifier value='count'>
+		  <Attributes>
+		    <TypeInfo>
+		      <Identifier value='INTEGER' />
+		    </TypeInfo>
+		  </Attributes>
+		</Identifier>
+		<Identifier value='timeout'>
+		  <Attributes>
+		    <TypeInfo>
+		      <Identifier value='INTEGER' />
+		    </TypeInfo>
+		  </Attributes>
+		</Identifier>
+	      </Expression_Comparison>
+	    </Condition>
+	    <Body>
+	      <Nary_Substitution operator=';'>
+		<Operation_Call>
+		  <Name>
+		    <Identifier value='inc' />
+		  </Name>
+		</Operation_Call>
+		<Affectation_Substitution>
+		  <Variables>
+		    <Identifier value='count'>
+		      <Attributes>
+			<TypeInfo>
+			  <Identifier value='INTEGER' />
+			</TypeInfo>
+		      </Attributes>
+		    </Identifier>
+		  </Variables>
+		  <Values>
+		    <Binary_Expression operator='+'>
+		      <Attributes>
+			<TypeInfo>
+			  <Identifier value='INTEGER' />
+			</TypeInfo>
+		      </Attributes>
+		      <Identifier value='count'>
+			<Attributes>
+			  <TypeInfo>
+			    <Identifier value='INTEGER' />
+			  </TypeInfo>
+			</Attributes>
+		      </Identifier>
+		      <Integer_Litteral value='1'>
+			<Attributes>
+			  <TypeInfo>
+			    <Identifier value='INTEGER' />
+			  </TypeInfo>
+			</Attributes>
+		      </Integer_Litteral>
+		    </Binary_Expression>
+		  </Values>
+		</Affectation_Substitution>
+	      </Nary_Substitution>
+	    </Body>
+	    <Invariant>
+	      <Expression_Comparison operator='='>
+		<Identifier value='value'>
+		  <Attributes>
+		    <TypeInfo>
+		      <Identifier value='INTEGER' />
+		    </TypeInfo>
+		  </Attributes>
+		</Identifier>
+		<Identifier value='count'>
+		  <Attributes>
+		    <TypeInfo>
+		      <Identifier value='INTEGER' />
+		    </TypeInfo>
+		  </Attributes>
+		</Identifier>
+	      </Expression_Comparison>
+	    </Invariant>
+	    <Variant>
+	      <Binary_Expression operator='-'>
+		<Attributes>
+		  <TypeInfo>
+		    <Identifier value='INTEGER' />
+		  </TypeInfo>
+		</Attributes>
+		<Identifier value='timeout'>
+		  <Attributes>
+		    <TypeInfo>
+		      <Identifier value='INTEGER' />
+		    </TypeInfo>
+		  </Attributes>
+		</Identifier>
+		<Identifier value='count'>
+		  <Attributes>
+		    <TypeInfo>
+		      <Identifier value='INTEGER' />
+		    </TypeInfo>
+		  </Attributes>
+		</Identifier>
+	      </Binary_Expression>
+	    </Variant>
+	  </While>
+	</Nary_Substitution>
+      </Body>
+    </VAR_IN>
+  </Initialisation>
+  <Operations>
+    <Operation name='start'>
+      <Body>
+	<Operation_Call>
+	  <Name>
+	    <Identifier value='zero' />
+	  </Name>
+	</Operation_Call>
+      </Body>
+    </Operation>
+    <Operation name='tick'>
+      <Body>
+	<VAR_IN>
+	  <Variables>
+	    <Identifier value='elapsed'>
+	      <Attributes>
+		<TypeInfo>
+		  <Identifier value='INTEGER' />
+		</TypeInfo>
+	      </Attributes>
+	    </Identifier>
+	    <Identifier value='diff'>
+	      <Attributes>
+		<TypeInfo>
+		  <Identifier value='INTEGER' />
+		</TypeInfo>
+	      </Attributes>
+	    </Identifier>
+	  </Variables>
+	  <Body>
+	    <Nary_Substitution operator=';'>
+	      <Operation_Call>
+		<Name>
+		  <Identifier value='get' />
+		</Name>
+		<Output_Parameters>
+		  <Identifier value='elapsed'>
+		    <Attributes>
+		      <TypeInfo>
+			<Identifier value='INTEGER' />
+		      </TypeInfo>
+		    </Attributes>
+		  </Identifier>
+		</Output_Parameters>
+	      </Operation_Call>
+	      <Affectation_Substitution>
+		<Variables>
+		  <Identifier value='diff'>
+		    <Attributes>
+		      <TypeInfo>
+			<Identifier value='INTEGER' />
+		      </TypeInfo>
+		    </Attributes>
+		  </Identifier>
+		</Variables>
+		<Values>
+		  <Binary_Expression operator='-'>
+		    <Attributes>
+		      <TypeInfo>
+			<Identifier value='INTEGER' />
+		      </TypeInfo>
+		    </Attributes>
+		    <Identifier value='timeout'>
+		      <Attributes>
+			<TypeInfo>
+			  <Identifier value='INTEGER' />
+			</TypeInfo>
+		      </Attributes>
+		    </Identifier>
+		    <Identifier value='elapsed'>
+		      <Attributes>
+			<TypeInfo>
+			  <Identifier value='INTEGER' />
+			</TypeInfo>
+		      </Attributes>
+		    </Identifier>
+		  </Binary_Expression>
+		</Values>
+	      </Affectation_Substitution>
+	      <If_Substitution>
+		<Condition>
+		  <Expression_Comparison operator='&gt;'>
+		    <Identifier value='diff'>
+		      <Attributes>
+			<TypeInfo>
+			  <Identifier value='INTEGER' />
+			</TypeInfo>
+		      </Attributes>
+		    </Identifier>
+		    <Integer_Litteral value='0'>
+		      <Attributes>
+			<TypeInfo>
+			  <Identifier value='INTEGER' />
+			</TypeInfo>
+		      </Attributes>
+		    </Integer_Litteral>
+		  </Expression_Comparison>
+		</Condition>
+		<Then>
+		  <Operation_Call>
+		    <Name>
+		      <Identifier value='inc' />
+		    </Name>
+		  </Operation_Call>
+		</Then>
+	      </If_Substitution>
+	    </Nary_Substitution>
+	  </Body>
+	</VAR_IN>
+      </Body>
+    </Operation>
+    <Operation name='expired'>
+      <Output_Parameters>
+	<Identifier value='res'>
+	  <Attributes>
+	    <TypeInfo>
+	      <Identifier value='BOOL' />
+	    </TypeInfo>
+	  </Attributes>
+	</Identifier>
+      </Output_Parameters>
+      <Body>
+	<VAR_IN>
+	  <Variables>
+	    <Identifier value='elapsed'>
+	      <Attributes>
+		<TypeInfo>
+		  <Identifier value='INTEGER' />
+		</TypeInfo>
+	      </Attributes>
+	    </Identifier>
+	    <Identifier value='diff'>
+	      <Attributes>
+		<TypeInfo>
+		  <Identifier value='INTEGER' />
+		</TypeInfo>
+	      </Attributes>
+	    </Identifier>
+	  </Variables>
+	  <Body>
+	    <Nary_Substitution operator=';'>
+	      <Operation_Call>
+		<Name>
+		  <Identifier value='get' />
+		</Name>
+		<Output_Parameters>
+		  <Identifier value='elapsed'>
+		    <Attributes>
+		      <TypeInfo>
+			<Identifier value='INTEGER' />
+		      </TypeInfo>
+		    </Attributes>
+		  </Identifier>
+		</Output_Parameters>
+	      </Operation_Call>
+	      <Affectation_Substitution>
+		<Variables>
+		  <Identifier value='diff'>
+		    <Attributes>
+		      <TypeInfo>
+			<Identifier value='INTEGER' />
+		      </TypeInfo>
+		    </Attributes>
+		  </Identifier>
+		</Variables>
+		<Values>
+		  <Binary_Expression operator='-'>
+		    <Attributes>
+		      <TypeInfo>
+			<Identifier value='INTEGER' />
+		      </TypeInfo>
+		    </Attributes>
+		    <Identifier value='timeout'>
+		      <Attributes>
+			<TypeInfo>
+			  <Identifier value='INTEGER' />
+			</TypeInfo>
+		      </Attributes>
+		    </Identifier>
+		    <Identifier value='elapsed'>
+		      <Attributes>
+			<TypeInfo>
+			  <Identifier value='INTEGER' />
+			</TypeInfo>
+		      </Attributes>
+		    </Identifier>
+		  </Binary_Expression>
+		</Values>
+	      </Affectation_Substitution>
+	      <If_Substitution>
+		<Condition>
+		  <Expression_Comparison operator='&lt;'>
+		    <Identifier value='diff'>
+		      <Attributes>
+			<TypeInfo>
+			  <Identifier value='INTEGER' />
+			</TypeInfo>
+		      </Attributes>
+		    </Identifier>
+		    <Integer_Litteral value='0'>
+		      <Attributes>
+			<TypeInfo>
+			  <Identifier value='INTEGER' />
+			</TypeInfo>
+		      </Attributes>
+		    </Integer_Litteral>
+		  </Expression_Comparison>
+		</Condition>
+		<Then>
+		  <Affectation_Substitution>
+		    <Variables>
+		      <Identifier value='res'>
+			<Attributes>
+			  <TypeInfo>
+			    <Identifier value='BOOL' />
+			  </TypeInfo>
+			</Attributes>
+		      </Identifier>
+		    </Variables>
+		    <Values>
+		      <Boolean_Litteral value='TRUE'>
+			<Attributes>
+			  <TypeInfo>
+			    <Identifier value='BOOL' />
+			  </TypeInfo>
+			</Attributes>
+		      </Boolean_Litteral>
+		    </Values>
+		  </Affectation_Substitution>
+		</Then>
+		<Else>
+		  <Affectation_Substitution>
+		    <Variables>
+		      <Identifier value='res'>
+			<Attributes>
+			  <TypeInfo>
+			    <Identifier value='BOOL' />
+			  </TypeInfo>
+			</Attributes>
+		      </Identifier>
+		    </Variables>
+		    <Values>
+		      <Boolean_Litteral value='FALSE'>
+			<Attributes>
+			  <TypeInfo>
+			    <Identifier value='BOOL' />
+			  </TypeInfo>
+			</Attributes>
+		      </Boolean_Litteral>
+		    </Values>
+		  </Affectation_Substitution>
+		</Else>
+	      </If_Substitution>
+	    </Nary_Substitution>
+	  </Body>
+	</VAR_IN>
+      </Body>
+    </Operation>
+  </Operations>
+</Machine>
