@@ -50,16 +50,16 @@ def sym_table_add(table, id, pyt):
 #
 
 def get(node):
-    return val.get("ident")
+    return node.get("ident")
 
 def value(node):
-    return val.get("value")
+    return node.get("value")
 
 def operator(node):
-    return val.get("operator")
+    return node.get("operator")
 
 def name(node):
-    return val.get("name")
+    return node.get("name")
 
 ###
 # general-purpose accumulators
@@ -190,38 +190,42 @@ def load_nary_predicate(n, symbols):
 def load_boolean_expression(n, symbols):
     assert n.tag == "Boolean_Expression"
     if n.tag == "Binary_Predicate":
-        load_binary_predicate(n, symbols)
+        return load_binary_predicate(n, symbols)
     elif n.tag == "Expression_Comparison":
-        load_expression_comparison(n, symbols)
+        return load_expression_comparison(n, symbols)
     elif n.tag == "Unary_Predicate":
-        load_unary_predicate(n, symbols)
+        return load_unary_predicate(n, symbols)
     elif n.tag == "Nary_Predicate":
-        load_nary_predicate(n, symbols)
-    elif n.tag in { "Quantified_predicat", "Set" }
+        return load_nary_predicate(n, symbols)
+    elif n.tag in {"Quantified_Predicate", "Set"}:
         error("unexpected boolean expression" + n.tag)
+        return None
     else:
         error("unknown boolean expression " + n.tag)
+        return None
 
 def load_expression(n, symbols):
     if n.tag == "Binary_Expression":
-        load_binary_expression(n, symbols)
+        return load_binary_expression(n, symbols)
     elif n.tag == "Nary_Expression":
-        load_nary_expression(n, symbols)
+        return load_nary_expression(n, symbols)
     elif n.tag == "Unary_Expression":
-        load_unary_expression(n, symbols)
+        return load_unary_expression(n, symbols)
     elif n.tag == "Boolean_Litteral":
-        load_boolean_literal(n, symbols)
+        return load_boolean_literal(n, symbols)
     elif n.tag == "Integer_Litteral":
-        load_integer_literal(n, symbols)
+        return load_integer_literal(n, symbols)
     elif n.tag == "Identifier":
-        load_identifier(n, symbols)
+        return load_identifier(n, symbols)
     elif n.tag == "Boolean_Expression":
-        load_boolean_expression(n, symbols)
+        return load_boolean_expression(n, symbols)
     elif n.tag in {"EmptySet", "EmptySeq", "Quantified_Expression",
                    "Quantified_Set", "String_Litteral", "Struct", "Record"}:
         error("unexpected expression " + n.tag)
+        return None
     else:
         error("unknown expression " + n.tag)
+        return None
 
 ###
 # substitutions
@@ -229,13 +233,13 @@ def load_expression(n, symbols):
 
 def load_becomes_eq(n, symbols):
     assert n.tag == "Affectation_Substitution"
-    lhs = n.findall("./Variables")
-    rhs = n.findall("./Values")
+    lhs = n.find("./Variables/*")
+    rhs = n.find("./Values/*")
     if len(lhs) != 1 or len(rhs) != 1:
         error("unsupported multiple becomes equal substitution")
         return make_skip()    
-    dst = load_expression(lhs[0], symbols)
-    src = load_expression(rhs[0], symbols)
+    dst = load_expression(lhs, symbols)
+    src = load_expression(rhs, symbols)
     return bimp.make_beq(dst, src)
 
 def load_skip(n, symbols):
@@ -269,8 +273,16 @@ def load_binary_substitution(n, symbols):
 
 def load_nary_substitution(n, symbols):
     assert n.tag == "Nary_Substitution"
-    error("load_nary_substitution not yet implemented")
-    return bimp.make_skip()
+    op = operator(n)
+    if op == "||":
+        error("parallel substitution cannot be translated")
+        return bimp.make_skip()
+    elif op == ";":
+        substitutions = n.findall("./*")
+        return [load_substitution(s, symbols) for s in substitutions]
+    else:
+        error("unrecognized n-ary substitution")
+        return bimp.make_skip()
 
 def load_operation_call(n, symbols):
     assert n.tag == "Operation_Call"
@@ -487,16 +499,18 @@ def load_concrete_variables(root, symbols):
     for v in vars:
         id = value(v)
         type = get_identifier_type(v)
-        pyt = bimp.make_imp_var(value(id), get_identifier_type(v))
+        pyt = bimp.make_imp_var(id, type)
         sym_table_add(symbols, id, pyt)
         result.append(pyt)
     return result
 
 def load_initialisation(root, symbols):
     initialisation = root.find("./Initialisation")
-    if initialisation = None:
+    if initialisation == None:
         return []
-    return [ load_substitution(s, symbols) for s in initialisation ]
+    toplevel = initialisation.find("./*")
+    assert toplevel.tag == "Nary_Substitution"
+    return load_nary_substitution(toplevel, symbols)
 
 # <xs:element name="Operation">
 #   <xs:complexType>
@@ -534,21 +548,23 @@ def load_operation(n, symbols):
     for i in inputs:
         id = value(i)
         type = get_identifier_type(i)
-        pyt = make_arg_var(id, type)
+        pyt = bimp.make_arg_var(id, type)
         sym_table_add(op_symbols, id, pyt)
         p_inputs.append(pyt)
     for o in outputs:
         id = value(o)
         type = get_identifier_type(o)
-        pyt = make_arg_var(id, type)
+        pyt = bimp.make_arg_var(id, type)
         sym_table_add(op_symbols, id, pyt)
         p_outputs.append(pyt)
-    assert len(body) == 1
-    p_body = load_substitution(body[0], op_symbols)
+    if body.tag == "Nary_Substitution":
+        p_body = bimp.make_blk(load_nary_substitution(body, op_symbols))
+    else:
+        p_body = load_substitution(body, op_symbols)
     return bimp.make_oper(id, p_inputs, p_outputs, p_body)
 
 def load_operations(root, symbols):
-    operations = root.find(".//Operation")
+    operations = root.findall(".//Operation")
     return [load_operation(op, symbols) for op in operations]
 
 ###
@@ -560,7 +576,7 @@ def load_bxml(filename):
     tree = ET.parse(filename)
     root = tree.getroot()
     assert root.tag == 'Machine'
-    assert root.get("type") == "Implementation"
+    assert root.get("type") == "implementation"
     id = root.get("name")
     imports = load_imports(root.find("Imports"))
     constants = load_values(root, symbols)

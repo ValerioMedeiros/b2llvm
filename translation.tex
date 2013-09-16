@@ -181,6 +181,21 @@ the B method ensures the absence of overflows and underflows.
         \hline
         \multicolumn{3}{|c|}{Machine: \B{Mach}} \\
         \hline
+        \multicolumn{3}{c}{\B{LibMach} $\mid$ \B{ForeignMach}} \\
+        \B{id} & : & \B{Name} \\
+        \B{see} & : & seq \B{Mach} \\
+        \B{const} & : & seq \B{Cons} \\
+        \B{var} & : & seq \B{Vari} \\
+        \B{init} & : & seq \B{Inst} \\
+        \B{op} & : & seq \B{Oper} 
+        \hline
+        \multicolumn{3}{|c|}{Library machine: \B{LibMach}} \\
+        \hline
+        \B{id} & : & \B{Name} \\
+        \B{impl} & : & \B{Impl} \\
+        \hline
+        \multicolumn{3}{|c|}{Foreign machine: \B{ForeignMach}} \\
+        \hline
         \B{id} & : & \B{Name} \\
         \B{impl} & : & \B{Impl} \\
         \hline
