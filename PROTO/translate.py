@@ -8,6 +8,8 @@
 #
 ###
 
+import bimp
+
 ### LLVM IDENTIFIER GENERATION ###
 
 # the code in this section is responsible for generating LLVM names for
@@ -178,8 +180,8 @@ def state_position(n):
 # This function is responsible for translation B0 type names to LLVM types
 #
 def translate_type(t):
-    assert(t == "INT" or t == "BOOL")
-    if t == "INT":
+    assert(t == bimp.INT or t == bimp.BOOL)
+    if t == bimp.INT:
         return "i32"
     else:
         return "i1"

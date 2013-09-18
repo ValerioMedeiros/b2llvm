@@ -4,13 +4,44 @@
 # 
 # We use the xml.etree.ElementTree library
 # See http://docs.python.org/2/library/xml.etree.elementtree.html
+#
+# 1. General design
+#
+# The translation recurses over the tree. There is one function for
+# each kind of node. When different kinds of node are possible (for
+# instance, where a substitution is expected) an additional dispatcher 
+# function is responsible for identifying the actual type of node,
+# by looking at the XML tag.
+# 
+# 2. Symbol table
+#
+# Most of the recursive traversal of the tree requires as parameter
+# a symbol table. Such symbol table is structured as a Python dictionary,
+# where the keys are strings, and the values are the Python representation
+# of the corresponding B symbol. I expect that no name conflict occurs in
+# the input XML. Nevertheless, the inclusion in the symbol table is done
+# through function sym_table_add, which checks there is no such conflict.
+#
+# When entering a new scope (e.g. an operation, or a VAR...IN substitution),
+# a copy of the symbol table is created, and the local symbols are added to
+# that copy.
+#
+# 3. Associate operators
+# 
+# Expressions consisting of the application of an associative operator to
+# more than two arguments are represented as a nested application of a
+# binary application, associated to the left.
+# For instance a + b + c would be represented as ((a + b) + c).
+#
 
 import xml.etree.ElementTree as ET
 import bimp
 
 ###
+#
 # rudimentary error handling
 #
+###
 
 error_nb = 0
 def error(message):
@@ -24,7 +55,7 @@ def error(message):
     error_nb += 1
     print("error: " + message)
 
-ward_nb = 0
+warn_nb = 0
 def warn(message):
     '''
     Input:
@@ -36,18 +67,31 @@ def warn(message):
     warn_nb += 1
     print("warning: " + message)
 
+def display_report(id, filename):
+    global error_nb, warn_nb
+    print("B implementation " + id + " from file " + filename + " loaded.")
+    print(str(error_nb)+" error(s), "+str(warn_nb)+" warning(s) reported.")
 
 ### 
-# cautious inclusion in symbol table
 #
+# symbol table stuff
+#
+###
 def sym_table_add(table, id, pyt):
     if id in table:
         error("name clash ("+id+")")
     table[id] = pyt
 
+def sym_table_new():
+    table = dict()
+    sym_table_add(table, "MAXINT", bimp.MAXINT)
+    return table
+
 ### 
+#
 # bxml shortcuts 
 #
+###
 
 def get(node):
     return node.get("ident")
@@ -62,8 +106,10 @@ def name(node):
     return node.get("name")
 
 ###
+#
 # general-purpose accumulators
 #
+###
 
 def list_combine_ltr(l, f):
     '''
@@ -82,7 +128,11 @@ def list_combine_ltr(l, f):
         result = f(result, l[i])
     return result
 
-#############################################
+###
+#
+# utilities
+#
+###
 
 def get_identifier_type(id):
     '''
@@ -116,8 +166,10 @@ def discard_attributes(exp):
     return [n for n in exp.findall("./*") if n.tag != "Attributes"]
 
 ### 
+#
 # expressions
 #
+###
 
 def load_identifier(n, symbols):
     return symbols[value(n)]
@@ -142,25 +194,25 @@ def setup_expression(n, handlers):
         return None
     return handlers[op], discard_attributes(n)
 
-def load_unary(n, symbols, tag, dict):
+def load_unary(n, symbols, tag, table):
     assert n.tag == tag
-    f, par = setup_expression(n, dict)
+    f, par = setup_expression(n, table)
     assert len(par) == 1
-    arg = load_expression(par[0], symbols)
+    arg = load_exp(par[0], symbols)
     return f(arg)
 
-def load_binary(n, symbols, tag, dict):
+def load_binary(n, symbols, tag, table):
     assert n.tag == tag
-    f, par = setup_expression(n, dict)
+    f, par = setup_expression(n, table)
     assert len(par) == 2
-    arg = [ load_expression(p, symbols) for p in par ]
+    arg = [ load_exp(p, symbols) for p in par ]
     return f(arg[0], arg[1])
 
-def load_nary(n, symbols, tag, dict):
+def load_nary(n, symbols, tag, table):
     assert n.tag == tag
-    f, par = setup_expression(n, dict)
+    f, par = setup_expression(n, table)
     assert len(par) >= 2
-    args = [ load_expression(p, symbols) for p in par ]
+    args = [ load_exp(p, symbols) for p in par ]
     return list_combine_ltr(args, lambda a0, a1: f(a0, a1))
 
 def load_unary_expression(n, symbols):
@@ -178,17 +230,22 @@ def load_nary_expression(n, symbols):
 
 def load_binary_predicate(n, symbols):
     return load_binary(n, symbols, "Binary_Predicate",
-                       {"&amp;":bimp.make_and, "or":bimp_make_or})
+                       {"&":bimp.make_and, "or":bimp_make_or})
     
 def load_unary_predicate(n, symbols):
     return load_unary(n, symbols, "Unary_Predicate", {"not":bimp.make_not})
 
 def load_nary_predicate(n, symbols):
     return load_nary(n, symbols, "Nary_Predicate", 
-                     {"&amp;":bimp.make_and, "or":bimp.make_or})
+                     {"&":bimp.make_and, "or":bimp.make_or})
+
+def load_expression_comparison(n, symbols):
+    return load_binary(n, symbols, "Expression_Comparison",
+                       {"=": bimp.make_eq, "/=": bimp.make_neq,
+                        ">": bimp.make_lt, ">=": bimp.make_ge,
+                        "<": bimp.make_lt, "<=": bimp.make_le})
 
 def load_boolean_expression(n, symbols):
-    assert n.tag == "Boolean_Expression"
     if n.tag == "Binary_Predicate":
         return load_binary_predicate(n, symbols)
     elif n.tag == "Expression_Comparison":
@@ -204,7 +261,7 @@ def load_boolean_expression(n, symbols):
         error("unknown boolean expression " + n.tag)
         return None
 
-def load_expression(n, symbols):
+def load_exp(n, symbols):
     if n.tag == "Binary_Expression":
         return load_binary_expression(n, symbols)
     elif n.tag == "Nary_Expression":
@@ -228,23 +285,29 @@ def load_expression(n, symbols):
         return None
 
 ###
+#
 # substitutions
 #
+###
 
-def load_becomes_eq(n, symbols):
-    assert n.tag == "Affectation_Substitution"
-    lhs = n.find("./Variables/*")
-    rhs = n.find("./Values/*")
-    if len(lhs) != 1 or len(rhs) != 1:
-        error("unsupported multiple becomes equal substitution")
-        return make_skip()    
-    dst = load_expression(lhs, symbols)
-    src = load_expression(rhs, symbols)
-    return bimp.make_beq(dst, src)
+def load_block_substitution(n, symbols):
+    assert n.tag == "Bloc_Substitution"
+    return [ load_sub(s, symbols) for s in n.findall("./*") ]
 
 def load_skip(n, symbols):
     assert n.tag == "Skip"
     return bimp.make_skip()
+
+def load_becomes_eq(n, symbols):
+    assert n.tag == "Affectation_Substitution"
+    lhs = n.findall("./Variables/*")
+    rhs = n.findall("./Values/*")
+    if len(lhs) != 1 or len(rhs) != 1:
+        error("unsupported multiple becomes equal substitution")
+        return bimp.make_skip()    
+    dst = load_exp(lhs[0], symbols)
+    src = load_exp(rhs[0], symbols)
+    return bimp.make_beq(dst, src)
 
 def load_assert_substitution(n, symbols):
     assert n.tag == "Assert_Substitution"
@@ -252,22 +315,70 @@ def load_assert_substitution(n, symbols):
     return bimp.make_skip()
 
 def load_if_substitution(n, symbols):
+    '''
+    TODO: understand how ELSIF branch are XML-coded and implement
+    their translation.
+    '''
     assert n.tag == "If_Substitution"
-    error("load_if_substitution not yet implemented")
-    return bimp.make_skip()
+    if n.get("elseif") != None:
+        error("unrecognized elseif attribute in IF substitution")
+        return bimp.make_skip()
+    xmlcond = n.find("./Condition")
+    xmlthen = n.find("./Then")
+    xmlelse = n.find("./Else")
+    pycond = load_boolean_expression(xmlcond.find("./*"), symbols)
+    pythen = load_sub(xmlthen.find("./*"), symbols)
+    thenbr = bimp.make_if_br(pycond, pythen)
+    if xmlelse == None:
+        return bimp.make_if([thenbr])
+    else:
+        pyelse = load_sub(xmlelse.find("./*"), symbols)
+        elsebr = bimp.make_if_br(None, pyelse)
+        return bimp.make_if([thenbr, elsebr])
 
 def load_case_substitution(n, symbols):
     assert n.tag == "Case_Substitution"
-    error("load_case_substitution not yet implemented")
-    return bimp.make_skip()
+    xmlexpr = n.find("./Value/*")
+    xmlbranches = n.findall("./Choices/Choice")
+    xmlelse = n.find("./Else")
+    pyexpr = load_exp(xmlexpr, symbols)
+    pybranches = [ bimp.make_case_br(load_exp(xbr.find("./Value/*"), symbols),
+                                     load_sub(xbr.find("./Then/*"), symbols))
+                   for xbr in xmlbranches ]
+    if xmlelse != None:
+        pybranches.append(bimp.make_case_br(None, load_sub(xmlelse.find("./Choice/Then/*"), symbols)))
+    return bimp.make_case(pyexpr, pybranches)
 
 def load_var_in(n, symbols):
     assert n.tag == "VAR_IN"
-    error("load_var_in substitution not yet implemented")
-    return bimp.make_skip()
+    xmlvars = n.findall("./Variables/Identifier")
+    xmlbody = n.find("./Body")
+    symbols2 = symbols.copy()
+    pyvars = []
+    for v in xmlvars:
+        id = value(v)
+        type = get_identifier_type(v)
+        pyt = bimp.make_loc_var(id, type)
+        sym_table_add(symbols2, id, pyt)
+        pyvars.append(pyt)
+    pybody = [ load_sub(xmlbody.find("./*"), symbols2) ]
+    return bimp.make_var_decl(pyvars, pybody)
 
 def load_binary_substitution(n, symbols):
     assert n.tag == "Binary_Substitution"
+    op = operator(n)
+    if op == "||":
+        error("parallel substitution cannot be translated")
+        return bimp.make_skip()
+    elif op == ";":
+        left = n.find("./Left")
+        right = n.find("./Left")
+        return [load_sub(left, symbols), load_sub(right, symbols)]
+    else:
+        error("unrecognized n-ary substitution")
+        return bimp.make_skip()
+
+
     error("load_binary_substitution not yet implemented")
     return bimp.make_skip()
 
@@ -279,7 +390,7 @@ def load_nary_substitution(n, symbols):
         return bimp.make_skip()
     elif op == ";":
         substitutions = n.findall("./*")
-        return [load_substitution(s, symbols) for s in substitutions]
+        return bimp.make_blk([load_sub(s, symbols) for s in substitutions])
     else:
         error("unrecognized n-ary substitution")
         return bimp.make_skip()
@@ -291,10 +402,13 @@ def load_operation_call(n, symbols):
 
 def load_while(n, symbols):
     assert n.tag == "While"
-    error("load_while not yet implemented")
-    return bimp.make_skip()
+    xmlcond = n.find("./Condition")
+    xmlbody = n.find("./Body")
+    pycond = load_boolean_expression(xmlcond, symbols)
+    pybody = load_sub(xmlbody, symbols)
+    return bimp.make_while(pycond, pybody)
 
-def load_substitution(n, symbols):
+def load_sub(n, symbols):
     '''
     Inputs:
       - n: a XML node representing a B0 substitution
@@ -303,7 +417,7 @@ def load_substitution(n, symbols):
     Output:
       Python node representing the substitution n
     '''
-    if n.tag == "Block_Substitution":
+    if n.tag == "Bloc_Substitution":
         return load_block_substitution(n, symbols)
     elif n.tag == "Skip":
         return load_skip(n, symbols)
@@ -332,126 +446,11 @@ def load_substitution(n, symbols):
     else:
         error("unrecognized substitution: " + n.tag)
 
-'''
-  <xs:element name="Select_Substitution">
-    <xs:complexType>
-      <xs:sequence>
-	<xs:element name="Attributes" minOccurs="0" maxOccurs="1" type="Attributes_type"/>
-	<xs:element name="Select" minOccurs="1" maxOccurs="unbounded">
-	  <xs:complexType>
-	    <xs:sequence>
-	      <xs:element name="When" minOccurs="1" maxOccurs="1" type="Predicate_type"/>
-	      <xs:element name="Then" minOccurs="1" maxOccurs="1" type="Substitution_type"/>
-	    </xs:sequence>
-	  </xs:complexType>
-	</xs:element>
-	<xs:element name="Else" minOccurs="0" maxOccurs="1" type="Substitution_type"/>
-      </xs:sequence>
-    </xs:complexType>
-  </xs:element>
-
-  <xs:element name="Case_Substitution">
-    <xs:complexType>
-      <xs:sequence>
-	<xs:element name="Attributes" minOccurs="0" maxOccurs="1" type="Attributes_type"/>
-	<xs:element name="Value" minOccurs="1" maxOccurs="1" type="Expression_type"/>
-	<xs:element name="Choices" minOccurs="1" maxOccurs="unbounded">
-	  <xs:complexType>
-	    <xs:sequence>
-	      <xs:element name="Choice" minOccurs="1" maxOccurs="1" type="Expression_type"/>
-	      <xs:element name="Then" minOccurs="1" maxOccurs="1" type="Substitution_type"/>
-	    </xs:sequence>
-	  </xs:complexType>
-	</xs:element>
-	<xs:element name="Else" minOccurs="1" maxOccurs="1" type="Substitution_type"/>
-      </xs:sequence>
-    </xs:complexType>
-  </xs:element>
-
-  <xs:element name="Becomes_In">
-    <xs:complexType>
-      <xs:sequence>
-	<xs:element name="Attributes" minOccurs="0" maxOccurs="1" type="Attributes_type"/>
-	<xs:element name="Variables" minOccurs="1" maxOccurs="1" type="Variables_type"/>
-	<xs:element name="Value" minOccurs="1" maxOccurs="1" type="Expression_type"/>
-      </xs:sequence>
-    </xs:complexType>
-  </xs:element>
-
-  <xs:element name="ANY_Substitution">
-    <xs:complexType>
-      <xs:sequence>
-	<xs:element name="Attributes" minOccurs="0" maxOccurs="1" type="Attributes_type"/>
-	<xs:element name="Variables" minOccurs="1" maxOccurs="1" type="Variables_type"/>
-	<xs:element name="Predicate" minOccurs="1" maxOccurs="1" type="Predicate_type"/>
-	<xs:element name="Then" minOccurs="1" maxOccurs="1" type="Substitution_type"/>
-      </xs:sequence>
-    </xs:complexType>
-  </xs:element>
-
-  <xs:element name="LET_Substitution">
-    <xs:complexType>
-      <xs:sequence>
-	<xs:element name="Attributes" minOccurs="0" maxOccurs="1" type="Attributes_type"/>
-	<xs:element name="Variables" minOccurs="1" maxOccurs="1" type="Variables_type"/>
-	<xs:element name="Values" minOccurs="1" maxOccurs="1">
-	  <xs:complexType>
-	    <xs:sequence>
-	      <xs:element name="Valuation" minOccurs="1" maxOccurs="unbounded">
-		<xs:complexType>
-		  <xs:sequence>
-		    <xs:group ref="Expression" minOccurs="1" maxOccurs="1" />
-	      	  </xs:sequence>
-		  <xs:attribute name="ident" type="xs:string"/> 
-	      	</xs:complexType>
-	      </xs:element>
-	    </xs:sequence>
-	  </xs:complexType>
-	</xs:element>
-	<xs:element name="Then" minOccurs="1" maxOccurs="1" type="Substitution_type"/>
-      </xs:sequence>
-    </xs:complexType>
-  </xs:element>
-  
-  <xs:simpleType name="op_var_sub">
-    <xs:restriction base="xs:string">
-      <xs:enumeration value="ANY"/>
-      <xs:enumeration value="LET"/>
-    </xs:restriction>
-  </xs:simpleType>
-
-  <xs:element name="VAR_IN">
-    <xs:complexType>
-      <xs:sequence>
-	<xs:element name="Attributes" minOccurs="0" maxOccurs="1" type="Attributes_type"/>
-	<xs:element name="Variables" minOccurs="1" maxOccurs="1" type="Variables_type"/>
-	<xs:element name="Body" minOccurs="1" maxOccurs="1" type="Substitution_type"/>
-      </xs:sequence>
-      <xs:attribute name="operator" type="op_var_sub"/> 
-    </xs:complexType>
-  </xs:element>
-
-  <xs:element name="Binary_Substitution">
-    <xs:complexType>
-      <xs:sequence>
-	<xs:element name="Attributes" minOccurs="0" maxOccurs="1" type="Attributes_type"/>
-	<xs:element name="Left" minOccurs="1" maxOccurs="1" type="Substitution_type"/>
-	<xs:element name="Right" minOccurs="1" maxOccurs="1" type="Substitution_type"/>
-      </xs:sequence>
-      <xs:attribute name="operator" type="op_binary"/> 
-    </xs:complexType>
-  </xs:element>
-
-  <xs:complexType name="Nary_Substitution_type">
-    <xs:sequence>
-      <xs:element name="Attributes" minOccurs="0" maxOccurs="1" type="Attributes_type"/>
-      <xs:group ref="Substitution" minOccurs="0" maxOccurs="unbounded"/>
-    </xs:sequence>
-    <xs:attribute name="operator" type="op_binary"/> 
-  </xs:complexType>
-'''
-        
-### machine clauses
+###
+#
+# machine clauses
+#
+###
 
 def load_imports(imports):
     if imports == None:
@@ -460,26 +459,12 @@ def load_imports(imports):
     error("loading imports from XML not yet implemented")
     return []
 
-# <xs:element name="Values" minOccurs="0" maxOccurs="1">
-#   <xs:complexType>
-#     <xs:sequence>
-#       <xs:element name="Valuation" minOccurs="1" maxOccurs="unbounded">
-# 	<xs:complexType>
-# 	  <xs:sequence>
-# 	    <xs:group ref="Expression" minOccurs="1" maxOccurs="1" />
-#       	  </xs:sequence>
-# 	  <xs:attribute name="ident" type="xs:string"/> 
-#       	</xs:complexType>
-#       </xs:element>
-#     </xs:sequence>
-#   </xs:complexType>
-# </xs:element>
 def load_values(root, symbols):
     vals = root.findall("./Values/Valuation")
     result = []
     for v in vals:
         id = ident(v)
-        exp = load_expression(v, symbols)
+        exp = load_exp(v, symbols)
         type = get_identifier_type(v)
         pyt = bimp.make_const(id, exp, type)
         result.append(pyt)
@@ -510,32 +495,8 @@ def load_initialisation(root, symbols):
         return []
     toplevel = initialisation.find("./*")
     assert toplevel.tag == "Nary_Substitution"
-    return load_nary_substitution(toplevel, symbols)
+    return [ load_nary_substitution(toplevel, symbols) ]
 
-# <xs:element name="Operation">
-#   <xs:complexType>
-#     <xs:sequence>				
-#       <xs:element name="Attributes" minOccurs="0" maxOccurs="1" type="Attributes_type"/>
-#       <xs:element name="Output_Parameters" minOccurs="0" maxOccurs="1">
-#         <xs:complexType>
-#           <xs:sequence>
-#             <xs:element name="Identifier" minOccurs="1" maxOccurs="unbounded" type="Identifier_type"/>
-#           </xs:sequence>
-#         </xs:complexType>
-#       </xs:element>
-#       <xs:element name="Input_Parameters" minOccurs="0" maxOccurs="1">
-#         <xs:complexType>
-#           <xs:sequence>
-#             <xs:element name="Identifier" minOccurs="1" maxOccurs="unbounded" type="Identifier_type"/>
-#           </xs:sequence>
-#         </xs:complexType>
-#       </xs:element>
-#       <xs:element name="Precondition" minOccurs="0" maxOccurs="1" type="Predicate_type"/>
-#       <xs:element name="Body" type="Substitution_type"/>
-#     </xs:sequence>	
-#     <xs:attribute name="name" type="xs:string"/> 
-#   </xs:complexType>
-# </xs:element>
 def load_operation(n, symbols):
     assert n.tag == "Operation"
     id = name(n)
@@ -557,10 +518,7 @@ def load_operation(n, symbols):
         pyt = bimp.make_arg_var(id, type)
         sym_table_add(op_symbols, id, pyt)
         p_outputs.append(pyt)
-    if body.tag == "Nary_Substitution":
-        p_body = bimp.make_blk(load_nary_substitution(body, op_symbols))
-    else:
-        p_body = load_substitution(body, op_symbols)
+    p_body = load_sub(body, op_symbols)
     return bimp.make_oper(id, p_inputs, p_outputs, p_body)
 
 def load_operations(root, symbols):
@@ -568,20 +526,36 @@ def load_operations(root, symbols):
     return [load_operation(op, symbols) for op in operations]
 
 ###
+#
 # modules
 #
+###
 
-def load_bxml(filename):
-    symbols = dict()
+def load_implementation(filename):
+    '''
+    Parameters:
+      - filename: the path to a file containing the BXML representation of
+      a B0 implementation
+    Result:
+    A Python representation of the B0 implementation. 
+    Output:
+    The routine prints to stdout error messages and warnings; at the end
+    it reports the number of errors and warnings detected and printed
+    during the execution.
+    '''
+    
+    symbols = sym_table_new()
     tree = ET.parse(filename)
     root = tree.getroot()
     assert root.tag == 'Machine'
     assert root.get("type") == "implementation"
-    id = root.get("name")
+    id = name(root)
     imports = load_imports(root.find("Imports"))
     constants = load_values(root, symbols)
     variables = load_concrete_variables(root, symbols)
     initialisation = load_initialisation(root, symbols)
     operations = load_operations(root, symbols)
-    return bimp.make_implementation(id, imports, constants, variables,
+    impl = bimp.make_implementation(id, imports, constants, variables,
                                     initialisation, operations)
+    display_report(id, filename)
+    return impl

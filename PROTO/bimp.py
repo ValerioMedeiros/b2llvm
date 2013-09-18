@@ -1,6 +1,6 @@
 ### TYPES ###
 
-INT = "INT"
+INT = "INTEGER"
 BOOL = "BOOL"
 
 ### TERMINALS ###
@@ -67,14 +67,23 @@ def make_prod(term1, term2):
 def make_comp(op, arg1, arg2):
     return { "kind": "Comp", "op": op, "arg1": arg1, "arg2": arg2 }
 
+def make_le(term1, term2):
+    return make_comp("<=", term1, term2)
+
 def make_lt(term1, term2):
     return make_comp("<", term1, term2)
+
+def make_ge(term1, term2):
+    return make_comp("<=", term1, term2)
 
 def make_gt(term1, term2):
     return make_comp(">", term1, term2)
 
 def make_eq(term1, term2):
     return make_comp("=", term1, term2)
+
+def make_neq(term1, term2):
+    return make_comp("!=", term1, term2)
 
 def make_form(op, args):
     return { "kind": "Form", "op": op, "args" : args }
@@ -97,24 +106,33 @@ def make_beq(lhs, rhs):
     return { "kind": "Beq", "lhs": lhs, "rhs": rhs}
 
 def make_blk(body):
+    assert type(body) is list
     return { "kind": "Blk", "body": body }
 
 def make_var_decl(vars, body):
+    assert type(vars) is list
+    assert type(body) is list
     return { "kind": "VarD", "vars": vars, "body": body }
 
 def make_if_br(cond, body):
+    assert type(body) is not list
     return { "kind": "IfBr", "cond": cond, "body": body}
 
 def make_if(branches):
+    assert type(branches) is list
     return { "kind": "If", "branches": branches }
 
 def make_case_br(values, body):
+    assert type(values) is list
+    assert type(body) is not list
     return { "kind": "CaseBr", "val": values, "body": body }
 
 def make_case(expression, branches):
+    assert type(branches) is list
     return { "kind": "Case", "expr": expression, "branches": branches }
 
 def make_while(cond, body):
+    assert type(body) is list
     return { "kind": "While", "cond": cond, "body": body }
 
 def make_call(op, inp, out, inst=None):
@@ -133,6 +151,9 @@ def make_call(op, inp, out, inst=None):
 ### COMPONENT ###
 
 def make_oper(id, inp, out, body):
+    assert type(inp) is list
+    assert type(out) is list
+    assert type(body) is not list
     return { "kind": "Oper", "id": id, "inp": inp, "out": out, "body": body }
 
 def make_import(mach, prefix = None):
@@ -147,6 +168,11 @@ def make_import(mach, prefix = None):
     return { "kind": "Impo", "mach": mach, "pre": prefix }
 
 def make_implementation(id, imports, consts, vars, init, ops):
+    assert type(imports) is list
+    assert type(consts) is list
+    assert type(vars) is list
+    assert type(init) is list
+    assert type(ops) is list
     root = { "kind": "Impl", "id": id,
              "imports": imports,
              "concrete_constants": consts,

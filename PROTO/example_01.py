@@ -71,7 +71,7 @@ inst10 = bimp.make_beq(res1, bimp.FALSE)
 branch6 = bimp.make_if_br(bimp.make_eq(error, bimp.TRUE), inst9)
 branch7 = bimp.make_if_br(bimp.make_eq(error, bimp.FALSE), inst10)
 inst11 = bimp.make_if([branch6, branch7])
-inst12 = bimp.make_blk(inst11)
+inst12 = bimp.make_blk([inst11])
 valid = bimp.make_oper("valid", [], [res1], inst12)
 
 inst13 = bimp.make_beq(res2, value)

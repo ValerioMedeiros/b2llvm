@@ -8,9 +8,10 @@ VALUES
    THR = 2
 CONCRETE_VARIABLES
    op1 ,
-   op2
+   op2 ,
+   val
 INVARIANT
-    op1: INT & op2: INT
+    op1: INT & op2: INT & val : BOOL
 INITIALISATION
    op1 := 0;
    op2 := 0
@@ -19,22 +20,22 @@ OPERATIONS
    dec1 = op1 := pred(op1);
    inc2 = op2 := succ(op2);
    dec2 = op2 := pred(op2);
-   res <-- both =
+   both =
    IF op1 > THR and op2 > THR THEN
-     res := TRUE
+     val := TRUE
    ELSE
-     res := FALSE
+     val := FALSE
    END;
-   res <-- some =
+   some =
    IF op1 > THR or op2 > THR THEN
-     res := TRUE
+     val := TRUE
    ELSE
-     res := FALSE
+     val := FALSE
    END;
-   res <-- none =
+   none =
    IF not(op1 > THR) and not (op2 > THR) THEN
-     res := TRUE
+     val := TRUE
    ELSE
-     res := FALSE
+     val := FALSE
    END
 END
