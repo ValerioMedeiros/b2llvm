@@ -1,3 +1,17 @@
+# This file provides an ASCII printer for Python representations of B0 implementations.
+#
+# 1. Design
+#
+# Printing is performed by recursive traversal of the tree representation. There is one
+# function for each syntactic category. If the category is the union of several categories
+# then the function dispatches control to the corresponding handler.
+#
+# 2. Shortcomings
+#
+# - Although the output is decently indented, no provision is taken to limit text width.
+# - Some elements of the B representation are not present in the Python representation and
+# are therefore not output.
+#
 sp = " "
 tb = "  "
 nl = "\n"
@@ -41,7 +55,7 @@ def form(n):
         return (sp + op + sp).join([condition(e) for e in args])
 
 def condition(n):
-    ''' 
+    '''
     condition
     '''
     kind = n["kind"]
@@ -125,7 +139,7 @@ def if_br(indent, position, cond, body):
     if cond == None:
         result += nl+(indent*tb)+"END"
     return result
-        
+
 def subst_if(indent, n):
     '''
     If substitution (if is a Python keyword)
@@ -159,7 +173,7 @@ def case_br(indent, position, values, body):
     if default:
         result += nl+ (indent*tb)+"END"
     return result
-        
+
 def case(indent, n):
     global tb, sp, nl
     result = ""
@@ -223,7 +237,7 @@ def oper(n):
     result = ""
     inp = n["inp"]
     out = n["out"]
-    if out != []: 
+    if out != []:
         result += ",".join([term(e) for e in out]) + " <-- "
     result += n["id"]
     if inp != []:

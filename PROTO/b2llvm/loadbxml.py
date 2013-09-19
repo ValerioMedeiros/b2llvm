@@ -1,7 +1,7 @@
 # This file is responsible for providing functions to load a BXML file and
 # build the corresponding Python abstract syntax tree, using the format and
-# the constructors found in file "bimp.py".
-# 
+# the constructors found in file "ast.py".
+#
 # We use the xml.etree.ElementTree library
 # See http://docs.python.org/2/library/xml.etree.elementtree.html
 #
@@ -9,10 +9,10 @@
 #
 # The translation recurses over the tree. There is one function for
 # each kind of node. When different kinds of node are possible (for
-# instance, where a substitution is expected) an additional dispatcher 
+# instance, where a substitution is expected) an additional dispatcher
 # function is responsible for identifying the actual type of node,
 # by looking at the XML tag.
-# 
+#
 # 2. Symbol table
 #
 # Most of the recursive traversal of the tree requires as parameter
@@ -26,8 +26,8 @@
 # a copy of the symbol table is created, and the local symbols are added to
 # that copy.
 #
-# 3. Associate operators
-# 
+# 3. Associative operators
+#
 # Expressions consisting of the application of an associative operator to
 # more than two arguments are represented as a nested application of a
 # binary application, associated to the left.
@@ -35,7 +35,7 @@
 #
 
 import xml.etree.ElementTree as ET
-import bimp
+import ast
 
 ###
 #
@@ -72,7 +72,7 @@ def display_report(id, filename):
     print("B implementation " + id + " from file " + filename + " loaded.")
     print(str(error_nb)+" error(s), "+str(warn_nb)+" warning(s) reported.")
 
-### 
+###
 #
 # symbol table stuff
 #
@@ -84,12 +84,12 @@ def sym_table_add(table, id, pyt):
 
 def sym_table_new():
     table = dict()
-    sym_table_add(table, "MAXINT", bimp.MAXINT)
+    sym_table_add(table, "MAXINT", ast.MAXINT)
     return table
 
-### 
+###
 #
-# bxml shortcuts 
+# bxml shortcuts
 #
 ###
 
@@ -117,7 +117,7 @@ def list_combine_ltr(l, f):
       - l: a list
       - f: a binary function defined on the elements of l
     Output:
-    Left-to-right application of f to the elements of l. 
+    Left-to-right application of f to the elements of l.
     Example:
        l = [ 'a', 'b', 'c' ]
        f = lambda x, y: '(' + x + '+' + y + ')'
@@ -139,7 +139,7 @@ def get_identifier_type(id):
     Input:
     - id: a XML node representing an identifier
     Output:
-    - "INTEGER" or "BOOL": the string representing the name of the type of id 
+    - "INTEGER" or "BOOL": the string representing the name of the type of id
     '''
     assert id.tag == "Identifier"
     return value(id.find("./Attributes/TypeInfo/Identifier"))
@@ -160,12 +160,12 @@ def discard_attributes(exp):
     Output:
     All the bxml children node that are not tagged as "Attributes"
     Note:
-    The nodes discarded by this function usually contain the typing 
+    The nodes discarded by this function usually contain the typing
     information of the expression.
     '''
     return [n for n in exp.findall("./*") if n.tag != "Attributes"]
 
-### 
+###
 #
 # expressions
 #
@@ -177,15 +177,15 @@ def load_identifier(n, symbols):
 def load_boolean_literal(n, symbols):
     assert n.tag == "Boolean_Litteral"
     if value(n) == "TRUE":
-        return bimp.TRUE
+        return ast.TRUE
     elif value(n) == "FALSE":
-        return bimp.FALSE
+        return ast.FALSE
     else:
         error("unknown boolean literal")
 
 def load_integer_literal(n, symbols):
     assert n.tag == "Integer_Litteral"
-    return bimp.make_intlit(int(value(n)))
+    return ast.make_intlit(int(value(n)))
 
 def setup_expression(n, handlers):
     op = operator(n)
@@ -217,33 +217,33 @@ def load_nary(n, symbols, tag, table):
 
 def load_unary_expression(n, symbols):
     return load_unary(n, symbols, "Unary_Expression",
-                      {"pred":bimp.make_pred, "succ":bimp.make_succ})
+                      {"pred":ast.make_pred, "succ":ast.make_succ})
 
 def load_binary_expression(n, symbols):
-    return load_binary(n, symbols, "Binary_Expression", 
-                       {"+":bimp.make_sum, "-":bimp.make_diff, 
-                        "*":bimp.make_prod})
+    return load_binary(n, symbols, "Binary_Expression",
+                       {"+":ast.make_sum, "-":ast.make_diff,
+                        "*":ast.make_prod})
 
 def load_nary_expression(n, symbols):
     return load_nary(n, symbols, "Nary_Expression",
-                     {"+":bimp.make_sum, "*":bimp.make_prod})
+                     {"+":ast.make_sum, "*":ast.make_prod})
 
 def load_binary_predicate(n, symbols):
     return load_binary(n, symbols, "Binary_Predicate",
-                       {"&":bimp.make_and, "or":bimp_make_or})
-    
+                       {"&":ast.make_and, "or":ast_make_or})
+
 def load_unary_predicate(n, symbols):
-    return load_unary(n, symbols, "Unary_Predicate", {"not":bimp.make_not})
+    return load_unary(n, symbols, "Unary_Predicate", {"not":ast.make_not})
 
 def load_nary_predicate(n, symbols):
-    return load_nary(n, symbols, "Nary_Predicate", 
-                     {"&":bimp.make_and, "or":bimp.make_or})
+    return load_nary(n, symbols, "Nary_Predicate",
+                     {"&":ast.make_and, "or":ast.make_or})
 
 def load_expression_comparison(n, symbols):
     return load_binary(n, symbols, "Expression_Comparison",
-                       {"=": bimp.make_eq, "/=": bimp.make_neq,
-                        ">": bimp.make_lt, ">=": bimp.make_ge,
-                        "<": bimp.make_lt, "<=": bimp.make_le})
+                       {"=": ast.make_eq, "/=": ast.make_neq,
+                        ">": ast.make_lt, ">=": ast.make_ge,
+                        "<": ast.make_lt, "<=": ast.make_le})
 
 def load_boolean_expression(n, symbols):
     if n.tag == "Binary_Predicate":
@@ -292,11 +292,11 @@ def load_exp(n, symbols):
 
 def load_block_substitution(n, symbols):
     assert n.tag == "Bloc_Substitution"
-    return [ load_sub(s, symbols) for s in n.findall("./*") ]
+    return ast.make_blk([ load_sub(s, symbols) for s in n.findall("./*") ])
 
 def load_skip(n, symbols):
     assert n.tag == "Skip"
-    return bimp.make_skip()
+    return ast.make_skip()
 
 def load_becomes_eq(n, symbols):
     assert n.tag == "Affectation_Substitution"
@@ -304,15 +304,15 @@ def load_becomes_eq(n, symbols):
     rhs = n.findall("./Values/*")
     if len(lhs) != 1 or len(rhs) != 1:
         error("unsupported multiple becomes equal substitution")
-        return bimp.make_skip()    
+        return ast.make_skip()
     dst = load_exp(lhs[0], symbols)
     src = load_exp(rhs[0], symbols)
-    return bimp.make_beq(dst, src)
+    return ast.make_beq(dst, src)
 
 def load_assert_substitution(n, symbols):
     assert n.tag == "Assert_Substitution"
     warn("assertion replaced by skip")
-    return bimp.make_skip()
+    return ast.make_skip()
 
 def load_if_substitution(n, symbols):
     '''
@@ -322,19 +322,19 @@ def load_if_substitution(n, symbols):
     assert n.tag == "If_Substitution"
     if n.get("elseif") != None:
         error("unrecognized elseif attribute in IF substitution")
-        return bimp.make_skip()
+        return ast.make_skip()
     xmlcond = n.find("./Condition")
     xmlthen = n.find("./Then")
     xmlelse = n.find("./Else")
     pycond = load_boolean_expression(xmlcond.find("./*"), symbols)
     pythen = load_sub(xmlthen.find("./*"), symbols)
-    thenbr = bimp.make_if_br(pycond, pythen)
+    thenbr = ast.make_if_br(pycond, pythen)
     if xmlelse == None:
-        return bimp.make_if([thenbr])
+        return ast.make_if([thenbr])
     else:
         pyelse = load_sub(xmlelse.find("./*"), symbols)
-        elsebr = bimp.make_if_br(None, pyelse)
-        return bimp.make_if([thenbr, elsebr])
+        elsebr = ast.make_if_br(None, pyelse)
+        return ast.make_if([thenbr, elsebr])
 
 def load_case_substitution(n, symbols):
     assert n.tag == "Case_Substitution"
@@ -342,12 +342,12 @@ def load_case_substitution(n, symbols):
     xmlbranches = n.findall("./Choices/Choice")
     xmlelse = n.find("./Else")
     pyexpr = load_exp(xmlexpr, symbols)
-    pybranches = [ bimp.make_case_br(load_exp(xbr.find("./Value/*"), symbols),
+    pybranches = [ ast.make_case_br(load_exp(xbr.find("./Value/*"), symbols),
                                      load_sub(xbr.find("./Then/*"), symbols))
                    for xbr in xmlbranches ]
     if xmlelse != None:
-        pybranches.append(bimp.make_case_br(None, load_sub(xmlelse.find("./Choice/Then/*"), symbols)))
-    return bimp.make_case(pyexpr, pybranches)
+        pybranches.append(ast.make_case_br(None, load_sub(xmlelse.find("./Choice/Then/*"), symbols)))
+    return ast.make_case(pyexpr, pybranches)
 
 def load_var_in(n, symbols):
     assert n.tag == "VAR_IN"
@@ -358,47 +358,47 @@ def load_var_in(n, symbols):
     for v in xmlvars:
         id = value(v)
         type = get_identifier_type(v)
-        pyt = bimp.make_loc_var(id, type)
+        pyt = ast.make_loc_var(id, type)
         sym_table_add(symbols2, id, pyt)
         pyvars.append(pyt)
     pybody = [ load_sub(xmlbody.find("./*"), symbols2) ]
-    return bimp.make_var_decl(pyvars, pybody)
+    return ast.make_var_decl(pyvars, pybody)
 
 def load_binary_substitution(n, symbols):
     assert n.tag == "Binary_Substitution"
     op = operator(n)
     if op == "||":
         error("parallel substitution cannot be translated")
-        return bimp.make_skip()
+        return ast.make_skip()
     elif op == ";":
         left = n.find("./Left")
         right = n.find("./Left")
         return [load_sub(left, symbols), load_sub(right, symbols)]
     else:
         error("unrecognized n-ary substitution")
-        return bimp.make_skip()
+        return ast.make_skip()
 
 
     error("load_binary_substitution not yet implemented")
-    return bimp.make_skip()
+    return ast.make_skip()
 
 def load_nary_substitution(n, symbols):
     assert n.tag == "Nary_Substitution"
     op = operator(n)
     if op == "||":
         error("parallel substitution cannot be translated")
-        return bimp.make_skip()
+        return ast.make_skip()
     elif op == ";":
         substitutions = n.findall("./*")
-        return bimp.make_blk([load_sub(s, symbols) for s in substitutions])
+        return ast.make_blk([load_sub(s, symbols) for s in substitutions])
     else:
         error("unrecognized n-ary substitution")
-        return bimp.make_skip()
+        return ast.make_skip()
 
 def load_operation_call(n, symbols):
     assert n.tag == "Operation_Call"
     error("load_operation_call not yet implemented")
-    return bimp.make_skip()
+    return ast.make_skip()
 
 def load_while(n, symbols):
     assert n.tag == "While"
@@ -406,7 +406,7 @@ def load_while(n, symbols):
     xmlbody = n.find("./Body")
     pycond = load_boolean_expression(xmlcond, symbols)
     pybody = load_sub(xmlbody, symbols)
-    return bimp.make_while(pycond, pybody)
+    return ast.make_while(pycond, pybody)
 
 def load_sub(n, symbols):
     '''
@@ -439,7 +439,7 @@ def load_sub(n, symbols):
         return load_operation_call(n, symbols)
     elif n.tag == "While":
         return load_while(n, symbols)
-    elif n.tag in {"Choice_Substitution", "Becomes_Such_That", 
+    elif n.tag in {"Choice_Substitution", "Becomes_Such_That",
                    "Select_Substitution", "ANY_Substitution",
                    "LET_Substitution", "Becomes_In"}:
         error("unexpected substitution: " + n.tag)
@@ -466,7 +466,7 @@ def load_values(root, symbols):
         id = ident(v)
         exp = load_exp(v, symbols)
         type = get_identifier_type(v)
-        pyt = bimp.make_const(id, exp, type)
+        pyt = ast.make_const(id, exp, type)
         result.append(pyt)
         sym_table_add(symbols, id, pyt)
     return result
@@ -476,7 +476,7 @@ def load_concrete_variables(root, symbols):
     Input:
     - root: the BXML tree root node of a B implementation
     Output:
-    A Python dict mapping variable identifier (strings) to the Python 
+    A Python dict mapping variable identifier (strings) to the Python
     representation for the concrete variables in the B implementation.
     '''
     vars = root.findall("./Concrete_Variables/Identifier")
@@ -484,7 +484,7 @@ def load_concrete_variables(root, symbols):
     for v in vars:
         id = value(v)
         type = get_identifier_type(v)
-        pyt = bimp.make_imp_var(id, type)
+        pyt = ast.make_imp_var(id, type)
         sym_table_add(symbols, id, pyt)
         result.append(pyt)
     return result
@@ -509,17 +509,17 @@ def load_operation(n, symbols):
     for i in inputs:
         id = value(i)
         type = get_identifier_type(i)
-        pyt = bimp.make_arg_var(id, type)
+        pyt = ast.make_arg_var(id, type)
         sym_table_add(op_symbols, id, pyt)
         p_inputs.append(pyt)
     for o in outputs:
         id = value(o)
         type = get_identifier_type(o)
-        pyt = bimp.make_arg_var(id, type)
+        pyt = ast.make_arg_var(id, type)
         sym_table_add(op_symbols, id, pyt)
         p_outputs.append(pyt)
     p_body = load_sub(body, op_symbols)
-    return bimp.make_oper(id, p_inputs, p_outputs, p_body)
+    return ast.make_oper(id, p_inputs, p_outputs, p_body)
 
 def load_operations(root, symbols):
     operations = root.findall(".//Operation")
@@ -537,13 +537,13 @@ def load_implementation(filename):
       - filename: the path to a file containing the BXML representation of
       a B0 implementation
     Result:
-    A Python representation of the B0 implementation. 
+    A Python representation of the B0 implementation.
     Output:
     The routine prints to stdout error messages and warnings; at the end
     it reports the number of errors and warnings detected and printed
     during the execution.
     '''
-    
+
     symbols = sym_table_new()
     tree = ET.parse(filename)
     root = tree.getroot()
@@ -555,7 +555,8 @@ def load_implementation(filename):
     variables = load_concrete_variables(root, symbols)
     initialisation = load_initialisation(root, symbols)
     operations = load_operations(root, symbols)
-    impl = bimp.make_implementation(id, imports, constants, variables,
+    impl = ast.make_implementation(id, imports, constants, variables,
                                     initialisation, operations)
-    display_report(id, filename)
     return impl
+
+

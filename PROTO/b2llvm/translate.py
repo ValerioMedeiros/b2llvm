@@ -8,7 +8,7 @@
 #
 ###
 
-import bimp
+import ast
 
 ### LLVM IDENTIFIER GENERATION ###
 
@@ -180,8 +180,8 @@ def state_position(n):
 # This function is responsible for translation B0 type names to LLVM types
 #
 def translate_type(t):
-    assert(t == bimp.INT or t == bimp.BOOL)
-    if t == bimp.INT:
+    assert(t == ast.INT or t == ast.BOOL)
+    if t == ast.INT:
         return "i32"
     else:
         return "i1"
@@ -905,10 +905,31 @@ def translate_implementation(i, toplevel):
                    + state_t_name(i) + " zeroinitializer" + nl)
     return result
 
-def translate(imp, file, toplevel=True):
-    openfile = open(file, 'w')
-    filecontents = translate_implementation(imp, toplevel)
-    openfile.write(";;; -*- mode: asm -*-"+nl) # emacs syntax highlight on
-    openfile.write(";;; File generated with b2llvm.\n")
-    openfile.write(filecontents)
-    openfile.close()
+# def translate(imp, file, toplevel=True):
+#     openfile = open(file, 'w')
+#     filecontents = translate_implementation(imp, toplevel)
+#     openfile.write(";;; -*- mode: asm -*-"+nl) # emacs syntax highlight on
+#     openfile.write(";;; File generated with b2llvm.\n")
+#     openfile.write(filecontents)
+#     openfile.close()
+
+import loadbxml
+def translate_bxml(inpfile, outfile, toplevel=True):
+    '''
+    Parameters:
+      - inpfile: the name of the input file, must contain BXML format
+      - outfile: the name of the output file, will contain LLVM source code
+      - toplevel: optional argument stating if the component is top-level
+      (default: True)
+    Result:
+      None
+    '''
+    impl = loadbxml.load_implementation(inpfile)
+    filecontents = translate_implementation(impl, toplevel)
+    llvm = open(outfile, 'w')
+    llvm.write(";;; -*- mode: asm -*-"+nl) # emacs syntax highlight on
+    llvm.write(";;; file name: "+outfile+nl)
+    llvm.write(";;; source: "+inpfile+nl)
+    llvm.write(";;; generated with b2llvm."+nl)
+    llvm.write(filecontents)
+    llvm.close()
