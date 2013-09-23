@@ -9,6 +9,8 @@ Grammar/.gitignore
 
 *.out
 
-*.pdf
+translation.pdf
 
 *.toc
+
+*.pyc

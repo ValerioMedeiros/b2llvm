@@ -6,6 +6,7 @@
 \usepackage[fleqn]{amsmath}
 \usepackage[colorlinks=false]{hyperref}
 \usepackage{xspace,framed,here,keystroke}
+\usepackage{graphicx}
 \pagestyle{headings}
 \title{Translation of B Implementations to the LLVM: Control and Modularity}
 \author{David Déharbe \and Valério Medeiros Jr} 
@@ -165,39 +166,32 @@ the B method ensures the absence of overflows and underflows.
         \multicolumn{3}{|c|}{Implementation: \B{Impl}} \\
         \hline
         \B{id} & : & \B{Name} \\
-        \B{see} & : & seq \B{Mach} \\
-        \B{impo} & : & seq \B{Impo} \\
+        \B{impo} & : & seq \B{Module} \\
         \B{const} & : & seq \B{Cons} \\
         \B{var} & : & seq \B{Vari} \\
         \B{init} & : & seq \B{Inst} \\
         \B{op} & : & seq \B{Oper} 
         \\
         \hline
-        \multicolumn{3}{|c|}{Imported machine: \B{Impo}} \\
+        \multicolumn{3}{|c|}{Modules: \B{Module}} \\
         \hline
-        \B{mach} & : & \B{Mach} \\
+        \B{mach} & : & \B{MachRef} \\
         \B{pre} & : & opt \B{Name} 
         \\
         \hline
-        \multicolumn{3}{|c|}{Machine: \B{Mach}} \\
+        \multicolumn{3}{|c|}{Machine: \B{MachRef}} \\
         \hline
-        \multicolumn{3}{c}{\B{LibMach} $\mid$ \B{ForeignMach}} \\
+        \B{spec} & : & \B{MachInterface} \\
+        \B{impl} & : & opt \B{Impl} \\
+        \hline
+        \multicolumn{3}{|c|}{Machine interface: \B{MachInterface}} \\
+        \hline
         \B{id} & : & \B{Name} \\
-        \B{see} & : & seq \B{Mach} \\
         \B{const} & : & seq \B{Cons} \\
         \B{var} & : & seq \B{Vari} \\
         \B{init} & : & seq \B{Inst} \\
         \B{op} & : & seq \B{Oper} 
-        \hline
-        \multicolumn{3}{|c|}{Library machine: \B{LibMach}} \\
-        \hline
-        \B{id} & : & \B{Name} \\
-        \B{impl} & : & \B{Impl} \\
-        \hline
-        \multicolumn{3}{|c|}{Foreign machine: \B{ForeignMach}} \\
-        \hline
-        \B{id} & : & \B{Name} \\
-        \B{impl} & : & \B{Impl} \\
+        \\
         \hline
         \multicolumn{3}{|c|}{Constant: \B{Cons}} \\
         \hline
@@ -443,34 +437,36 @@ information for target code generation: linkage type (the variable is merged
 with other of the same name), the scope (global) and initialization of the
 variable (zeroed is mandatory for common linkage). LLVM defines other attributes
 for these aspects, but they are not needed in this work and their presentation
-is omitted.  Function definitions are composed of the signature and body. The
-signature contains the return type, name, parameters, and attributes for target
-code generation. Attribute \llvm{nounwind} states that the function never
-generate exceptions. The body is a sequence of blocks of instructions in
-single-static assignment (SSA) form, i.e. are such that each variable may be
-assigned exactly once.
+is omitted. For each such definition, a memory block is statically allocated to
+stores the variable value. Function definitions are composed of the signature
+and body. The signature contains the return type, name, parameters, and
+attributes for target code generation. Attribute \llvm{nounwind} states that the
+function never generate exceptions. The body is a sequence of blocks of
+instructions in single-static assignment (SSA) form, i.e. are such that each
+variable may be assigned exactly once.
 
-The grammar rule \nt{inst} describes the different kind of
-instructions. Instruction \llvm{alloca} allocates a memory block the size of the
-given type from the stack segment. This and the following classes of
-instructions assign the resulting value to a fresh variable. Arithmetic
-operations are binary, and include signed quotient and reminder. Arithmetic
-comparisons compare two values according to the first operand and return a 1-bit
-integer value.  Instruction \llvm{call} invokes the given function with the
-given arguments and assigns the result to a fresh variable, which is of the
-given type.  In general, \llvm{getelementptr} gets the address of an element in
-an aggregate object through indexing. In the target LLVM subset, aggregate
-objects are structures, the first index has type \llvm{i32} and value \llvm{0}
-to select the first structure at the given location \nt{exp}, and the second
-index selects a field in that structure.  Instruction \llvm{load} assigns to a
-fresh variable \nt{name} the contents of a memory address of type \nt{type}
-specified by \nt{exp} (e.g. in fig.~\ref{fig:ex-llvm}).  Instruction
-\llvm{store} writes a value to memory address (again, see
-fig.~\ref{fig:ex-llvm}).  Instruction \llvm{br} has two forms.  In the first
-form, it directs conditionally the control flow to one of two blocks.  If the
-given expression evaluates to \llvm{1}, control goes to the first block,
-otherwise to the second. In the second form, the control jumps unconditionally
-to the given block.
+The grammar rule \nt{inst} describes the different kind of instructions. All
+instructions producing a value assign it to a fresh variable.  Instruction
+\llvm{alloca} allocates a memory block the size of the given type on the stack
+segment. This memory is automatically freed when the current frame is popped
+from the stack. The LLVM does not include instructions for allocating from the
+heap. Arithmetic operations are binary, and include signed quotient and
+reminder. Arithmetic comparisons compare two values according to the first
+operand and return a 1-bit integer value.  Instruction \llvm{call} invokes the
+given function with the given arguments and assigns the result to a fresh
+variable, which is of the given type.  In general, \llvm{getelementptr} gets the
+address of an element in an aggregate object through indexing. In the target
+LLVM subset, aggregate objects are structures, the first index has type
+\llvm{i32} and value \llvm{0} to select the first structure at the given
+location \nt{exp}, and the second index selects a field in that structure.
+Instruction \llvm{load} assigns to a fresh variable \nt{name} the contents of a
+memory address of type \nt{type} specified by \nt{exp} (e.g. in
+fig.~\ref{fig:ex-llvm}).  Instruction \llvm{store} writes a value to memory
+address (again, see fig.~\ref{fig:ex-llvm}).  Instruction \llvm{br} has two
+forms.  In the first form, it directs conditionally the control flow to one of
+two blocks.  If the given expression evaluates to \llvm{1}, control goes to the
+first block, otherwise to the second. In the second form, the control jumps
+unconditionally to the given block.
 % Instruction \llvm{switch} directs the
 % control flow to one of several blocks. The given expression is evaluated and
 % control goes to the first branch with the matching value, or to the default
@@ -486,85 +482,166 @@ resources managed by the operating system, such as dynamic memory allocation. In
 the absence of such resource, all data must be allocated either statically, or
 on the current stack frame, by using the \llvm{alloca} instruction.
 
-\section{Translation: a Bird's-Eye View}
+\section{Translation: a global picture}
 \label{sec:overview}
 
-The translation unit is the B implementation, say \B{M}, and is mapped to a LLVM
-module, say \llvm{M}. A B implementation \B{M} has several sections, each
-translated as follows:
+In addition to producing LLVM code that is faithful to the design developed in
+B, our code generator is designed to satisfy the following two requirements:
 \begin{enumerate}
-\item Visibility clauses provide access to definitions found in external
-  B components and are translated to external declarations in LLVM.
-\item Constants and value definitions are translated to their value in the
-  LLVM platform.
-\item To encode the implementation state, the translation produces a structure
-  type, named \llvm{\%M\$state\$}, and an instance of that type, named
-  \llvm{@M\$self\$}. All the variables and instances of imported machines are
-  encoded as elements of that structure. These elements are referenced by their
-  position in the structure within the LLVM code. Also, for each operation of
-  each imported machine, an external function declaration is produced.
-\item Each operation \B{op} of the implementation is translated into the
-  definition of a function named \llvm{@M\$op}; also the translation produces a
-  special function \llvm{@M\$init\$} responsible for the initialization.
-
-  The parameter list of the functions thus produced contains one item for each
-  input and output of the corresponding operation, and one item of type
-  \llvm{\%M\$state\$*}, to pass the address of the structure encoding the
-  state of the implementation and its modification by the callee. The return
-  type is always \llvm{void}.
+\item Memory is allocated statically, save for the function call frame stack: no
+  dynamic memory allocation library is required. Many safety critical systems
+  preclude use of this programming facility.
+\item The code generator features separate compilation: an internal change in a
+  component should only require generating new LLVM code for that component, and
+  not for the other components that depend on it. This condition is important
+  for large, distributed projects.
 \end{enumerate}
-The translation is designed to support modular B development. In a B
-implementation, one may reuse existing components, by instantiating (the B term
-is \emph{importing} so-called library machines. Such library machines have their
-own development and implementation. Borrowing terminology from the
-object-oriented world, one may view library machines as classes, and the B
-implementation as an object that contains instances of those classes. In
-practice, different from most OO languages, such instances are not references,
-but the actual objects. We consider this necessary as dynamic memory allocation
-is precluded.
 
-To translate the instantiations of library machines in an implementation, the
-translator needs to have access to the following information on those machines
-and their respective implementation:
-\begin{itemize}
-\item for each library machine \B{M}, the corresponding implementation, denoted
-  \B{M.impl}.
-\item for such implementation, the type of the state and the signature of the
-  operations.
-\end{itemize}
-Note that, when translating the implementation of a library machine, no instance
-shall be generated. It is in the implementation of the main design, that we call
-the \emph{top-level} component, that such instances are created.
-
-Figure~\ref{fig:skel} summarizes the translation principles by providing the
-structure of the LLVM implementation thus produced.
+In Atelier-B, software development is organized in libraries of modules. A
+module has a specification, called a machine. A machine may be:
+\begin{description}
+\item[basic] In that case its implementation is carried out outside the realm of
+  the B method. A possible application is a set of related I/O routines. Even
+  though no LLVM code needs to be generated to implement the basic machines, the
+  code generator needs still to produce LLVM declarations of the entities
+  (e.g., constants and operations) that are supplied by those machines.
+\item[developed] In that case, this module also contains a series of
+  refinements, eventually reaching an implementable version, from which LLVM
+  code may be generated.
+\end{description}
+Amongst the several constructs of the B notation supporting modular design, the
+\emph{import} relation is related to separate compilation. At the implementation
+level, one module may import several instances of a machine to construct its
+internal data structures. Such imported machines may be either basic, or
+developed. In the latter case, the implementation of the imported machines may
+in turn import other machine instances and there is no pre-established limit to
+such chain of imports. Hence, the import relation between module instances forms
+a tree, where the root is an implementation and the descendants of a node are
+the instances imported from the module in that node. 
 
 \begin{figure}
-  \begin{center}
-    \begin{tabbing}
-      foo \= foo \= \kill
-      \textit{for each imported component} \B{Q} \textit{generate} \\
-      \> \llvm{\%Q\$state\$ = type \{ \ListOf{\nt{type}} \}} \\
-      \> \llvm{declare void @Q\$init\$(\%Q\$state\$*)} \\
-      \> \textit{for each operation} \B{op} \textit{generate} \\
-      \> \> \llvm{declare void @Q\$op(\%Q\$state\$*, \ListOf{\nt{type}})} \\
-      \llvm{\%M\$state\$ = type \{ \ListOf{\nt{type}} \}} \\
-      \llvm{define void @M\$init\$(\%M\$state\$* \%self\$) \{} \\
-      \> \llvm{\ListOf{\nt{block}}} \\
-      \> \llvm{exit: ret void} \\
-      \llvm{\}} \\
-      \textit{for each operation} \B{op} \textit{generate} \\
-      \> \llvm{define void @M\$op(\%M\$state\$* \%self\$, \ListOf{\nt{param}}) \{} \\
-      \> \> \llvm{\ListOf{\nt{block}}} \\
-      \> \> \llvm{exit: ret void} \\
-      \> \llvm{\}} \\
-      \textit{if this is the top-level component, generate} \\
-      \> \llvm{@M\$self\$ = common global \%M\$state\$ zeroinitializer}
-    \end{tabbing}
-  \end{center}
-  \caption{Structure of the LLVM module produced from a B implementation \B{M}.}
-  \label{fig:skel}
+\begin{center}
+\includegraphics[width=.8\textwidth]{b-project.pdf}
+\caption{Structure of the imports relation in a B project}
+\label{fig:structure}
+\end{center}
 \end{figure}
+Figure~\ref{fig:structure}
+illustrates this with the structure of a B project where an implementation
+\B{I0} of a specification \B{M0} imports one unnamed instance of a basic machine
+\B{M2} and two instances named \B{A} and \B{B} of a developed machine \B{M1}. In
+turn its implementation \B{I1} itself imports two instances \B{C} and \B{D} of a
+developed machine \B{M3}, implemented as \B{I3} (which has no imports itself).
+The generation of LLVM code for the project shall allocate memory for one
+instance of \B{I0}, two instances of \B{I2} and four instances of \B{I3}.
+
+At that point, let us remark that, when generating code for a given module, we
+need to consider the following two cases:
+\begin{enumerate}
+\item The code generation aims at producing a component, that will further be
+  instantiated by importations. We call this the \emph{COMP} mode for code
+  generation. This case is further split into two sub-cases:
+  \begin{enumerate}
+  \item The module is basic, and only declarations need to be emitted.
+  \item The module is developed, and declarations and definitions are produced.
+  \end{enumerate}
+\item The generated code corresponds to a full project. Given the root module,
+  the code generator must identify all the transitively imported module instances. We call this the \emph{PROJ} mode for code generation.
+\end{enumerate}
+One key issue in the code generation is how memory shall be allocated to store
+the state of the modules. To satisfy our first initial requirement (no dynamic
+memory allocation), this allocation shall be static, that is to say the
+generator must include the code that creates the module instances when the
+project starts execution. Note that this cannot be done in \emph{COMP} mode as,
+at that point, we cannot assume any knowledge on the number of instances the
+module being compiled we there be at run time. Consequently, the responsibility
+for the static allocation of instances is assigned to the \emph{PROJ} mode,
+which shall also perform the proper bindings between the actual and formal
+instances in the generated code.
+
+To encode the data space of a module, the translation produces a structure type,
+named \llvm{\%M\$state\$}, such that the elements of the structure represent the
+variables and the instances of imported modules. To satisfy our second initial
+requirement (separate compilation), the instances cannot be part of the
+structure itself, instead references to those instances (encoded as pointers)
+are used. Let \llvm{\%M\$ref\$} denote the type pointer to \llvm{\%M\$state\$}.
+To encode behavior of a module, each operation \B{op} is translated into the
+definition of a function named \llvm{@M\$op}The parameter list of the functions
+thus produced contains one item for each input and output of the corresponding
+operation. There is also one parameter of type \llvm{\%M\$ref\$}, to pass the
+address of the structure encoding instance associated with that operation. Also
+the translation produces a special function \llvm{@M\$init\$} responsible for
+the initialization. The parameters of this function are the addresses of the
+instances found in the import tree of the module (including the module itself).
+
+Our approach consists in dividing the translation into three sections, and to
+combine these sections differently in \emph{PROJ\/} and \emph{COMP\/} mode. For
+a given module \B{M}, the sections are the following:
+\begin{description}
+\item[typedef:] Defines an LLVM data type \llvm{\%M\$state\$} corresponding to
+  the data space of the module. In case the data space of a module is empty,
+  this section is empty and the type is not defined:
+  \begin{tabbing}
+    \llvm{\%M\$state\$ = type \{ \ListOf{\nt{type}} \}}
+  \end{tabbing}
+\item[interface:] Defines an LLVM type \B{M\_ref}, pointer to \B{M\_data}, if
+  this has been defined. 
+  \begin{tabbing}
+    \llvm{\%M\$ref\$ = type \%M\$state\$*}
+  \end{tabbing}
+  The interface also contains declarations of LLVM
+  functions: one implementing the initialisation of the module, and one for each
+  operation of the module. If the data space of the module is empty, no function
+  definition corresponding to the initialisation is emitted
+  \begin{tabbing}
+    foo \= \kill
+    \llvm{declare void @M\$op(\%M\$ref\$, \ListOf{\nt{type}})} \\
+    \llvm{declare void @M\$init\$(\%M\$ref\$, \ListOf{\nt{type}})}
+  \end{tabbing}
+\item[implementation:] Defines the functions declared in the interface. This
+  section is produced only for the developed modules.
+  \begin{tabbing}
+    foo \= \kill
+    \llvm{define void @M\$op(\%M\$state\$* \%self\$, \ListOf{\nt{param}}) \{} \\
+    \> \llvm{\ListOf{\nt{block}}} \\
+    \> \llvm{exit: ret void} \\
+    \llvm{\}}
+  \end{tabbing}
+\end{description}
+Assuming these three sections are available, the \emph{COMP\/} translation
+assembles them as follows:
+\begin{center}
+  \begin{tabbing}
+    foo \= foo \= \kill
+    \textit{for each imported module} \B{Q} \textit{generate} \\
+    \> \textit{generate a type declaration for the state space of} \B{Q} \\
+    \> \llvm{\%Q\$state\$ = type opaque} \\
+    \> \textit{include the interface section of }\B{Q} \\
+    \textit{include the typedef section of} \B{M} \\
+    \textit{include the implementation section of} \B{M}
+  \end{tabbing}
+\end{center}
+For a module \B{M}, the \emph{PROJ\/} translation is organized as follows:
+\begin{center}
+  \begin{tabbing}
+    foo \= foo \= \kill
+    \textit{for each transitively imported component} \B{Q} \\
+    \> \textit{include the typedef section of \B{Q}} \\
+    \textit{for each instance} \B{Q} \textit{imported transitively through} \B{path} \\
+    \> \textit{declare a variable of type} \llvm{\%Q\$state\$}: \\
+    \> \llvm{@Q$\lbrack$path$\rbrack$ = common global \%M\$state\$ zeroinitializer} \\
+
+    \textit{for each imported component} \B{Q} \\
+    \> \textit{include the interface section of} \B{Q} \\
+    \textit{define a function} \llvm{\%\$init\$} \textit{with a call to the } \\
+    \> \textit{initialization function of} \B{M} \textit{with the proper bindings} \\
+    \> \llvm{define void @\$init\$(void) \{} \\
+    \> \> \llvm{call void @M\$init\$(@M, \{ \ListOf{instances} \}) \{} \\
+    \> \> \llvm{exit: ret void} \\
+    \> \llvm{\}} \\
+    \> 
+  \end{tabbing}
+\end{center}
 
 The detailed presentation of the translation of the different elements of a B
 implementation is divided into:
@@ -623,6 +700,8 @@ sequence $s$ and $\conc$ is the concatenation operator for sequences.
 
 \section{Translation: Modularity Aspects}
 \label{sec:module}
+
+[[[ THIS SECTION IS DEPRECATED ]]]
 
 The translation of a B implementation to LLVM, following the template sketched
 in Figure~\ref{fig:skel}, is specified by the following rule, where \B{n} is the
@@ -1147,6 +1226,8 @@ body:
 
 \subsection{Initialization}
 \label{sec:trad-init}
+
+[[[ DEPRECATED ]]]
 
 Initialization is done is two steps: first all imported modules are
 initialized,  second the initialization clause is executed.
