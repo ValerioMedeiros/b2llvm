@@ -1,43 +1,18 @@
-translate.py: a prototype implementation of the translation in Python, where
-	B0 input shall be defined as Python data structures (sets of
-	key-value pairs).
+b2llvm.py: main source file for a prototype of the translation in Python
 
-bimp.py: a Python module providing constructors for the Python data structures
-	employed in translate.py
+b2llvm: directory with custom modules for b2llvm.py
+b2llvm/ast.py: Python encoding for B ASTs [todo: s/pict/classes/g]
+b2llvm/bproject.py: Python class representing some settings of B projects
+b2llvm/loadbxml.py: To load a BXML file into ASTs encodings.
+b2llvm/names.py: To create LLVM identifiers.
+b2llvm/printer.py: To generate human-readable texts corresponding to AST encodings.
+b2llvm/strutils.py: Custom string functionality.
+b2llvm/translate.py: Generation of LLVM programs from B AST encodings.
 
-example-01.bimp, example-02.bimp, example-03.bimp, example-04.bimp,
-example-05.bimp:
-	several B implementations used to validate the b2llvm translation.
+bxml: directory with sample BXML files
 
-example_01.py, example_02.py, example_03.py, example_04.py, example_05.py:
-	rudimentary Python representations of the B implementations.
-
-scaffold-01.llvm: LLVM-IR scaffolding for animating example-01 and
-	example-02
-scaffold-03.llvm: LLVM-IR scaffolding for animating example-03
-scaffold-04.llvm: LLVM-IR scaffolding for animating example-04
-scaffold-05.llvm: LLVM-IR scaffolding for animating example-05
-
-The process to generate the LLVM code corresponding to a B implementation is
-the following:
-1. build a Python data structure representing the abstract syntax tree of
-the B implementation (bimp.py provides facilities for this).
-e.g. example_04.py
-2. write some LLVM scaffolding that exercites the B implementation operations
-e.g. scaffolding-03.llvm
-2. load the Python data structure in the Python interpreter
-import example_04
-3. load the translator in the Python interpreter
-import translate
-4. call the translator, passing as argument the root of the Python data
-structure and the name of the file where the generated code will be stored:
-translate.translate(example_04.root, "output-04.llvm")
-5. merge the generated and scaffolding files and compile the result to a
-LLVM bitcode file:
-cat output-04.llvm scaffolding-03.llvm > tmp.llvm && llvm-as-mp-3.1 tmp.llvm -o output-04.bc
-6. Animate the B implementation by running the LLVM interpreter on the 
-generated LLVM bitcode file:
-lli-mp-3.1 output-04.bc
+bxml2text.py: Python script that reads a BXML file and prints the corresponding
+    source code (uses b2llvm/ast.py, b2llvm/loadbxml.py, b2llvm/printer.py)
 
 --
-David Deharbe, August 2013.
+David Deharbe, October 2013.

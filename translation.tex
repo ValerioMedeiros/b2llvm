@@ -575,7 +575,7 @@ To encode behavior of a module, each operation \B{op} is translated into the
 definition of a function named \llvm{@M\$op}. The parameter list of the
 functions thus produced contains one item for each input and output of the
 corresponding operation. There is also one parameter of type \llvm{\%M\$ref\$},
-to pass the address of the structure encoding instance associated with that
+to pass the address of the instance encoding structure associated with that
 operation. Also the translation produces a special function \llvm{@M\$init\$}
 responsible for executing the initialization of \B{M}. The parameters of this
 function are the addresses of the instances found in the import tree of the
@@ -584,29 +584,30 @@ module (including the module itself).
 Our approach consists in dividing the translation into three sections, and to
 combine these sections differently in \emph{PROJ\/} and \emph{COMP\/} mode. For
 a given module \B{M}, the sections are the following:
-\begin{description}
-\item[typedef:] Defines an LLVM data type \llvm{\%M\$state\$} corresponding to
+\begin{enumerate}
+\item typedef: Defines an LLVM data type \llvm{\%M\$state\$} corresponding to
   the data space of the module:
   \begin{tabbing}
     \llvm{\%M\$state\$ = type \{ \ListOf{\nt{type}} \}}
   \end{tabbing}
   In case the data space of a module is empty, this section is empty and the
   type is not defined.
-\item[interface:] Defines an LLVM type \B{M\_ref}, pointer to \B{M\_data} (if
+\item interface: Defines an LLVM type \B{M\_ref}, pointer to \B{M\_data} (if
   defined):
   \begin{tabbing}
     \llvm{\%M\$ref\$ = type \%M\$state\$*}
   \end{tabbing}
-  The interface also contains declarations of LLVM
-  functions: one implementing the initialisation of the module, and one for each
-  operation of the module. If the data space of the module is empty, no function
-  definition corresponding to the initialisation is emitted:
+  The interface also contains declarations of one LLVM functions for each
+  operation of the module. 
   \begin{tabbing}
-    foo \= \kill
-    \llvm{declare void @M\$op(\%M\$ref\$, \ListOf{\nt{type}})} \\
+    \llvm{declare void @M\$op(\%M\$ref\$, \ListOf{\nt{type}})}
+  \end{tabbing}
+  If the data space of the module is not empty, a function definition
+  corresponding to the initialisation is also emitted:
+  \begin{tabbing}
     \llvm{declare void @M\$init\$(\%M\$ref\$, \ListOf{\nt{type}})}
   \end{tabbing}
-\item[implementation:] Defines the functions declared in the interface:
+\item implementation: Defines the functions declared in the interface:
   \begin{tabbing}
     foo \= \kill
     \llvm{define void @M\$op(\%M\$state\$* \%self\$, \ListOf{\nt{param}}) \{} \\

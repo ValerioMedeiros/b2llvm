@@ -1,0 +1,13 @@
+<project>
+  <developed>
+    <machine>counter</machine>
+    <implementation>counter_i</implementation>
+  </developed>
+  <developed>
+    <machine>swap</machine>
+    <implementation>swap_i</implementation>
+  </developed>
+  <base>
+    <machine>ioint</machine>
+  </base>
+</project>

@@ -159,13 +159,13 @@ def make_oper(id, inp, out, body):
 def make_import(mach, prefix = None):
     '''
     - Input: 
-    mach: a machine
+    mach: a machine or a library machine
     prefix: a string prefix (optional).
     - Output:
-    Creates an element of an import clause.
+    Creates an element of an import clause, i.e., a module.
     '''
-    assert(mach["kind"] in { "Mach" })
-    return { "kind": "Impo", "mach": mach, "pre": prefix }
+    assert(mach["kind"] in { "Machine" })
+    return { "kind": "Module", "mach": mach, "pre": prefix }
 
 def make_implementation(id, imports, consts, vars, init, ops):
     assert type(imports) is list
@@ -173,16 +173,48 @@ def make_implementation(id, imports, consts, vars, init, ops):
     assert type(vars) is list
     assert type(init) is list
     assert type(ops) is list
-    root = { "kind": "Impl", "id": id,
+    root = { "kind": "Impl", 
+             "id": id,
+             "machine": None,
              "imports": imports,
              "concrete_constants": consts,
-             "concrete_variables": vars, 
-             "initialisation": init, "operations": ops }
+             "variables": vars, 
+             "initialisation": init, "operations": ops,
+             "stateful": None}
     for node in imports + vars + ops:
         node["root"] = root
     return root
 
-def make_machine(id, impl):
-    root = { "kind": "Mach", "id": id, "impl": impl }
-    return root
+def make_base_machine(id, consts, vars, ops):
+    '''
+    Constructor for node that represent a machine interface, namely
+    the elements of a machine that may be accessed by a module depending
+    on that machine.
+    '''
+    assert type(consts) is list
+    assert type(vars) is list
+    assert type(ops) is list
+    return { "kind": "Machine", 
+             "concrete_constants": consts,
+             "variables": vars,
+             "operations": ops,
+             "implementation": None,
+             "stateful": None,
+             "comp_direct": None,
+             "comp_indirect": None}
+
+def make_developed_machine(id, impl):
+    '''
+    Constructor for node that represents a developed machine.
+
+    For now we are just interested in the implementation of that machine.
+    '''
+    return { "kind": "Machine", 
+             "id": id,
+             "variables": [],
+             "implementation": impl,
+             "stateful": None,
+             "comp_direct": None,
+             "comp_indirect": None
+             }
 

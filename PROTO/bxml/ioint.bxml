@@ -1,0 +1,51 @@
+<Machine name='ioint' type='abstraction'>
+  <Operations>
+    <Operation name='write'>
+      <Input_Parameters>
+	<Identifier value='val'>
+	  <Attributes>
+	    <TypeInfo>
+	      <Identifier value='INTEGER' />
+	    </TypeInfo>
+	  </Attributes>
+	</Identifier>
+      </Input_Parameters>
+      <Body>
+	<Skip_Substitution>
+      </Body>
+    </Operation>
+    <Operation name='get'>
+      <Output_Parameters>
+	<Identifier value='res'>
+	  <Attributes>
+	    <TypeInfo>
+	      <Identifier value='INTEGER' />
+	    </TypeInfo>
+	  </Attributes>
+	</Identifier>
+      </Output_Parameters>
+      <Body>
+	<Affectation_Substitution>
+	  <Variables>
+	    <Identifier value='res'>
+	      <Attributes>
+		<TypeInfo>
+		  <Identifier value='INTEGER' />
+		</TypeInfo>
+	      </Attributes>
+	    </Identifier>
+	  </Variables>
+	  <Values>
+	    <Identifier value='value'>
+	      <Attributes>
+		<TypeInfo>
+		  <Identifier value='INTEGER' />
+		</TypeInfo>
+	      </Attributes>
+	    </Identifier>
+	  </Values>
+	</Affectation_Substitution>
+      </Body>
+    </Operation>
+  </Operations>
+</Machine>

@@ -12,9 +12,7 @@
 # - Some elements of the B representation are not present in the Python representation and
 # are therefore not output.
 #
-sp = " "
-tb = "  "
-nl = "\n"
+from b2llvm.strutils import commas, sp, tb, nl
 
 def term(n):
     '''
@@ -248,20 +246,19 @@ def oper(n):
 
 def implementation(n):
     global sp, tb, nl
-    imp, consts = n["imports"], n["concrete_constants"]
-    vars = n["concrete_variables"]
+    imp, consts, vars = n["imports"], n["concrete_constants"], n["variables"]
     init, ops = n["initialisation"], n["operations"]
     result = ""
     result += "IMPLEMENTATION" + sp + n["id"] + nl
     if imp != []:
         result += "IMPORTS" + nl
-        result += tb + ",".join([imports(e) for e in imp]) + nl
+        result += tb + commas([imports(e) for e in imp]) + nl
     if consts != []:
         result += "VALUES" + nl
-        result += tb + ",".join([value(e) for e in consts]) + nl
+        result += tb + commas([value(e) for e in consts]) + nl
     if vars != []:
         result += "VARIABLES" + nl
-        result += tb + (","+sp).join([e["id"] for e in vars]) + nl
+        result += tb + commas([e["id"] for e in vars]) + nl
         result += "INVARIANT" + nl
         result += tb + (sp+"&"+nl+tb).join([invar(e) for e in vars]) + nl
     if init != []:
