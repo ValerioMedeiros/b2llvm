@@ -100,8 +100,8 @@ def load_base_machine(dir, project, c, id):
     Loads B base machine from file to Python AST.
 
     Parameters:
-      - id: the name of a B machine.
       - c: cache from identifiers to root AST machine.
+      - id: the name of a B machine.
     Result:
     A Python representation of the B machine.
     Output:
@@ -380,9 +380,11 @@ def load_sub(n, symbols):
         return load_operation_call(n, symbols)
     elif n.tag == "While":
         return load_while(n, symbols)
+    elif n.tag == "Becomes_In":
+        return load_becomes_in(n, symbols)
     elif n.tag in {"Choice_Substitution", "Becomes_Such_That",
                    "Select_Substitution", "ANY_Substitution",
-                   "LET_Substitution", "Becomes_In"}:
+                   "LET_Substitution"}:
         error("unexpected substitution: " + n.tag)
     else:
         error("unrecognized substitution: " + n.tag)
@@ -432,6 +434,12 @@ def load_becomes_eq(n, symbols):
     dst = load_exp(lhs[0], symbols)
     src = load_exp(rhs[0], symbols)
     return ast.make_beq(dst, src)
+
+def load_becomes_in(n, symbols):
+    assert n.tag == "Becomes_In"
+    lhs = n.findall("./Variables/*")
+    dst = [ load_exp(x, symbols) for x in lhs ]
+    return ast.make_bin(dst)
 
 def load_case_substitution(n, symbols):
     assert n.tag == "Case_Substitution"

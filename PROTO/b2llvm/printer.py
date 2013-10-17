@@ -94,6 +94,15 @@ def beq(indent, n):
     global tb
     return (indent*tb) + term(n["lhs"]) + " := " + term(n["rhs"])
 
+def bin(indent, n):
+    '''
+    Becomes equal
+    '''
+    global tb
+    return ((indent*tb) +
+            commas([ term(x) for x in n["lhs"]]) + " :: " +
+            commas([ type(x["type"]) for x in n["lhs"]]))
+
 def blk(indent, n):
     '''
     Block

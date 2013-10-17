@@ -126,11 +126,12 @@ def section_interface(m):
     Output:
     Text of LLVM declarations (see section interface in translation definition).
     '''
-    check_kind(n, {"Machine"})
+    check_kind(m, {"Machine"})
     res = str()
-    res += state_ref_typedef(m)
+    if is_stateful(m):
+        res += state_ref_typedef(m)
     res += section_interface_init(m)
-    res += nconc([section_interface_op(m, op) for op in n["operations"]])
+    res += nconc([section_interface_op(m, op) for op in m["operations"]])
     return res
 
 def section_interface_init(m):
@@ -168,8 +169,8 @@ def section_interface_op(m, op):
     tl = list()
     if is_stateful(m):
         tl.append(state_r_name(m))
-    tl.extend([ x_type(i) for i in op["inp"] ])
-    tl.extend([ x_type(o)+"*" for o in op["out"] ])
+    tl.extend([ x_type(i["type"]) for i in op["inp"] ])
+    tl.extend([ x_type(o["type"])+"*" for o in op["out"] ])
     return "declare void"+sp+global_name(op)+"("+commas(tl)+")"+nl
 
 def section_typedef(m):
@@ -177,12 +178,13 @@ def section_typedef(m):
     Generates the definition of the state type and reference type of machine n.
 
     Inputs:
-      - c: cache
       - m: AST root node of a machine
     Output:
-      Text of LLVM definitions for two types: one is the type encoding the
-      state of n (or its implementation if it is a developed machine), and
-      one reference type, pointer to the previous type.
+      Text of LLVM definitions for the types associated with the state of
+      machine m. If the machine is stateful, two types are created: an
+      aggregate type encoding the state of n (or its implementation if it is a 
+      developed machine), and one reference type, pointer to the previous type.
+      Otherwise, nothing is generated.
     '''
     global nl
     check_kind(m, {"Machine"})
@@ -253,8 +255,8 @@ def section_implementation(m):
 # This function is responsible for translation B0 type names to LLVM types
 #
 def x_type(t):
-    assert(t == ast.INT or t == ast.BOOL)
-    return "i32" if t == ast.INT else "i1"
+    assert(t == ast.INTEGER or t == ast.BOOL)
+    return "i32" if t == ast.INTEGER else "i1"
 
 ### TRANSLATION FOR INITIALISATION
 
@@ -582,7 +584,8 @@ def x_lvalue(n):
     t = x_type(n["type"]) + "*"
     if n["scope"] == "Impl":
         v = names.new_local()
-        return (tb + v + " = getelementptr " + state_r_name(n["root"])+ "%self$, i32 0, i32 " + str(variable_position(n)) + nl, v, t)
+        return (tb + v + " = getelementptr " + state_r_name(n["root"])+ 
+                " %self$, i32 0, i32 " + str(variable_position(n)) + nl, v, t)
     elif n["scope"] in {"Oper", "Local"}:
         return ("", "%"+n["id"],t)
     else:
@@ -874,7 +877,8 @@ def translate_name(n):
         p = names.new_local()
         v = names.new_local()
         text = ""
-        text += tb + p + " = getelementptr " + state_t_name(n["root"]) + "*" + sp + "%self$, i32 0, i32 " + str(variable_position(n)) + nl
+        text += (tb + p + " = getelementptr " + state_t_name(n["root"]) + 
+                 sp + "%self$, i32 0, i32 " + str(variable_position(n)) + nl)
         text += tb + v + " = load " + t + "* " + p + nl
         return (text, v, t)
     else:
@@ -1016,7 +1020,7 @@ def translate_skip(n):
 def translate_constant(n):
     global tb, sp, nl
     check_kind(n, {"Cons"})
-    if n["type"] not in {"INT", "BOOL"}:
+    if n["type"] not in {"INTEGER", "BOOL"}:
         print("error: constant " + n["id"] + " cannot be translated")
     return ""
 
@@ -1275,7 +1279,7 @@ def is_stateful(n):
     if n["stateful"] == None:
         if n["kind"] == "Machine":
             if is_base(n):
-                n["stateful"] = True
+                n["stateful"] = n["variables"] != []
             else:
                 n["stateful"] = is_stateful(n["implementation"])
         else:

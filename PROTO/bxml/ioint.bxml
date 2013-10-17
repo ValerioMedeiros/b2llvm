@@ -11,7 +11,8 @@
 	</Identifier>
       </Input_Parameters>
       <Body>
-	<Skip_Substitution>
+	<Skip>
+	</Skip>
       </Body>
     </Operation>
     <Operation name='get'>
@@ -25,26 +26,28 @@
 	</Identifier>
       </Output_Parameters>
       <Body>
-	<Affectation_Substitution>
-	  <Variables>
-	    <Identifier value='res'>
-	      <Attributes>
-		<TypeInfo>
-		  <Identifier value='INTEGER' />
-		</TypeInfo>
-	      </Attributes>
-	    </Identifier>
-	  </Variables>
-	  <Values>
-	    <Identifier value='value'>
-	      <Attributes>
-		<TypeInfo>
-		  <Identifier value='INTEGER' />
-		</TypeInfo>
-	      </Attributes>
-	    </Identifier>
-	  </Values>
-	</Affectation_Substitution>
+	<Bloc_Substitution>
+	  <Becomes_In>
+	    <Variables>
+	      <Identifier value='res'>
+		<Attributes>
+		  <TypeInfo>
+		    <Identifier value='INTEGER' />
+		  </TypeInfo>
+		</Attributes>
+	      </Identifier>
+	    </Variables>
+	    <Values>
+	      <Identifier value='INTEGER'>
+		<Attributes>
+		  <TypeInfo>
+		    <Identifier value='INTEGER' />
+		  </TypeInfo>
+		</Attributes>
+	      </Identifier>
+	    </Values>
+	  </Becomes_In>
+	</Bloc_Substitution>
       </Body>
     </Operation>
   </Operations>

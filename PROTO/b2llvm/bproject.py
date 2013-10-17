@@ -1,4 +1,4 @@
-from b2llvm.strutils import list_of
+from b2llvm.strutils import commas
 import xml.etree.ElementTree as ET
 
 class BProject:
@@ -53,6 +53,6 @@ class BProject:
         return self.implement[m]
 
     def __str__(self):
-        return ("developed = {" + list_of(self.developed) + "}\n" + 
-                "implement = {" + list_of([ m + ":" + i for m,i in self.implement.items()]) + "}\n" +
-                "base = {" + list_of(self.base) + "}\n")
+        return ("developed = {" + commas(self.developed) + "}\n" + 
+                "implement = {" + commas([ m + ":" + i for m,i in self.implement.items()]) + "}\n" +
+                "base = {" + commas(self.base) + "}\n")

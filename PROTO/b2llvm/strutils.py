@@ -17,7 +17,7 @@ def nconc(li):
     '''
     Returns a comma-separated string of the given strings.
     '''
-    return ", ".join(li)
+    return "".join(li)
 
 nl = "\n"
 sp = " "

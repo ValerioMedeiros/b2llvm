@@ -1,6 +1,23 @@
+#
+# This file provides an Python representation for AST of B machines and
+# implementations.
+#
+# 1. Design
+#
+# - AST nodes are coded as dict() objects. It would be nicer to have proper
+# classes, I suppose.
+#
+# 2. Shortcomings
+#
+# - The full B language is not yet represented. You need to read the code 
+# to know what is supported.
+# - The AST nodes are somehow incomplete in some cases. Their design is
+# oriented towards the implementation of the translation to LLVM.
+#
+
 ### TYPES ###
 
-INT = "INTEGER"
+INTEGER = "INTEGER"
 BOOL = "BOOL"
 
 ### TERMINALS ###
@@ -104,6 +121,12 @@ def make_skip():
 
 def make_beq(lhs, rhs):
     return { "kind": "Beq", "lhs": lhs, "rhs": rhs}
+
+def make_bin(lhs):
+    '''
+    Represents a becomes in susbtitution (but only the left hand side).
+    '''
+    return { "kind": "Bin", "lhs": lhs}
 
 def make_blk(body):
     assert type(body) is list
