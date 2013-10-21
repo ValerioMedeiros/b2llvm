@@ -7,7 +7,15 @@
     <machine>swap</machine>
     <implementation>swap_i</implementation>
   </developed>
+  <developed>
+    <machine>timer</machine>
+    <implementation>timer_i</implementation>
+  </developed>
+  <developed>
+    <machine>wd</machine>
+    <implementation>wd_i</implementation>
+  </developed>
   <base>
-    <machine>ioint</machine>
+  <machine>ioint</machine>
   </base>
 </project>

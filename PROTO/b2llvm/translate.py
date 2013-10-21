@@ -64,6 +64,7 @@ def translate_mode_comp(m):
       of a full project.
     '''
     check_kind(m, {"Machine"})
+    print("translating machine "+m["id"])
     if is_base(m):
         return section_typedef(m)
     else:
@@ -127,12 +128,27 @@ def section_interface(m):
     Text of LLVM declarations (see section interface in translation definition).
     '''
     check_kind(m, {"Machine"})
+    print("building section interface of "+m["id"])
     res = str()
     if is_stateful(m):
         res += state_ref_typedef(m)
     res += section_interface_init(m)
-    res += nconc([section_interface_op(m, op) for op in m["operations"]])
+    res += nconc([ section_interface_op(m, op) for op in operations(m) ])
     return res
+
+def operations(m):
+    '''
+    Gets list of operations of machine m.
+
+    TODO: currently, the AST of developed machines does not have operations
+    and this query is forwarded to the corresponding implementation. I would
+    prefer to load properly the full AST of such machines.
+    '''
+    check_kind(m, {"Machine"})
+    if is_developed(m):
+        return implementation(m)["operations"]
+    else:
+        return m["operations"]
 
 def section_interface_init(m):
     '''
@@ -188,6 +204,7 @@ def section_typedef(m):
     '''
     global nl
     check_kind(m, {"Machine"})
+    print("building section typede of "+m["id"])
     if is_developed(m):
         return section_typedef_impl(implementation(m), m)
     else:
@@ -233,6 +250,7 @@ def section_implementation(m):
     project proj.    
     '''
     check_kind(m, {"Machine"})
+    print("building section implementation of "+m["id"])
     res = str()
     if is_developed(m):
         i = implementation(m)
@@ -287,7 +305,7 @@ def x_init(m, i):
     arg_list = [ tm+sp+"%self$" ]
     for q in comp_indirect(m):
         if is_stateful(q.mach):
-            arg_list.append(state_r_name(q.mach)+sp+lexicon(q))
+            arg_list.append(state_r_name(q.mach)+sp+lexicon[q])
     # 1.3 the signature
     res += "define void"+sp+init_name(i)+"("+commas(arg_list)+")"
     # 2. generate function body
@@ -297,19 +315,19 @@ def x_init(m, i):
     res += x_alloc_inst_list(i["initialisation"])
     # 2.2 bind direct imports to elements of state structure
     direct = [ q for q in comp_direct(m) if is_stateful(q.mach) ]
-    for i in range(len(direct)):
+    for j in range(len(direct)):
         lbl = names.new_local()
-        q = direct[i]
+        q = direct[j]
         tm2 = state_r_name(q.mach)
-        res += tb+lbl+" = getelementptr "+tm+" %self$, i32 0, i32 "+str(i)+nl
-        res += tb+"store "+tm2+sp+arg_name[q]+", "+tm2+"* "+lbl+nl
+        res += tb+lbl+" = getelementptr "+tm+" %self$, i32 0, i32 "+str(j)+nl
+        res += tb+"store "+tm2+sp+lexicon[q]+", "+tm2+"* "+lbl+nl
     # 2.3 initialize direct imports
     offset = len(direct)+1
     for q in comp_direct(m):
         mq = q.mach     # the imported machine
         arg_list2 = []  # to store parameters needed to initialize mq
         if is_stateful(mq):
-            arg_list += state_r_name(mq)+sp+arg_name[q]
+            arg_list += state_r_name(mq)+sp+lexicon[q]
         n = len([x for x in comp_indirect(mq) if is_stateful(x.mach)])
         arg_list2.extend(arg_list[offset:offset+n])
         res += tb+"call void "+init_name(mq)+"("+commas(arg_list)+")"+nl
@@ -589,7 +607,7 @@ def x_lvalue(n):
     elif n["scope"] in {"Oper", "Local"}:
         return ("", "%"+n["id"],t)
     else:
-        print("unknown scope for variable " + v["id"])
+        print("error: unknown scope for variable " + v["id"])
         return ("", "UNKNOWN", "UNKNOWN")
 
 ### TRANSLATION OF CALL INSTRUCTIONS
@@ -597,6 +615,7 @@ def x_lvalue(n):
 def x_call(n):
     global sp
     check_kind(n, {"Call"})
+    print("x_call, n.id="+n["op"]["id"])
     res = str()
     # pi, po: evaluate arguments - il, ol: get parameters types and names
     pi, il = x_inputs(n["inp"])
@@ -608,13 +627,18 @@ def x_call(n):
     impl = operation["root"]
     args = list()
     if is_stateful(impl):
+        # get the LLVM type of the machine offering the operation
         if local:
-            t = state_r_name(n["root"])
+            mach_t = state_r_name(operation["root"])
+        else:
+            mach_t = state_r_name(n["inst"]["root"])
+        if local:
+            t = selftype
             v = "%self$"
         else:
             t = state_r_name(n["inst"]["mach"])
             v = names.new_local()
-            res += (tb + v + " = getelementptr " + state_r_name(n["root"]) + 
+            res += (tb + v + " = getelementptr " + mach_t + 
                     " %self$, i32 0, i32 " + str(state_position(n["inst"])) +
                     nl)
         args.append(t + sp + v)
@@ -630,7 +654,7 @@ def x_inputs(n):
     args = list()
     for elem in n:
         p,v,t = translate_expression(elem)
-        preamble.append(p)
+        preamble += p
         args.append(t + sp + v)
     return preamble, args
 
@@ -640,7 +664,7 @@ def x_outputs(n):
     args = list()
     for elem in n:
         p,v,t = x_lvalue(elem)
-        preamble.append(p)
+        preamble += p
         args.append(t + sp + v)
     return preamble, args
 
@@ -951,7 +975,7 @@ def translate_pred(n):
     if n["kind"] == "Comp":
         return translate_comp(n)
     else:
-        print("not implemented translation for such predicate")
+        print("error: not implemented translation for such predicate")
         return ("", "")
 
 def translate_and(n, lbl1, lbl2):
@@ -1006,7 +1030,7 @@ def translate_form(n, lbl1, lbl2):
             print("error: unrecognized formula")
             return ""
     else:
-        print("not implemented translate_form for formulas.")
+        print("error: not implemented translate_form for formulas.")
         return ""
 
 ### TRANSLATION OF INSTRUCTIONS ###
@@ -1195,6 +1219,7 @@ class Comp:
     Instances are convertible to strings, and are hashable.
     '''
     def __init__(self, p, m):
+        check_kind(m, {"Machine"})
         self.path = p
         self.mach = m
         self.id = "@"+"$".join(p)+"$"+m["id"]  
@@ -1218,7 +1243,12 @@ def comp_direct(m):
             m["comp_direct"] = []
         else:
             impl = implementation(m)
-            m["comp_direct"] = [ Comp(i["pre"], i["mach"]) for i in impl["imports"] ]
+            m["comp_direct"] = list()
+            for impo in impl["imports"]:
+                pre = impo["pre"]
+                if pre == None:
+                    pre = ""
+                m["comp_direct"].append(Comp(pre, impo["mach"]))
     return m["comp_direct"]
 
 def comp_indirect(m):
@@ -1242,7 +1272,7 @@ def comp_indirect(m):
             impl = implementation(m)
             v = comp_direct(m)
             # the intention flattens a list of list into a list
-            v.extend([ i for sl in [ comp_indirect(mc) for mc in v ]
+            v.extend([ i for sl in [ comp_indirect(mc.mach) for mc in v ]
                          for i in sl ])
             m["comp_indirect"] = v
     return m["comp_indirect"]

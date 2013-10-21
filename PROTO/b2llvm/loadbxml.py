@@ -41,12 +41,32 @@
 # binary application, associated to the left.
 # For instance a + b + c would be represented as ((a + b) + c).
 #
-
+# 4. Symbol table(s)
+#
+# symast is a traditional symbol table where the keys are identifier strings
+# and the values the AST node of the corresponding B entity. When the loader
+# enters a new scope, it creates a new symbol table initialized with a copy
+# of the inherited table.
+#
+# symimp is a special symbol table to handle imports
+# - For imports with prefix, the entry in symimp has as key the prefix and
+# as value the import clause.
+# - For imports without prefix, there is one entry in symimp for each visible
+# symbol of the imported machine, and the key is the identifier of the 
+# symbol and the value is the import clause.
+# In both cases, the key is a string and the value an AST node.
+#
+# 5. References
+#
+# [LRM] B Language Reference Manual, version 1.8.6. Clearsy.
+#
 import os
 import xml.etree.ElementTree as ET
 import b2llvm.ast as ast
 import b2llvm.cache as cache
 from b2llvm.bproject import BProject
+
+import b2llvm.printer
 
 ###
 #
@@ -81,7 +101,9 @@ def load_module(d, p, m):
     Output:
       Root AST node for the representation of m.
     '''
-    assert p.has(m)
+    if not p.has(m):
+        error("cannot find machine " + m + " in project settings file.")
+        raise Exception("resource not found")
     c = cache.Cache()
     if p.is_base(m):
         return load_base_machine(d, p, c, m)
@@ -115,16 +137,17 @@ def load_base_machine(dir, project, c, id):
     if id in loading:
         error("there seems to be a recursive dependency in imports")
     loading.add(id)
-    symbols = sym_table_new()
+    symast = sym_table_new() # symbol table: symbol to AST node
     path = dir + os.sep + id + '.bxml'
     tree = ET.parse(path)
     root = tree.getroot()
     assert root.tag == 'Machine'
     assert root.get("type") == "abstraction"
-    constants = load_values(root, symbols)
-    variables = load_concrete_variables(root, symbols)
-    operations = load_operations(root, symbols)
+    constants = load_values(root, symast)
+    variables = load_concrete_variables(root, symast)
+    operations = load_operations(root, symast)
     n = ast.make_base_machine(id, constants, variables, operations)
+    symast.clear()
     loading.remove(id)
     c.set(id, n)
     return n
@@ -193,10 +216,9 @@ def load_implementation(dir, project, c, module):
         return c.get(module)
     if module in loading:
         error("there seems to be a recursive dependency in imports")
-    
+    symast = sym_table_new()
+    symimp = sym_table_new()
     loading.add(module)
-    symbols = sym_table_new()
-
     path = dir + os.sep + module + '.bxml'
     tree = ET.parse(path)
     root = tree.getroot()
@@ -204,11 +226,13 @@ def load_implementation(dir, project, c, module):
     assert root.get("type") == "implementation"
     id = name(root)
     assert id == module
-    imports = load_imports(root, symbols, dir, project, c)
-    constants = load_values(root, symbols)
-    variables = load_concrete_variables(root, symbols)
-    initialisation = load_initialisation(root, symbols)
-    operations = load_operations(root, symbols)
+    imports = load_imports(root, symast, symimp, dir, project, c)
+    constants = load_values(root, symast)
+    variables = load_concrete_variables(root, symast)
+    initialisation = load_initialisation(root, symast, symimp)
+    operations = load_operations(root, symast, symimp)
+    symast.clear()
+    symimp.clear()
     n = ast.make_implementation(id, imports, constants, variables,
                                    initialisation, operations)
     loading.remove(module)
@@ -221,13 +245,43 @@ def load_implementation(dir, project, c, module):
 #
 ###
 
-def load_import(n, symbols, dir, project, c):
+def load_imports(root, symast, symimp, dir, project, c):
+    '''
+    Parameters:
+      - root: XML ElementTree representing the root of an implementation
+      - symast: a symbol table
+      - c: cache from identifiers to root AST machine.
+    Result:
+      List of import AST nodes.
+    Side effects:
+      All externally visible elements of the imported modules are added
+      to the symbol table.
+      All the named imports are added to the symbol table.
+    '''
+    imports = root.find("./Imports")
+    if imports == None:
+        return []
+    imports = [load_import(i, symast, dir, project, c) 
+               for i in imports.findall("./Referenced_Machine")]
+    # Add visible symbols from imported machines ([LRM, Appendix C.10])
+    for i in imports:
+        m = i["mach"]
+        for n in visible_symbols(project, m):
+            sym_table_add(symast, n["id"], n)
+        if i["pre"] != None:
+            sym_table_add(symimp, i["pre"], i)
+        else:
+            for n in visible_symbols(project, m):
+                sym_table_add(symimp, n["id"], i)
+    return imports
+
+def load_import(n, symast, dir, project, c):
     '''
     Loads one import clause to Python AST and update symbol table.
 
     Parameters:
       - n: a BXML tree element for an import.
-      - symbols: symbol table.
+      - symast: symbol table.
       - c: cache from identifiers to root AST machine.
     Result:
       A Python AST node representing the import clause. 
@@ -246,36 +300,12 @@ def load_import(n, symbols, dir, project, c):
     instance = n.find("./Instance")
     if instance != None:
         impo = ast.make_import(mach, instance.text)
-        sym_table_add(symbols, instance.text, impo)
+        sym_table_add(symast, instance.text, impo)
     else:
         impo = ast.make_import(mach)
     return impo
 
-def load_imports(root, symbols, dir, project, c):
-    '''
-    Parameters:
-      - root: XML ElementTree representing the root of an implementation
-      - symbols: a symbol table
-      - c: cache from identifiers to root AST machine.
-    Result:
-      List of import AST nodes.
-    Side effects:
-      All externally visible elements of the imported modules are added
-      to the symbol table.
-      All the named imports are added to the symbol table.
-    '''
-    imports = root.find("./Imports")
-    if imports == None:
-        return []
-    imports = [load_import(i, symbols, dir, project, c) 
-               for i in imports.findall("./ReferencedMachine")]
-    machines = { impo["mach"] for impo in imports }
-    for m in machines:
-        for n in visible_symbols(m):
-            sym_table_add(table, n["id"], n)
-    return imports
-
-def load_values(root, symbols):
+def load_values(root, symast):
     vals = root.findall("./Values/Valuation")
     result = []
     for v in vals:
@@ -283,14 +313,14 @@ def load_values(root, symbols):
         children = v.findall("./*")
         assert len(children) == 1
         xmlexp = children[0]
-        exp = load_exp(xmlexp, symbols)
+        exp = load_exp(xmlexp, symast)
         type = get_type(xmlexp)
         pyt = ast.make_const(id, type, exp)
         result.append(pyt)
-        sym_table_add(symbols, id, pyt)
+        sym_table_add(symast, id, pyt)
     return result
 
-def load_concrete_variables(root, symbols):
+def load_concrete_variables(root, symast):
     '''
     Input:
     - root: the BXML tree root node of a B implementation
@@ -304,44 +334,46 @@ def load_concrete_variables(root, symbols):
         id = value(v)
         type = get_identifier_type(v)
         pyt = ast.make_imp_var(id, type)
-        sym_table_add(symbols, id, pyt)
+        sym_table_add(symast, id, pyt)
         result.append(pyt)
     return result
 
-def load_initialisation(root, symbols):
+def load_initialisation(root, symast, symimp):
     initialisation = root.find("./Initialisation")
     if initialisation == None:
         return []
     xmlsubst = initialisation.find("./*")
-    return [ load_sub(xmlsubst, symbols) ]
+    return [ load_sub(xmlsubst, symast, symimp) ]
 
-def load_operation(n, symbols):
+def load_operations(root, symast, symimp):
+    operations = root.findall(".//Operation")
+    return [load_operation(op, symast, symimp) for op in operations]
+
+def load_operation(n, symast, symimp):
     assert n.tag == "Operation"
     id = name(n)
     body = n.find("./Body/*")
     inputs = n.findall("./Input_Parameters/Identifier")
     outputs = n.findall("./Output_Parameters/Identifier")
-    op_symbols = symbols.copy()
+    symast2 = symast.copy()
     p_inputs = []
     p_outputs = []
     for i in inputs:
-        id = value(i)
+        id2 = value(i)
         type = get_identifier_type(i)
-        pyt = ast.make_arg_var(id, type)
-        sym_table_add(op_symbols, id, pyt)
+        pyt = ast.make_arg_var(id2, type)
+        sym_table_add(symast2, id2, pyt)
         p_inputs.append(pyt)
     for o in outputs:
-        id = value(o)
+        id2 = value(o)
         type = get_identifier_type(o)
-        pyt = ast.make_arg_var(id, type)
-        sym_table_add(op_symbols, id, pyt)
+        pyt = ast.make_arg_var(id2, type)
+        sym_table_add(symast2, id2, pyt)
         p_outputs.append(pyt)
-    p_body = load_sub(body, op_symbols)
-    return ast.make_oper(id, p_inputs, p_outputs, p_body)
-
-def load_operations(root, symbols):
-    operations = root.findall(".//Operation")
-    return [load_operation(op, symbols) for op in operations]
+    p_body = load_sub(body, symast2, symimp)
+    symast2.clear()
+    res = ast.make_oper(id, p_inputs, p_outputs, p_body)
+    return res
 
 ###
 #
@@ -349,39 +381,39 @@ def load_operations(root, symbols):
 #
 ###
 
-def load_sub(n, symbols):
+def load_sub(n, symast, symimp):
     '''
     Inputs:
       - n: a XML node representing a B0 substitution
-      - symbols: symbol table as Python dictionary mapping strings to
+      - symast: symbol table as Python dictionary mapping strings to
       Python nodes
     Output:
       Python node representing the substitution n
     '''
     if n.tag == "Bloc_Substitution":
-        return load_block_substitution(n, symbols)
+        return load_block_substitution(n, symast, symimp)
     elif n.tag == "Skip":
-        return load_skip(n, symbols)
+        return load_skip(n)
     elif n.tag == "Assert_Substitution":
-        return load_assert_substitution(n, symbols)
+        return load_assert_substitution(n, symast)
     elif n.tag == "If_Substitution":
-        return load_if_substitution(n, symbols)
+        return load_if_substitution(n, symast, symimp)
     elif n.tag == "Affectation_Substitution":
-        return load_becomes_eq(n, symbols)
+        return load_becomes_eq(n, symast)
     elif n.tag == "Case_Substitution":
-        return load_case_substitution(n, symbols)
+        return load_case_substitution(n, symast, symimp)
     elif n.tag == "VAR_IN":
-        return load_var_in(n, symbols)
+        return load_var_in(n, symast, symimp)
     elif n.tag == "Binary_Substitution":
-        return load_binary_substitution(n, symbols)
+        return load_binary_substitution(n, symast, symimp)
     elif n.tag == "Nary_Substitution":
-        return load_nary_substitution(n, symbols)
+        return load_nary_substitution(n, symast, symimp)
     elif n.tag == "Operation_Call":
-        return load_operation_call(n, symbols)
+        return load_operation_call(n, symast, symimp)
     elif n.tag == "While":
-        return load_while(n, symbols)
+        return load_while(n, symast, symimp)
     elif n.tag == "Becomes_In":
-        return load_becomes_in(n, symbols)
+        return load_becomes_in(n, symast)
     elif n.tag in {"Choice_Substitution", "Becomes_Such_That",
                    "Select_Substitution", "ANY_Substitution",
                    "LET_Substitution"}:
@@ -389,20 +421,20 @@ def load_sub(n, symbols):
     else:
         error("unrecognized substitution: " + n.tag)
 
-def load_block_substitution(n, symbols):
+def load_block_substitution(n, symast, symimp):
     assert n.tag == "Bloc_Substitution"
-    return ast.make_blk([ load_sub(s, symbols) for s in n.findall("./*") ])
+    return ast.make_blk([ load_sub(s, symast, symimp) for s in n.findall("./*") ])
 
-def load_skip(n, symbols):
+def load_skip(n):
     assert n.tag == "Skip"
     return ast.make_skip()
 
-def load_assert_substitution(n, symbols):
+def load_assert_substitution(n, symast):
     assert n.tag == "Assert_Substitution"
     warn("assertion replaced by skip")
     return ast.make_skip()
 
-def load_if_substitution(n, symbols):
+def load_if_substitution(n, symast, symimp):
     '''
     TODO: understand how ELSIF branch are XML-coded and implement
     their translation.
@@ -414,62 +446,63 @@ def load_if_substitution(n, symbols):
     xmlcond = n.find("./Condition")
     xmlthen = n.find("./Then")
     xmlelse = n.find("./Else")
-    pycond = load_boolean_expression(xmlcond.find("./*"), symbols)
-    pythen = load_sub(xmlthen.find("./*"), symbols)
+    pycond = load_boolean_expression(xmlcond.find("./*"), symast)
+    pythen = load_sub(xmlthen.find("./*"), symast, symimp)
     thenbr = ast.make_if_br(pycond, pythen)
     if xmlelse == None:
         return ast.make_if([thenbr])
     else:
-        pyelse = load_sub(xmlelse.find("./*"), symbols)
+        pyelse = load_sub(xmlelse.find("./*"), symast, symimp)
         elsebr = ast.make_if_br(None, pyelse)
         return ast.make_if([thenbr, elsebr])
 
-def load_becomes_eq(n, symbols):
+def load_becomes_eq(n, symast):
     assert n.tag == "Affectation_Substitution"
     lhs = n.findall("./Variables/*")
     rhs = n.findall("./Values/*")
     if len(lhs) != 1 or len(rhs) != 1:
         error("unsupported multiple becomes equal substitution")
         return ast.make_skip()
-    dst = load_exp(lhs[0], symbols)
-    src = load_exp(rhs[0], symbols)
+    dst = load_exp(lhs[0], symast)
+    src = load_exp(rhs[0], symast)
     return ast.make_beq(dst, src)
 
-def load_becomes_in(n, symbols):
+def load_becomes_in(n, symast):
     assert n.tag == "Becomes_In"
     lhs = n.findall("./Variables/*")
-    dst = [ load_exp(x, symbols) for x in lhs ]
+    dst = [ load_exp(x, symast) for x in lhs ]
     return ast.make_bin(dst)
 
-def load_case_substitution(n, symbols):
+def load_case_substitution(n, symast, symimp):
     assert n.tag == "Case_Substitution"
     xmlexpr = n.find("./Value/*")
     xmlbranches = n.findall("./Choices/Choice")
     xmlelse = n.find("./Else")
-    pyexpr = load_exp(xmlexpr, symbols)
-    pybranches = [ ast.make_case_br(load_exp(xbr.find("./Value/*"), symbols),
-                                     load_sub(xbr.find("./Then/*"), symbols))
+    pyexpr = load_exp(xmlexpr, symast)
+    pybranches = [ ast.make_case_br(load_exp(xbr.find("./Value/*"), symast),
+                                     load_sub(xbr.find("./Then/*"), symast, symimp))
                    for xbr in xmlbranches ]
     if xmlelse != None:
-        pybranches.append(ast.make_case_br(None, load_sub(xmlelse.find("./Choice/Then/*"), symbols)))
+        pybranches.append(ast.make_case_br(None, load_sub(xmlelse.find("./Choice/Then/*"), symast, symimp)))
     return ast.make_case(pyexpr, pybranches)
 
-def load_var_in(n, symbols):
+def load_var_in(n, symast, symimp):
     assert n.tag == "VAR_IN"
     xmlvars = n.findall("./Variables/Identifier")
     xmlbody = n.find("./Body")
-    symbols2 = symbols.copy()
+    symast2 = symast.copy()
     pyvars = []
     for v in xmlvars:
         id = value(v)
         type = get_identifier_type(v)
         pyt = ast.make_loc_var(id, type)
-        sym_table_add(symbols2, id, pyt)
+        sym_table_add(symast2, id, pyt)
         pyvars.append(pyt)
-    pybody = [ load_sub(xmlbody.find("./*"), symbols2) ]
+    pybody = [ load_sub(xmlbody.find("./*"), symast2, symimp) ]
+    symast2.clear()
     return ast.make_var_decl(pyvars, pybody)
 
-def load_binary_substitution(n, symbols):
+def load_binary_substitution(n, symast, symimp):
     assert n.tag == "Binary_Substitution"
     op = operator(n)
     if op == "||":
@@ -477,40 +510,61 @@ def load_binary_substitution(n, symbols):
         return ast.make_skip()
     elif op == ";":
         left = n.find("./Left")
-        right = n.find("./Left")
-        return [load_sub(left, symbols), load_sub(right, symbols)]
+        right = n.find("./Right")
+        return [load_sub(left, symast, symimp), load_sub(right, symast, symimp)]
     else:
-        error("unrecognized n-ary substitution")
+        error("unrecognized binary substitution")
         return ast.make_skip()
 
-
-    error("load_binary_substitution not yet implemented")
-    return ast.make_skip()
-
-def load_nary_substitution(n, symbols):
+def load_nary_substitution(n, symast, symimp):
     assert n.tag == "Nary_Substitution"
     op = operator(n)
     if op == "||":
         error("parallel substitution cannot be translated")
         return ast.make_skip()
     elif op == ";":
-        substitutions = n.findall("./*")
-        return ast.make_blk([load_sub(s, symbols) for s in substitutions])
+        substs = n.findall("./*")
+        return ast.make_blk([load_sub(s, symast, symimp) for s in substs])
     else:
         error("unrecognized n-ary substitution")
         return ast.make_skip()
 
-def load_operation_call(n, symbols):
+def load_operation_call(n, symast, symimp):
     assert n.tag == "Operation_Call"
-    error("load_operation_call not yet implemented")
-    return ast.make_skip()
+    xmlname = n.find("./Name/*")
+    # Operation from import w/o prefix:
+    #   <Identifier value='get'>
+    # Operation from import w prefix:
+    #   <Identifier value='hh.get' instance='hh' component='get'>
+    xmlout = n.findall("./Output_Parameters/*")
+    xmlinp = n.findall("./Input_Parameters/*")
+    astout = [ load_identifier(x, symast) for x in xmlout ]
+    astinp = [ load_identifier(x, symast) for x in xmlinp ]
+    instance = xmlname.get('instance') 
+    if instance == None:
+        name = value(xmlname)
+    else:
+        name = xmlname.get('component')
+    
+    op = sym_table_get(symast, name)
+    # operation is from a directly imported module
+    if name in symimp.keys():
+        impo = sym_table_get(symimp, name)
+        return ast.make_call(op, astinp, astout, impo)
+    # operation is from a prefixed imported module
+    elif instance in symimp.keys():
+        impo = sym_table_get(symimp, instance)
+        return ast.make_call(op, astinp, astout, impo)
+    # operation is local
+    else:
+        return ast.make_call(op, astinp, astout)
 
-def load_while(n, symbols):
+def load_while(n, symast, symimp):
     assert n.tag == "While"
     xmlcond = n.find("./Condition/*")
     xmlbody = n.find("./Body/*")
-    pycond = load_boolean_expression(xmlcond, symbols)
-    pybody = load_sub(xmlbody, symbols)
+    pycond = load_boolean_expression(xmlcond, symast)
+    pybody = load_sub(xmlbody, symast, symimp)
     return ast.make_while(pycond, [pybody])
 
 ###
@@ -519,21 +573,21 @@ def load_while(n, symbols):
 #
 ###
 
-def load_exp(n, symbols):
+def load_exp(n, symast):
     if n.tag == "Binary_Expression":
-        return load_binary_expression(n, symbols)
+        return load_binary_expression(n, symast)
     elif n.tag == "Nary_Expression":
-        return load_nary_expression(n, symbols)
+        return load_nary_expression(n, symast)
     elif n.tag == "Unary_Expression":
-        return load_unary_expression(n, symbols)
+        return load_unary_expression(n, symast)
     elif n.tag == "Boolean_Litteral":
-        return load_boolean_literal(n, symbols)
+        return load_boolean_literal(n, symast)
     elif n.tag == "Integer_Litteral":
-        return load_integer_literal(n, symbols)
+        return load_integer_literal(n, symast)
     elif n.tag == "Identifier":
-        return load_identifier(n, symbols)
+        return load_identifier(n, symast)
     elif n.tag == "Boolean_Expression":
-        return load_boolean_expression(n, symbols)
+        return load_boolean_expression(n, symast)
     elif n.tag in {"EmptySet", "EmptySeq", "Quantified_Expression",
                    "Quantified_Set", "String_Litteral", "Struct", "Record"}:
         error("unexpected expression " + n.tag)
@@ -542,10 +596,10 @@ def load_exp(n, symbols):
         error("unknown expression " + n.tag)
         return None
 
-def load_identifier(n, symbols):
-    return symbols[value(n)]
+def load_identifier(n, symast):
+    return symast[value(n)]
 
-def load_boolean_literal(n, symbols):
+def load_boolean_literal(n, symast):
     assert n.tag == "Boolean_Litteral"
     if value(n) == "TRUE":
         return ast.TRUE
@@ -554,7 +608,7 @@ def load_boolean_literal(n, symbols):
     else:
         error("unknown boolean literal")
 
-def load_integer_literal(n, symbols):
+def load_integer_literal(n, symast):
     assert n.tag == "Integer_Litteral"
     return ast.make_intlit(int(value(n)))
 
@@ -565,66 +619,66 @@ def setup_expression(n, handlers):
         return None
     return handlers[op], discard_attributes(n)
 
-def load_unary(n, symbols, tag, table):
+def load_unary(n, symast, tag, table):
     assert n.tag == tag
     f, par = setup_expression(n, table)
     assert len(par) == 1
-    arg = load_exp(par[0], symbols)
+    arg = load_exp(par[0], symast)
     return f(arg)
 
-def load_binary(n, symbols, tag, table):
+def load_binary(n, symast, tag, table):
     assert n.tag == tag
     f, par = setup_expression(n, table)
     assert len(par) == 2
-    arg = [ load_exp(p, symbols) for p in par ]
+    arg = [ load_exp(p, symast) for p in par ]
     return f(arg[0], arg[1])
 
-def load_nary(n, symbols, tag, table):
+def load_nary(n, symast, tag, table):
     assert n.tag == tag
     f, par = setup_expression(n, table)
     assert len(par) >= 2
-    args = [ load_exp(p, symbols) for p in par ]
+    args = [ load_exp(p, symast) for p in par ]
     return list_combine_ltr(args, lambda a0, a1: f(a0, a1))
 
-def load_unary_expression(n, symbols):
-    return load_unary(n, symbols, "Unary_Expression",
+def load_unary_expression(n, symast):
+    return load_unary(n, symast, "Unary_Expression",
                       {"pred":ast.make_pred, "succ":ast.make_succ})
 
-def load_binary_expression(n, symbols):
-    return load_binary(n, symbols, "Binary_Expression",
+def load_binary_expression(n, symast):
+    return load_binary(n, symast, "Binary_Expression",
                        {"+":ast.make_sum, "-":ast.make_diff,
                         "*":ast.make_prod})
 
-def load_nary_expression(n, symbols):
-    return load_nary(n, symbols, "Nary_Expression",
+def load_nary_expression(n, symast):
+    return load_nary(n, symast, "Nary_Expression",
                      {"+":ast.make_sum, "*":ast.make_prod})
 
-def load_binary_predicate(n, symbols):
-    return load_binary(n, symbols, "Binary_Predicate",
+def load_binary_predicate(n, symast):
+    return load_binary(n, symast, "Binary_Predicate",
                        {"&":ast.make_and, "or":ast_make_or})
 
-def load_unary_predicate(n, symbols):
-    return load_unary(n, symbols, "Unary_Predicate", {"not":ast.make_not})
+def load_unary_predicate(n, symast):
+    return load_unary(n, symast, "Unary_Predicate", {"not":ast.make_not})
 
-def load_nary_predicate(n, symbols):
-    return load_nary(n, symbols, "Nary_Predicate",
+def load_nary_predicate(n, symast):
+    return load_nary(n, symast, "Nary_Predicate",
                      {"&":ast.make_and, "or":ast.make_or})
 
-def load_expression_comparison(n, symbols):
-    return load_binary(n, symbols, "Expression_Comparison",
+def load_expression_comparison(n, symast):
+    return load_binary(n, symast, "Expression_Comparison",
                        {"=": ast.make_eq, "/=": ast.make_neq,
                         ">": ast.make_lt, ">=": ast.make_ge,
                         "<": ast.make_lt, "<=": ast.make_le})
 
-def load_boolean_expression(n, symbols):
+def load_boolean_expression(n, symast):
     if n.tag == "Binary_Predicate":
-        return load_binary_predicate(n, symbols)
+        return load_binary_predicate(n, symast)
     elif n.tag == "Expression_Comparison":
-        return load_expression_comparison(n, symbols)
+        return load_expression_comparison(n, symast)
     elif n.tag == "Unary_Predicate":
-        return load_unary_predicate(n, symbols)
+        return load_unary_predicate(n, symast)
     elif n.tag == "Nary_Predicate":
-        return load_nary_predicate(n, symbols)
+        return load_nary_predicate(n, symast)
     elif n.tag in {"Quantified_Predicate", "Set"}:
         error("unexpected boolean expression" + n.tag)
         return None
@@ -672,15 +726,26 @@ def display_report(id, filename):
 # symbol table stuff
 #
 ###
-def sym_table_add(table, id, pyt):
-    if id in table:
-        error("name clash ("+id+")")
-    table[id] = pyt
 
 def sym_table_new():
     table = dict()
     sym_table_add(table, "MAXINT", ast.MAXINT)
     return table
+
+def sym_table_add(table, id, pyt):
+    if id in table:
+        error("name clash ("+id+")")
+    table[id] = pyt
+
+def sym_table_del(table, id):
+    if id not in table:
+        error(id+"not found in table")
+    table.pop(id)
+
+def sym_table_get(table, id):
+    if id not in table:
+        error(id+"not found in table")
+    return table[id]
 
 ###
 #
@@ -692,6 +757,11 @@ def ident(node):
     return node.get("ident")
 
 def value(node):
+    '''
+    Returns the value of an XML element value attribute.
+
+    Return type is string, or None if there is no such attribute.
+    '''
     return node.get("value")
 
 def operator(node):
@@ -737,7 +807,9 @@ def get_identifier_type(id):
     - "INTEGER" or "BOOL": the string representing the name of the type of id
     '''
     assert id.tag == "Identifier"
-    return value(id.find("./Attributes/TypeInfo/Identifier"))
+    res = value(id.find("./Attributes/TypeInfo/Identifier"))
+    assert res != None
+    return res
 
 def get_type(n):
     '''
@@ -746,16 +818,9 @@ def get_type(n):
     Output:
     - "INTEGER" or "BOOL": the string representing the name of the type of id
     '''
-    return value(n.find("./Attributes/TypeInfo/Identifier"))
-
-def get_node(id, symbols):
-    '''
-    Inputs:
-      - id: a bxml "Identifier" node
-      - symbols: a dictionary mapping strings to Python node
-    '''
-    assert id.tag == "Identifier"
-    return symbols[value(id)]
+    res = value(n.find("./Attributes/TypeInfo/Identifier"))
+    assert res != None
+    return res
 
 def discard_attributes(exp):
     '''
@@ -769,7 +834,7 @@ def discard_attributes(exp):
     '''
     return [n for n in exp.findall("./*") if n.tag != "Attributes"]
 
-def visible_symbols(m):
+def visible_symbols(p, m):
     '''
     List of symbols defined in m that are externally visible.
 
@@ -781,6 +846,6 @@ def visible_symbols(m):
       the list is taken from its corresponding implementation.
     '''
     assert m["kind"] in { "Machine" }
-    n = m["impl"] if m["impl"] != None else m
-    return n["concrete_constants"]+n["concrete_variables"]+n["operations"]
+    n = m["implementation"]
+    return n["concrete_constants"]+n["variables"]+n["operations"]
 

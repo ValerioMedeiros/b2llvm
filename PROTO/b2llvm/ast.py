@@ -217,7 +217,9 @@ def make_base_machine(id, consts, vars, ops):
     assert type(consts) is list
     assert type(vars) is list
     assert type(ops) is list
-    return { "kind": "Machine", 
+    root = { "kind": "Machine", 
+             "id": id,
+             "base": True,
              "concrete_constants": consts,
              "variables": vars,
              "operations": ops,
@@ -225,6 +227,9 @@ def make_base_machine(id, consts, vars, ops):
              "stateful": None,
              "comp_direct": None,
              "comp_indirect": None}
+    for node in vars + ops:
+        node["root"] = root
+    return root
 
 def make_developed_machine(id, impl):
     '''
@@ -234,6 +239,8 @@ def make_developed_machine(id, impl):
     '''
     return { "kind": "Machine", 
              "id": id,
+             "base": False,
+             "concrete_constants": [],
              "variables": [],
              "implementation": impl,
              "stateful": None,
