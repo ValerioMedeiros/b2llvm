@@ -64,7 +64,6 @@ def translate_mode_comp(m):
       of a full project.
     '''
     check_kind(m, {"Machine"})
-    print("translating machine "+m["id"])
     if is_base(m):
         return section_typedef(m)
     else:
@@ -128,10 +127,7 @@ def section_interface(m):
     Text of LLVM declarations (see section interface in translation definition).
     '''
     check_kind(m, {"Machine"})
-    print("building section interface of "+m["id"])
     res = str()
-    if is_stateful(m):
-        res += state_ref_typedef(m)
     res += section_interface_init(m)
     res += nconc([ section_interface_op(m, op) for op in operations(m) ])
     return res
@@ -204,7 +200,6 @@ def section_typedef(m):
     '''
     global nl
     check_kind(m, {"Machine"})
-    print("building section typede of "+m["id"])
     if is_developed(m):
         return section_typedef_impl(implementation(m), m)
     else:
@@ -250,7 +245,6 @@ def section_implementation(m):
     project proj.    
     '''
     check_kind(m, {"Machine"})
-    print("building section implementation of "+m["id"])
     res = str()
     if is_developed(m):
         i = implementation(m)
@@ -327,10 +321,10 @@ def x_init(m, i):
         mq = q.mach     # the imported machine
         arg_list2 = []  # to store parameters needed to initialize mq
         if is_stateful(mq):
-            arg_list += state_r_name(mq)+sp+lexicon[q]
+            arg_list2.append(state_r_name(mq)+sp+lexicon[q])
         n = len([x for x in comp_indirect(mq) if is_stateful(x.mach)])
         arg_list2.extend(arg_list[offset:offset+n])
-        res += tb+"call void "+init_name(mq)+"("+commas(arg_list)+")"+nl
+        res += tb+"call void "+init_name(mq)+"("+commas(arg_list2)+")"+nl
     # 2.4 translate initialisation instructions
     res += x_inst_list_label(i["initialisation"], "exit")
     res += "exit:"+nl
@@ -615,7 +609,6 @@ def x_lvalue(n):
 def x_call(n):
     global sp
     check_kind(n, {"Call"})
-    print("x_call, n.id="+n["op"]["id"])
     res = str()
     # pi, po: evaluate arguments - il, ol: get parameters types and names
     pi, il = x_inputs(n["inp"])
@@ -637,15 +630,17 @@ def x_call(n):
             v = "%self$"
         else:
             t = state_r_name(n["inst"]["mach"])
-            v = names.new_local()
-            res += (tb + v + " = getelementptr " + mach_t + 
+            v1 = names.new_local()
+            v2 = names.new_local()
+            res += (tb + v1 + " = getelementptr " + mach_t + 
                     " %self$, i32 0, i32 " + str(state_position(n["inst"])) +
                     nl)
-        args.append(t + sp + v)
+            res += tb + v2 + " = load " + t +"*" + sp + v1
+        args.append(t + sp + v2)
     args.extend(il)
     args.extend(ol)
     id = global_name(operation)
-    res += "call void" + sp + id + "(" + commas(args) + ")" + nl
+    res += tb + "call void" + sp + id + "(" + commas(args) + ")" + nl
     return res
 
 def x_inputs(n):

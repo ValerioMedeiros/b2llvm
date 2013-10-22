@@ -616,7 +616,7 @@ a given module \B{M}, the sections are the following:
     \llvm{\}}
   \end{tabbing}
   This section is produced only for the developed modules.
-\end{description}
+\end{enumerate}
 Based on the definition of these sections, the \emph{COMP\/} translation
 assembles them as follows:
 \begin{center}
@@ -1118,17 +1118,18 @@ operation), or an instance of an imported machine.
   \trad{c}{\B{Call}} \isdef 
   & \LET p_i \sep il = \trad{c.inp}{\ListOf{Inp}} \AND p_o \sep ol = 
   \trad{c.out}{\ListOf{Out}} \AND \\
-  & \quad id = \Global(\B{c}) \AND ty = \llvm{"\PH{\state(\B{c.root})} *} \AND \\
+  & \quad id = {\Global(\B{c})} \AND ty = \llvm{"\PH{\stateref(\B{c.root})}} \AND \\
   & \quad val \sep p = \IF \B{c.inst} = \text{None} \\
   & \quad \quad \THEN \llvm{"\%self\$"} \sep \llvm{""} \\
-  & \quad \quad \ELSE \LET v = \variable \IN \\
-  & \quad \quad \quad v \sep \\
-  & \quad \quad \quad \llvm{"\PH{v} = getelementptr \PH{ \state({\B{c.inst.root}})} \%self\$, i32 0, i32 \PH{\idx(\B{c.inst})} \nl"} \\
+  & \quad \quad \ELSE \LET v_1, v_2 = \variable, \variable \IN \\
+  & \quad \quad \quad v_2 \sep \\
+  & \quad \quad \quad \llvm{"\PH{v_1} = getelementptr \PH{ \state({\B{c.inst.root}})} \%self\$, i32 0, i32 \PH{\idx(\B{c.inst})} \nl} \\
+  & \quad \quad \quad \quad \llvm{\PH{v_2} = load \PH{ty}* \PH{v_1} \nl"} \\
   & \IN \\
   & \quad \llvm{"\PH{p_i}} \\
   & \quad \llvm{\PH{p_o}} \\
   & \quad \llvm{\PH{p}} \\
-  & \quad \llvm{call void \PH{id}(\PH{ty}* \PH{val}, \PH{il}, \PH{ol}) \nl"}
+  & \quad \llvm{call void \PH{id}(\PH{ty} \PH{val}, \PH{il}, \PH{ol}) \nl"}
 \end{align*}
 The translation of input and output arguments produces two code snippets. The
 first corresponds to the LLVM instruction sequence $p$ responsible for
