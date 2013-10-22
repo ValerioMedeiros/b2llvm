@@ -9,7 +9,7 @@
 \usepackage{graphicx}
 \pagestyle{headings}
 \title{Translation of B Implementations to the LLVM: Control and Modularity}
-\author{David Déharbe \and Valério Medeiros Jr} 
+\author{David Déharbe \and Valério Medeiros Jr}
 \institute{Program of Graduate Studies in Systems and Computing (PPgSC) \\
   Federal University of Rio Grande do Norte \\
   Natal (Brazil)}
@@ -70,7 +70,7 @@
   LLVM source code. This translation is defined formally as a set of rules
   defined recursively on the abstract syntax for B implementations. It handles
   the following elements of the B language: simple data types, imperative
-  instructions and component compositions. 
+  instructions and component compositions.
 \end{abstract}
 
 \section{Introduction}
@@ -124,7 +124,7 @@ in~\ref{sec:conclusion}.
 This section describes the B implementation constructs that are considered in
 the compilation to the LLVM. This description introduces the notations used in
 the definition of the translation. The elements of the B language are denoted
-using a \B{sans serif} font. 
+using a \B{sans serif} font.
 
 Figure~\ref{tab:node-attr} summarizes the structure
 of the abstract syntax that is relevant in the definition of the proposed
@@ -150,12 +150,12 @@ case conditional, while loop, block with or without local variables, and
 operation calls. The if constructs may have several branches, each with a
 condition as well as an optional else branch. Called operations may be either
 local operations or operations of instances of external modules, in this case
-they have an optional prefix identifying the module. 
+they have an optional prefix identifying the module.
 
 Note that the translation presented in this paper only considers types \B{INT}
 (integer) and \B{BOOL} (Boolean). Accordingly, the expression language consists
 in arithmetic operations \B{-} (unary and binary), \B{+}, \B{*}, \B{/}, \B{mod},
-% \B{**} (exponentiation), 
+% \B{**} (exponentiation),
 \B{succ} and \B{pred} and Boolean operations
 \B{$\land$}, \B{$\lor$}, \B{$\neg$} as well as relations \B{=}, \B{$\neq$},
 \B{$>$}, \B{$<$}, \B{$\leq$} and \B{$\neq$}. Atomic expressions are identifiers,
@@ -191,7 +191,7 @@ the B method ensures the absence of overflows and underflows.
         \multicolumn{3}{|c|}{Imports: \B{Import}} \\
         \hline
         \B{mach} & : & \B{Machine} \\
-        \B{pre} & : & opt \B{Name} 
+        \B{pre} & : & opt \B{Name}
         \\
         \hline
         \multicolumn{3}{|c|}{Constant: \B{Cons}} \\
@@ -367,13 +367,13 @@ C code appears on the left) with two temporary variables \llvm{\%0} and
 The introduction to the LLVM that follows is focused in the features
 that are relevant for the representation of B
 implementations. Figure~\ref{fig:llvm-grammar} presents a grammar of this subset
-of the LLVM. 
+of the LLVM.
 
 \begin{figure}
   \begin{center}
     \begin{tabular}{rcl}
       \nt{module} & ::= & \ListOf{\nt{item}} \\
-      \nt{item} & ::= & \nt{const\_decl} \alt \nt{function\_decl} \alt \nt{type\_def} 
+      \nt{item} & ::= & \nt{const\_decl} \alt \nt{function\_decl} \alt \nt{type\_def}
       \alt \nt{const\_def} \alt \nt{var\_def} \alt \nt{function\_def} \\
       \nt{const\_decl} & ::= & \nt{name} \llvm{=} \llvm{external} \llvm{constant} \nt{type} \\
       \nt{type\_def} & ::= & \nt{name} \llvm{=} \llvm{type} \nt{type} \\
@@ -427,7 +427,7 @@ type for 8-bit integers), and type constructors pointer (monadic \llvm{$\cdot$
 type pointer to \llvm{i8}. Grammar rule \nt{type\_def} states how types are
 named, e.g.: \llvm{\%T1 = type \{i32, i32\}} and \llvm{\%T2 = type \{\%T1 *,
   \%T1 *\}}. Note that there is no \llvm{void *} type in the LLVM, instead
-pointer values are of integer types. 
+pointer values are of integer types.
 
 Local entities are constants, variables or functions. An example of constant
 definition is \llvm{@secret = constant i32 42}, it is composed of a name, type
@@ -471,7 +471,7 @@ unconditionally to the given block.
 % Instruction \llvm{switch} directs the
 % control flow to one of several blocks. The given expression is evaluated and
 % control goes to the first branch with the matching value, or to the default
-% branch (appearing first in the instruction).  
+% branch (appearing first in the instruction).
 Finally, instruction \llvm{ret}
 ends the current function call, optionally returning a value.
 
@@ -523,11 +523,11 @@ developed. In the latter case, the implementation of the imported machines may
 in turn import other machine instances and there is no pre-established limit to
 such chain of imports. Hence, the import relation between module instances forms
 a tree, where the root is an implementation and the descendants of a node are
-the instances imported from the module in that node. 
+the instances imported from the module in that node.
 
 \begin{figure}
 \begin{center}
-\includegraphics[width=.8\textwidth]{b-project.pdf}
+ \includegraphics[width=.8\textwidth]{B-project.pdf}
 \caption{Structure of the imports relation in a B project}
 \label{fig:structure}
 \end{center}
@@ -598,7 +598,7 @@ a given module \B{M}, the sections are the following:
     \llvm{\%M\$ref\$ = type \%M\$state\$*}
   \end{tabbing}
   The interface also contains declarations of one LLVM functions for each
-  operation of the module. 
+  operation of the module.
   \begin{tabbing}
     \llvm{declare void @M\$op(\%M\$ref\$, \ListOf{\nt{type}})}
   \end{tabbing}
@@ -647,7 +647,7 @@ For a module \B{M}, the \emph{PROJ\/} translation is organized as follows:
     \> \> \llvm{call void @M\$init\$(@M, \{ \ListOf{instances} \}) \{} \\
     \> \> \llvm{exit: ret void} \\
     \> \llvm{\}} \\
-    \> 
+    \>
   \end{tabbing}
 \end{center}
 
@@ -666,7 +666,7 @@ implementation is divided into:
   of B operations and initialization.
 \end{description}
 
-\section{Notations} 
+\section{Notations}
 \label{sec:notation}
 
 Code generation is defined with a set of rules defined by
@@ -730,7 +730,7 @@ machine is stateless, the state space is empty; otherwise, it is represented by
 an aggregate type, the elements of which correspond to the variables of the
 machine:
 \begin{align*}
-  \trad{\B{n}}{\B{Mach}}_{\text{typedef}} \isdef 
+  \trad{\B{n}}{\B{Mach}}_{\text{typedef}} \isdef
   & \IF \developed(\B{n}) \THEN \trad{\B{n.impl}, \B{n}}{\B{Impl}}_{\text{typedef}} \\
   & \ELSE \IF \stateless(\B{n}) \THEN \llvm{""} \\
   & \ELSE \llvm{"\PH{\state(\B{n})} = type \{ \PH{\trad{\B{n.vars}}{\ListOf{\B{Vari}}}_{\text{typedef}}} \} "}
@@ -740,7 +740,7 @@ For the case of a developed machine \B{m} with implementation \B{n}, if \B{n} is
 stateless, no type definition is emitted; otherwise, it is an aggregate type
 composed of one element for each import and variable:
 \begin{align*}
-  \trad{\B{n}, \B{m}}{\B{Impl}}_{\text{typedef}} \isdef 
+  \trad{\B{n}, \B{m}}{\B{Impl}}_{\text{typedef}} \isdef
   & \IF \stateless(\B{n}) \THEN \llvm{""} \\
   & \ELSE \llvm{"\PH{\state(\B{m})} = type \{ \PH{\trad{\B{n.impo}}{\ListOf{\B{Impo}}}_{\text{typedef}}}, \PH{\trad{\B{n.var}}{\ListOf{\B{Vari}}}_{\text{typedef}}} \} "}
 \end{align*}
@@ -750,7 +750,7 @@ defined in the following rule. If the imported machine is stateless, there is no
 element, otherwise it is the name of the type pointer to the state of the
 machine:
 \begin{align*}
-  \trad{\B{n}}{\B{Impo}}_{\text{typedef}} \isdef 
+  \trad{\B{n}}{\B{Impo}}_{\text{typedef}} \isdef
   & \llvm{""} \triangleleft \stateless(\B{n.mach}) \triangleright \stateref(\B{n.mach})
 \end{align*}
 
@@ -758,7 +758,7 @@ The elements corresponding to concrete variables are the LLVM data types
 corresponding to the B types of those variables (defined in
 sec.~\ref{sec:data}):
 \begin{align*}
-  \trad{\B{n}}{\B{Impl}}_{\text{typedef}} \isdef 
+  \trad{\B{n}}{\B{Impl}}_{\text{typedef}} \isdef
   & \trad{\B{n.type}}{\B{Type}}
 \end{align*}
 
@@ -769,7 +769,7 @@ pointer to $\state(\B{n})$, the type to represent the data space of \B{n}, and
 declares functions for executing 1) executing the initialization of an instance
 of \B{n} and 2) each operation in \B{n}:
 \begin{align*}
-  \trad{\B{n}}{\B{Mach}}_{\text{interface}} \isdef 
+  \trad{\B{n}}{\B{Mach}}_{\text{interface}} \isdef
   & \llvm{"\PH{\stateref(\B{n})} = type \PH{\state(\B{n})}*\nl} \\
   & \llvm{\PH{\trad{\B{n}}{\B{init}}_{\text{interface}}}}\\
   & \llvm{\PH{\trad{\B{n.op}}{\ListOf{\B{Oper}}}_{\text{interface}}}"}
@@ -779,23 +779,23 @@ The function responsible for initializing an instance of \B{n} takes as
 parameter a reference to such instance, as well as a reference for each
 transitively imported stateful instance and is as follows:
 \begin{align*}
-  \trad{\B{n}}{\B{init}}_{\text{interface}} \isdef 
-  & \llvm{"declare void \PH{\init(\B{n})} ( \PH{\stateref(\B{n})}, 
+  \trad{\B{n}}{\B{init}}_{\text{interface}} \isdef
+  & \llvm{"declare void \PH{\init(\B{n})} ( \PH{\stateref(\B{n})},
     \PH{\trad{\trimportedinstances(\B{n})}{\ListOf{\B{inst}}}_{\text{decl}}} )\nl"} \\
-  \trad{\B{n}}{\B{inst}}_{\text{decl}} \isdef 
-  & \bot \triangleleft \stateless(\B{n.mach}) \triangleright \stateref(\B{n.mach}) 
+  \trad{\B{n}}{\B{inst}}_{\text{decl}} \isdef
+  & \bot \triangleleft \stateless(\B{n.mach}) \triangleright \stateref(\B{n.mach})
 \end{align*}
 
 The function responsible for executing an operation \B{n} has as parameter a
 reference to the instance of the corresponding module, if it is stateful, and
 one parameter for each input and output of the corresponding operation:
 \begin{align*}
-  \trad{\B{n}}{\B{oper}}_{\text{interface}} \isdef 
-  & 
+  \trad{\B{n}}{\B{oper}}_{\text{interface}} \isdef
+  &
 \LET t = \bot \triangleleft \stateless(\B{n.root}) \triangleright \stateref(\B{n.root}) \IN \\
-& \llvm{"declare void \PH{\Global(\B{n})} 
-( \PH{t}, 
-  \PH{\trad{\B{n.inp}}{\ListOf{\B{Inp}}}_{\text{decl}}}, 
+& \llvm{"declare void \PH{\Global(\B{n})}
+( \PH{t},
+  \PH{\trad{\B{n.inp}}{\ListOf{\B{Inp}}}_{\text{decl}}},
   \PH{\trad{\B{n.out}}{\ListOf{\B{Out}}}_{\text{decl}}}) \nl"} \\
   \trad{\B{n}}{\B{inp}}_{\text{decl}} \isdef & \trad{\B{n.type}}{\B{Type}} \\
   \trad{\B{n}}{\B{out}}_{\text{decl}} \isdef & \llvm{"\PH{\trad{\B{n.type}}{\B{Type}}}*"}
@@ -807,7 +807,7 @@ parameters.
 The implementation section is composed of the definitions for each function
 in the corresponding interface:
 \begin{align*}
-  \trad{\B{n}}{\B{Mach}}_{\text{implementation}} \isdef 
+  \trad{\B{n}}{\B{Mach}}_{\text{implementation}} \isdef
   & \LET \B{i} = \B{n.impl} = \bot \IN\\
   & \quad \IF \B{i} = \bot \THEN \llvm{""} \\
   & \quad \ELSE \\
@@ -849,13 +849,13 @@ implemented with conditional and unconditional jumps.
 
 To facilitate the defintiion of rules that apply to similar cases, we introduce
 mapping $\opmap$, that associates B operators to corresponding LLVM keywords:
-$$\opmap = \{ 
+$$\opmap = \{
 \begin{array}[t]{l}
-  = \mapsto \llvm{"eq"}, 
-  \ne \mapsto \llvm{"ne"}, 
-  < \mapsto \llvm{"slt"}, 
-  \le \mapsto \llvm{"sle"}, 
-  > \mapsto \llvm{"sgt"}, 
+  = \mapsto \llvm{"eq"},
+  \ne \mapsto \llvm{"ne"},
+  < \mapsto \llvm{"slt"},
+  \le \mapsto \llvm{"sle"},
+  > \mapsto \llvm{"sgt"},
   \ge \mapsto \llvm{"sge"}, \\
   + \mapsto \llvm{"add"} \}.
   \end{array}
@@ -875,7 +875,7 @@ structure to pointer variable $p$ and then dereference $p$ to assign $v$:
 \begin{align*}
 \lefteqn{\trad{n}{\B{Name}} \isdef \LET t = \trad{n.type}{\B{Type}} \IN} \\
 & \IF \B{n} \mbox{ is a constant } \THEN \trad{n.value}{\B{Expr}} \\
-& \ELSIF \B{n} \mbox{ is a local variable } \THEN 
+& \ELSIF \B{n} \mbox{ is a local variable } \THEN
 \llvm{""} \sep \local(\B{n}) \sep t \\
 & \ELSE (\B{n} \mbox{ is a state variable }) \LET p = \variable \AND v = \variable \IN \\
 & \quad \llvm{"\PH{p} = getelementptr \PH{\state(\B{n.root})} \%self\$, i32 0, i32 \PH{\idx(\B{n})} \nl} \\
@@ -883,7 +883,7 @@ structure to pointer variable $p$ and then dereference $p$ to assign $v$:
 \end{align*}
 
 \paragraph{Comparisons} are formed by the application of a relational operator
-to two expressions. 
+to two expressions.
 
 The code responsible for evaluating a comparison \B{r} is defined by the
 following rule. First both arguments are evaluated in $p_1$ and $p_2$, and then
@@ -898,8 +898,8 @@ in the fresh variable $v$.
 & \IN \LET v = \variable \IN \\
 & \llvm{"\PH{p_1}\quad\PH{p_2}\quad\PH{v} = icmp \PH{\opmap(\B{r.op})} \PH{t_1} \PH{v_1} \PH{v_2} \nl"} \sep v
 \end{align*}
-   
-\paragraph{Arithmetic operations} have a similar 
+
+\paragraph{Arithmetic operations} have a similar
 structure and interpretation as comparisons. Here is the rule for binary
 arithmetic operations:
 \begin{align*}
@@ -1002,9 +1002,9 @@ Next are the rules defining the translation of individual input and output
 parameters. They have local scope and they are translated by prepending
 \llvm{\%}:
 \begin{align*}
-  \trad{i}{inp} \isdef 
+  \trad{i}{inp} \isdef
   \llvm{"\PH{\trad{i.type}{\B{Type}}} \PH{\local(\B{i})}"} \quad \quad
-  \trad{o}{out} \isdef 
+  \trad{o}{out} \isdef
   \llvm{"\PH{\trad{o.type}{\B{Type}}}* \PH{\local(\B{o})}"}
 \end{align*}
 
@@ -1021,7 +1021,7 @@ variable declaration found. The detailed definition of this traversal is omitted
 for space reasons. For each B0 variable \B{v} found, a LLVM name is thus
 created.
 \begin{align*}
-  \trad{v}{alloc} \isdef 
+  \trad{v}{alloc} \isdef
   \llvm{"\PH{\local(\B{v})} = alloca \PH{\trad{v.type}{\B{Type}}} \nl"}
 \end{align*}
 
@@ -1051,13 +1051,13 @@ after the corresponding execution is executed.
 
 Function $\trad{\B{il}, $\ell$}{\ListOf{\B{Inst}}}_L$ takes as input a sequence
 of B instructions \B{il} and a label $\ell$ and produces the source code of a
-LLVM block with $\ell$ as exit point. It is defined as follows: 
+LLVM block with $\ell$ as exit point. It is defined as follows:
 
 \begin{align*}
 \trad{\B{il}, $\ell$}{\ListOf{\B{Inst}}}_L \isdef & \IF \B{il} \mbox{ is empty} \THEN \llvm{"br label \%\PH{\ell} \nl"} \\
 & \ELSE \\
 & \LET \B{i}, \B{il'} = \B{il}  \IN \\
-& \quad \quad \LET p_1 = 
+& \quad \quad \LET p_1 =
 \begin{array}[t]{l}
   \IF \B{i} \mbox{ is \B{If} or \B{While}} \THEN \\
   \quad \LET \ell' = \lbl \IN \llvm{"\PH{\trad{i, $\ell'$}{\B{Inst}}_L} \PH{\ell'}: \PH{p}"} \\
@@ -1082,12 +1082,12 @@ yields the corresponding code $r$, the variable $v$ holding the result, and its
 type $t$.
 \begin{align*}
 \begin{split}
-  \trad{a}{\B{Beq}} \isdef 
+  \trad{a}{\B{Beq}} \isdef
   & \LET l \sep p \sep t'= \trad{i.lhs}{lv} \AND r \sep v \sep t = \trad{i.rhs}{\B{Expr}} \IN \\
   & \llvm{"\PH{l}} \\
   & \llvm{\PH{r}} \\
   & \llvm{store \PH{t} \PH{v}, \PH{t'} \PH{p} \nl"}
-%   & l \conc r \conc 
+%   & l \conc r \conc
 %   \llvm{"store "} \conc t \conc \texttt{" "} \conc v \conc \llvm{", "}
 %   \conc t \conc \llvm{"* "} \conc p \conc \nl
 \end{split}
@@ -1115,8 +1115,8 @@ the component corresponding to this operation. Note that this component may be
 either the implementation being translated (in the case of a so-called local
 operation), or an instance of an imported machine.
 \begin{align*}
-  \trad{c}{\B{Call}} \isdef 
-  & \LET p_i \sep il = \trad{c.inp}{\ListOf{Inp}} \AND p_o \sep ol = 
+  \trad{c}{\B{Call}} \isdef
+  & \LET p_i \sep il = \trad{c.inp}{\ListOf{Inp}} \AND p_o \sep ol =
   \trad{c.out}{\ListOf{Out}} \AND \\
   & \quad id = {\Global(\B{c})} \AND ty = \llvm{"\PH{\stateref(\B{c.root})}} \AND \\
   & \quad val \sep p = \IF \B{c.inst} = \text{None} \\
@@ -1136,9 +1136,9 @@ first corresponds to the LLVM instruction sequence $p$ responsible for
 evaluating the argument, and the second to the type $t$ and name $v$ of the
 variable storing the resulting value:
 \begin{align*}
-  \trad{i}{Inp} \isdef 
+  \trad{i}{Inp} \isdef
   & \LET p \sep v \sep t = \trad{i}{\B{Expr}} \IN p \sep \llvm{"\PH{t} \PH{v}"}\\
-  \trad{o}{Out} \isdef 
+  \trad{o}{Out} \isdef
   & \LET p \sep v \sep t = \trad{o}{lv} \IN p \sep \llvm{"\PH{t} \PH{v}"}
 \end{align*}
 
@@ -1189,7 +1189,7 @@ The following rule handles the case of the last branch, which might have a condi
 \paragraph{Case instructions} are formed by an expression, and a list of case
 branches, each of which has a list of values and an instruction block.
 Optionally, there might be a default branch, and we consider that, in this case,
-the list of values is empty. 
+the list of values is empty.
 
 The translation to the LLVM IR uses its switch statement. It is composed of a
 variable, a default jump and a jump table. The jump table is a sequence of pairs
@@ -1222,7 +1222,7 @@ jump table $j$, and instruction blocks $b$. If a case branch has several values,
 then several entries need to be created in the jump table. This is the role
 of the translation function $\trad{}{\B{ListOf{CaseVal}}}$.
 \begin{align*}
-  \trad{b bl, $\ell_o$, $\ell_e$}{\ListOf{\B{CaseBr}}} \isdef 
+  \trad{b bl, $\ell_o$, $\ell_e$}{\ListOf{\B{CaseBr}}} \isdef
   & \LET \ell = \lbl \IN \\
   & \LET j, b = \trad{bl, $\ell_o$, $\ell_e$}{\ListOf{\B{CaseBr}}} \IN \\
   & \quad \llvm{"\PH{\trad{b.values, $\ell$}{\ListOf{\B{CaseVal}}}} \PH{j}"}
@@ -1234,7 +1234,7 @@ This rule handles the last branch of a case statement, and needs to test if
 that branch is a default branch or not. If not, then one needs to be artificially
 created (as this is mandatory in the LLVM-IR switch statement):
 \begin{align*}
-  \trad{b, $\ell_o$, $\ell_e$}{\ListOf{\B{CaseBr}}} \isdef 
+  \trad{b, $\ell_o$, $\ell_e$}{\ListOf{\B{CaseBr}}} \isdef
   & \IF \B{b.values} = \text{None} \THEN \\
   & \quad \llvm{""} \sep \llvm{"\PH{\ell_o}: \nl \PH{\trad{b.body, $\ell_e$}{\ListOf{Inst}}_L}"} \\
   & \ELSE \LET \ell_b = \lbl \IN \\
@@ -1249,7 +1249,7 @@ $\ell$ is the label of the instruction block containing the translation of the
 branch body:
 \begin{align*}
   \trad{v, $\ell$}{\ListOf{\B{CaseVal}}} \isdef & \trad{v, $\ell$}{\B{CaseVal}} \\
-  \trad{v vl, $\ell$}{\ListOf{\B{CaseVal}}} \isdef & 
+  \trad{v vl, $\ell$}{\ListOf{\B{CaseVal}}} \isdef &
   \llvm{"\PH{\trad{v, $\ell$}{\B{CaseVal}}} \PH{\trad{vl, $\ell$}{\ListOf{\B{CaseVal}}}}"}
 \end{align*}
 
@@ -1265,7 +1265,7 @@ block $\ell_1$ evaluates the loop condition and block $\ell_2$ executes the loop
 body:
 \begin{align*}
 \begin{split}
-\trad{w, $\ell$}{\B{While}} \isdef 
+\trad{w, $\ell$}{\B{While}} \isdef
   & \LET \ell_1 = \lbl \AND \ell_2 = \lbl \AND c \sep v = \trad{w.cond}{\B{Pred}} \IN \\
   & \llvm{"br label \%\PH{\ell_1} \nl} \\
   & \llvm{\PH{\ell_1} : \PH{c}} \\
@@ -1304,7 +1304,7 @@ corresponding initialization function:
 
 Before implementing this translation, we want validate the rules that define it.
 For this, we follow a pragmatic approach, based on testing and simulation of the
-generated LLVM artifacts, and using the existing LLVM tool set.  
+generated LLVM artifacts, and using the existing LLVM tool set.
 
 First, we define a sample set of small B implementation modules, that contain
 all the B constructs handled in the translation. For each such module, the rules
@@ -1315,7 +1315,7 @@ with extra code that have two purposes:
 \item the executable creates an instance of the B implementation, applies the
   initialization code, and offers to the user the choice to interactively invoke
   all the operations of the implementation; after initialization and each
-  operation application the state of the implementation is printed. 
+  operation application the state of the implementation is printed.
 \end{itemize}
 
 The LLVM tools that are employed are:
@@ -1425,7 +1425,7 @@ int lit & \yes & \yes & \yes & \yes & \yes & \yes & \yes & \yes \\
 bool lit & \yes & \yes & \no & \yes & \yes & \no & \yes & \yes \\
 vars & \yes & \yes & \yes & \yes & \no & \yes & \no & \yes \\
 loc. vars & \no & \no & \yes & \yes & \no & \yes & \yes & \yes \\
-const & \no & \yes & \no & \no & \yes & \no & \yes & \yes\\ 
+const & \no & \yes & \no & \no & \yes & \no & \yes & \yes\\
 succ & \no & \yes & \no & \yes & \yes & \no & \no & \no \\
 pred & \no & \yes & \no & \yes & \yes & \no & \no & \no \\
 + & \yes & \no & \no & \yes & \no & \yes & \yes & \no \\
@@ -1445,4 +1445,3 @@ $>$ & \no & \no & \no & \no & \yes & \no & \yes & \no \\
 
 
 \end{document}
-
