@@ -264,10 +264,13 @@ def load_imports(root, symast, symimp, dir, project, c):
     imports = [load_import(i, symast, dir, project, c) 
                for i in imports.findall("./Referenced_Machine")]
     # Add visible symbols from imported machines ([LRM, Appendix C.10])
+    acc = [] # store machines that have already been processed 
     for i in imports:
         m = i["mach"]
-        for n in visible_symbols(project, m):
-            sym_table_add(symast, n["id"], n)
+        if m not in acc:
+            for n in visible_symbols(project, m):
+                sym_table_add(symast, n["id"], n)
+            acc.append(m)
         if i["pre"] != None:
             sym_table_add(symimp, i["pre"], i)
         else:
@@ -661,8 +664,11 @@ def load_unary_predicate(n, symast):
     return load_unary(n, symast, "Unary_Predicate", {"not":ast.make_not})
 
 def load_nary_predicate(n, symast):
-    return load_nary(n, symast, "Nary_Predicate",
-                     {"&":ast.make_and, "or":ast.make_or})
+    assert n.tag == "Nary_Predicate"
+    f, par = setup_expression(n, {"&":ast.make_and, "or":ast.make_or})
+    assert len(par) >= 2
+    args = [ load_boolean_expression(p, symast) for p in par ]
+    return list_combine_ltr(args, lambda a0, a1: f(a0, a1))
 
 def load_expression_comparison(n, symast):
     return load_binary(n, symast, "Expression_Comparison",

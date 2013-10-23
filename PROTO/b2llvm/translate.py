@@ -70,11 +70,20 @@ def translate_mode_comp(m):
         assert is_developed(m)
         res = str()
         i = implementation(m)
+        acc = set()
         for q in comp_indirect(m):
-            res += state_opaque_typedef(q.mach)
-            res += state_ref_typedef(q.mach)
+            if q.mach["id"] not in acc:
+                res += state_opaque_typedef(q.mach)
+                res += state_ref_typedef(q.mach)
+                acc.add(q.mach["id"])
+                print("comp_indirect:"+q.mach["id"])
+        acc.clear()
         for q in comp_direct(m):
-            res += section_interface(q.mach)
+            if q.mach["id"] not in acc:
+                res += section_interface(q.mach)
+                acc.add(q.mach["id"])
+                print("comp_direct:"+q.mach["id"])
+        acc.clear()
         if is_stateful(m):
             res += section_typedef_impl(i, m)
             res += state_ref_typedef(m)
@@ -635,7 +644,7 @@ def x_call(n):
             res += (tb + v1 + " = getelementptr " + mach_t + 
                     " %self$, i32 0, i32 " + str(state_position(n["inst"])) +
                     nl)
-            res += tb + v2 + " = load " + t +"*" + sp + v1
+            res += tb + v2 + " = load " + t +"*" + sp + v1 + nl
         args.append(t + sp + v2)
     args.extend(il)
     args.extend(ol)
