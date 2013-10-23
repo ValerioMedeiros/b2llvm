@@ -111,9 +111,9 @@ def translate_mode_proj(m):
     acc = set()
     for q in comps:
         if q.mach["id"] not in acc:
-        if is_stateful(q.mach):
-            res += section_typedef(q.mach)
-            res += state_ref_typedef(q.mach)
+            if is_stateful(q.mach):
+                res += section_typedef(q.mach)
+                res += state_ref_typedef(q.mach)
             acc.add(q.mach["id"])
     acc.clear()
     # the instances are now declared, top down
