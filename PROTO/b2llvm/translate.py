@@ -76,13 +76,11 @@ def translate_mode_comp(m):
                 res += state_opaque_typedef(q.mach)
                 res += state_ref_typedef(q.mach)
                 acc.add(q.mach["id"])
-                print("comp_indirect:"+q.mach["id"])
         acc.clear()
         for q in comp_direct(m):
             if q.mach["id"] not in acc:
                 res += section_interface(q.mach)
                 acc.add(q.mach["id"])
-                print("comp_direct:"+q.mach["id"])
         acc.clear()
         if is_stateful(m):
             res += section_typedef_impl(i, m)
@@ -606,7 +604,7 @@ def x_lvalue(n):
     if n["scope"] == "Impl":
         v = names.new_local()
         return (tb + v + " = getelementptr " + state_r_name(n["root"])+ 
-                " %self$, i32 0, i32 " + str(variable_position(n)) + nl, v, t)
+                " %self$, i32 0, i32 " + str(state_position(n)) + nl, v, t)
     elif n["scope"] in {"Oper", "Local"}:
         return ("", "%"+n["id"],t)
     else:
@@ -867,15 +865,6 @@ def translate_state(n):
     else:
         return state_t_name(n) + " = type " + state_expression(n) + nl
 
-def variable_position(v):
-    check_kind(v, {"Vari"})
-    m = v["root"]
-    for idx in range(len(m["variables"])):
-        if v == m["variables"][idx]:
-            return idx
-    print("error: variable " + v["id"] + " not found in variable_position")
-    assert(false)
-
 ### TRANSLATION OF EXPRESSIONS ###
 
 def translate_integerlit(n):
@@ -906,7 +895,7 @@ def translate_name(n):
         v = names.new_local()
         text = ""
         text += (tb + p + " = getelementptr " + state_t_name(n["root"]) + 
-                 sp + "%self$, i32 0, i32 " + str(variable_position(n)) + nl)
+                 sp + "%self$, i32 0, i32 " + str(state_position(n)) + nl)
         text += tb + v + " = load " + t + "* " + p + nl
         return (text, v, t)
     else:
