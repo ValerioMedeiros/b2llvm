@@ -102,22 +102,39 @@ def translate_mode_proj(m):
     check_kind(m, "Machine")
     assert is_developed(m)
     res = str()
-    comps = [Comp([], m)] + comp_indirect(m)
-    for q in comps.reverse():
+    # identify all the module instances that need to be created
+    root = Comp([], m)
+    comps = [root] + comp_indirect(m)
+    # emit the type definitions corresponding to the instantiated modules
+    # forward references are disallowed: enumerate definitions bottom-up
+    comps.reverse()
+    acc = set()
+    for q in comps:
+        if q.mach["id"] not in acc:
         if is_stateful(q.mach):
             res += section_typedef(q.mach)
             res += state_ref_typedef(q.mach)
-    for q in comps.reverse():
+            acc.add(q.mach["id"])
+    acc.clear()
+    # the instances are now declared, top down
+    comps.reverse()
+    for q in comps:
         if is_stateful(q.mach):
-            res += (q+" = common global "+state_t_name(q.mach) +
+            res += (str(q)+" = common global "+state_t_name(q.mach) +
                     " zeroinitializer"+nl)
+    # emit the declarations for the operations offered by root module
+    # only the initialisation is necessary actually
     res += section_interface(m)
-    res += "define void @$init$ {"+nl
-    res += tb+"call void "+init_name(m)+"("
-    res += commas([state_r_name(q.mach)+sp+q for q in comp_stateful(m)])
-    res += ")"+nl
-    res += tb+"exit: ret void"+nl
+    # generate the code of the routine that initializes the system
+    # by calling the initialization function for the root module.
+    args = [state_r_name(root.mach) + sp + str(root)]
+    args += [state_r_name(q.mach)+sp+str(q) for q in comp_stateful(m)]
+    res += "define void @$init$() {"+nl
+    res += "entry:"+nl
+    res += tb+"call void "+init_name(m)+"("+commas(args)+")"+nl
+    res += tb+"ret void"+nl
     res += "}"
+    return res
 
 #
 # SECTION-LEVEL CODE GENERATION FUNCTIONS
@@ -1241,7 +1258,7 @@ def comp_direct(m):
                 pre = impo["pre"]
                 if pre == None:
                     pre = ""
-                m["comp_direct"].append(Comp(pre, impo["mach"]))
+                m["comp_direct"].append(Comp([pre], impo["mach"]))
     return m["comp_direct"]
 
 def comp_indirect(m):
