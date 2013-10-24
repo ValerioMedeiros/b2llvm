@@ -16,14 +16,11 @@ parser.add_argument('-m', '--mode', choices=['comp','proj'], default='comp',
                     help='Selects code generation mode.')
 
 args = parser.parse_args()
-if args.comp and args.proj:
-    print("error: choose only one code generation mode.")
-elif not args.comp and not args.proj:
-    print("error: choose one code generation mode")
-else:
-    translate_bxml(b_module, args.llvm_file, mode=args.mode, 
-                   dirname=args.directory, settings=args.settings)
-    print("b2llvm code generation completed")
-    print("- input: " + args.bxml_file)
-    print("- output: " + args.llvm_file)
-    print("- mode: " + ("top-level" if args.top else "library machine"))
+translate_bxml(args.b_module, args.llvm_file, mode=args.mode, 
+               dir=args.directory, settings=args.settings)
+print("b2llvm code generation completed")
+print("- BXML directory: " + args.directory)
+print("- B project settings file: " + args.settings)
+print("- B module: " + args.b_module)
+print("- LLVM output file: " + args.llvm_file)
+print("- code generation mode: " + args.mode)

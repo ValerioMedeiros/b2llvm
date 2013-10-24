@@ -184,7 +184,7 @@ def section_interface_init(m):
     comp = list()
     if is_stateful(m):
         comp.append(m)
-    comp.extend([comp.mach for comp in comp_indirect(m)])
+    comp.extend([x.mach for x in comp_indirect(m)])
     res = str()
     res += "declare void"+sp+init_name(m)
     res += "("+commas(list_machine_refs(comp))+")"+nl
@@ -207,7 +207,7 @@ def section_interface_op(m, op):
         tl.append(state_r_name(m))
     tl.extend([ x_type(i["type"]) for i in op["inp"] ])
     tl.extend([ x_type(o["type"])+"*" for o in op["out"] ])
-    return "declare void"+sp+global_name(op)+"("+commas(tl)+")"+nl
+    return "declare void"+sp+op_name(op)+"("+commas(tl)+")"+nl
 
 def section_typedef(m):
     '''
@@ -363,7 +363,7 @@ def x_operation(n):
     check_kind(n, {"Oper"})
     names.reset()
     res = str()
-    res += "define void "+global_name(n)
+    res += "define void "+op_name(n)
     res += "("+commas([state_r_name(n["root"])+sp+"%self$"]+
                            [x_type(i["type"])+sp+"%"+i["id"] for i in n["inp"]]+
                            [x_type(o["type"])+"*"+sp+"%"+o["id"] for o in n["out"]])+")"
@@ -663,7 +663,7 @@ def x_call(n):
         args.append(t + sp + v2)
     args.extend(il)
     args.extend(ol)
-    id = global_name(operation)
+    id = op_name(operation)
     res += tb + "call void" + sp + id + "(" + commas(args) + ")" + nl
     return res
 
@@ -728,24 +728,30 @@ def state_r_name(n):
     else:
         return state_r_name(machine(n))
 
-def global_name(n):
+def op_name(n):
     '''
     - Input:
-      n: A node representing a B construct
+      n: A node representing a B operation
     - Output:
       A string for the name of the LLVM construct representing n.
     '''
-    return "@" + n["root"]["id"] + "$" + n["id"]
+    check_kind(n, "Operation")
+    root = n["root"]
+    check_kind(root, "Impl")
+    machine = root["machine"]
+    return "@" + machine["id"] + "$" + n["id"]
 
 def init_name(n):
     '''
     - Input:
-      n : a node representing a B implementation
+      n : a node representing a B machine or implementation
     - Output:
     String with the name of the LLVM function encoding the initialization
     of that implementation.
     '''
-    return "@"+n["id"]+"$init$"
+    check_kind(n, {"Machine", "Impl"})
+    mach = n if n["kind"] == "Machine" else n["machine"]
+    return "@"+mach["id"]+"$init$"
 
 ### LLVM names for B operators ###
 
@@ -1146,7 +1152,7 @@ def translate_op_decl(n, state_t):
     for o in n["out"]:
         tl.append(x_type(o["type"])+"*")
     result = ""
-    result += "declare void " + global_name(n) + "(" + commas(tl) + ")" + nl
+    result += "declare void " + op_name(n) + "(" + commas(tl) + ")" + nl
     return result
 
 def translate_op_decl_import(n):
