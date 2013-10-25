@@ -20,6 +20,9 @@ bxml/wd.bxml: bxml/wd_i.bxml
 counter: counter.bc scaffold-counter.bc init-counter.bc
 	$(LLVM_LINK) $^ -o $@
 
+timer: counter.bc timer.bc init-timer.bc scaffold-timer.bc
+	$(LLVM_LINK) $^ -o $@
+
 wd: wd.bc counter.bc
 
 all: counter wd
