@@ -1,0 +1,28 @@
+B2LLVM = ./b2llvm.py
+LLVM_AS = llvm-as-mp-3.1
+LLVM_LINK = llvm-link-mp-3.1
+
+%.llvm : bxml/%.bxml
+	$(B2LLVM) $* $@ bxml project.xml
+
+init-%.llvm : bxml/%.bxml
+	$(B2LLVM) --mode proj $* $@ bxml project.xml
+
+%.bc : %.llvm
+	$(LLVM_AS) $< -o $@
+
+bxml/counter.bxml: bxml/counter_i.bxml
+	touch bxml/counter.bxml
+
+bxml/wd.bxml: bxml/wd_i.bxml
+	touch bxml/wd.bxml
+
+counter: counter.bc scaffold-counter.bc init-counter.bc
+	$(LLVM_LINK) $^ -o $@
+
+wd: wd.bc counter.bc
+
+all: counter wd
+
+clean:
+	rm *.bc
