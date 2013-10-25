@@ -407,7 +407,7 @@
 	      </Affectation_Substitution>
 	      <If_Substitution>
 		<Condition>
-		  <Expression_Comparison operator='&lt;'>
+		  <Expression_Comparison operator='='>
 		    <Identifier value='diff'>
 		      <Attributes>
 			<TypeInfo>

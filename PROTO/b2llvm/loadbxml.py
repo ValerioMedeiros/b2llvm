@@ -673,7 +673,7 @@ def load_nary_predicate(n, symast):
 def load_expression_comparison(n, symast):
     return load_binary(n, symast, "Expression_Comparison",
                        {"=": ast.make_eq, "/=": ast.make_neq,
-                        ">": ast.make_lt, ">=": ast.make_ge,
+                        ">": ast.make_gt, ">=": ast.make_ge,
                         "<": ast.make_lt, "<=": ast.make_le})
 
 def load_boolean_expression(n, symast):

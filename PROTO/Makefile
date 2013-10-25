@@ -17,15 +17,19 @@ bxml/counter.bxml: bxml/counter_i.bxml
 bxml/wd.bxml: bxml/wd_i.bxml
 	touch bxml/wd.bxml
 
+bxml/timer.bxml: bxml/timer_i.bxml
+	touch bxml/timer.bxml
+
 counter: counter.bc scaffold-counter.bc init-counter.bc
+	$(LLVM_LINK) $^ -o $@
+
+wd: counter.bc wd.bc init-wd.bc scaffold-wd.bc
 	$(LLVM_LINK) $^ -o $@
 
 timer: counter.bc timer.bc init-timer.bc scaffold-timer.bc
 	$(LLVM_LINK) $^ -o $@
 
-wd: wd.bc counter.bc
-
-all: counter wd
+all: counter wd timer
 
 clean:
 	rm *.bc
