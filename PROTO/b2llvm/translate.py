@@ -14,6 +14,8 @@ import b2llvm.names as names
 from b2llvm.strutils import commas, nconc, sp, nl, tb, tb2
 from b2llvm.bproject import BProject
 
+import b2llvm.trace as trace
+
 #
 # Main entry point for this module
 #
@@ -34,24 +36,27 @@ def translate_bxml(bmodule, outfile, mode='comp', dir='bxml', settings='project.
     '''
     project = loadbxml.load_project(dirname=dir, filename=settings)
     ast = loadbxml.load_module(dir, project, bmodule)
+    res = bytearray()
+    res.extend(";; -*- mode: asm -*-"+nl) # emacs syntax highlight on
+    trace.OUT(res, "file generated with b2llvm")
+    trace.OUT(res, "B module: "+bmodule)
+    trace.OUT(res, "B project directory: "+dir)
+    trace.OUT(res, "B project settings: "+settings)
+    trace.OUT(res, "code generation mode: " + ("component" if mode == "comp" else "project"))
+    trace.OUT(res, "output file: "+outfile)
     if mode == 'comp':
-        filecontents = translate_mode_comp(ast)
+        translate_mode_comp(res, ast)
     else:
-        filecontents = translate_mode_proj(ast)
+        translate_mode_proj(res, ast)
     llvm = open(outfile, 'w')
-    llvm.write(";;; -*- mode: asm -*-"+nl) # emacs syntax highlight on
-    llvm.write(";;; file name: "+outfile+nl)
-    llvm.write(";;; B module: "+bmodule+nl)
-    llvm.write(";;; generation mode: "+mode+nl)
-    llvm.write(";;; generated with b2llvm."+nl)
-    llvm.write(filecontents)
+    llvm.write(res)
     llvm.close()
 
 #
 # TOP-LEVEL FUNCTION FOR EACH TRANSLATION MODE
 #
 
-def translate_mode_comp(m):
+def translate_mode_comp(res, m):
     '''
     Translation in component mode.
 
@@ -64,31 +69,44 @@ def translate_mode_comp(m):
       of a full project.
     '''
     check_kind(m, {"Machine"})
+    trace.OUT(res, "B machine: " + m["id"])
     if is_base(m):
-        return section_typedef(m)
+        trace.OUT(res, "machine category: base")
+        section_typedef(res, m)
     else:
         assert is_developed(m)
-        res = str()
+        trace.OUT(res, "machine category: developed")
         i = implementation(m)
-        acc = set()
-        for q in comp_indirect(m):
-            if q.mach["id"] not in acc:
-                res += state_opaque_typedef(q.mach)
-                res += state_ref_typedef(q.mach)
-                acc.add(q.mach["id"])
-        acc.clear()
-        for q in comp_direct(m):
-            if q.mach["id"] not in acc:
-                res += section_interface(q.mach)
-                acc.add(q.mach["id"])
-        acc.clear()
+        tmp = comp_indirect(m)
+        if tmp != []:
+            trace.OUT(res, m["id"] + ": types for transitively imported modules")
+            trace.TAB()
+            acc = set()
+            for q in comp_indirect(m):
+                if q.mach["id"] not in acc:
+                    state_opaque_typedef(res, q.mach)
+                    state_ref_typedef(res, q.mach)
+                    acc.add(q.mach["id"])
+            acc.clear()
+            trace.UNTAB()
+        tmp = comp_direct(m)
+        if tmp != []:
+            trace.OUT(res, m["id"] + ": interfaces of directly imported modules")
+            trace.TAB()
+            for q in tmp:
+                if q.mach["id"] not in acc:
+                    trace.OUT(res, "module "+q.mach["id"]+": interface")
+                    section_interface(res, q.mach)
+                    acc.add(q.mach["id"])
+            acc.clear()
+            trace.UNTAB()
         if is_stateful(m):
-            res += section_typedef_impl(i, m)
-            res += state_ref_typedef(m)
-        res += section_implementation(m)
-        return res
+            trace.OUT(res, "module "+m["id"]+ ": stateful")
+            section_typedef_impl(res, i, m)
+            state_ref_typedef(res, m)
+        section_implementation(res, m)
 
-def translate_mode_proj(m):
+def translate_mode_proj(res, m):
     '''
     Translation in project mode.
 
@@ -101,60 +119,75 @@ def translate_mode_proj(m):
     '''
     check_kind(m, "Machine")
     assert is_developed(m)
-    res = str()
+    trace.OUT(res, "B machine: " + m["id"])
+    trace.OUT(res, "machine category: developed")
     # identify all the module instances that need to be created
     root = Comp([], m)
     comps = [root] + comp_indirect(m)
     # emit the type definitions corresponding to the instantiated modules
     # forward references are disallowed: enumerate definitions bottom-up
     comps.reverse()
+    trace.OUT(res, m["id"]+ ": definition of module types")
+    trace.TAB()
     acc = set()
     for q in comps:
         if q.mach["id"] not in acc:
             if is_stateful(q.mach):
-                res += section_typedef(q.mach)
-                res += state_ref_typedef(q.mach)
+                trace.OUT(res, "module "+q.mach["id"]+ ": stateful")
+                section_typedef(res, q.mach)
+                state_ref_typedef(res, q.mach)
+            else:
+                trace.OUT(res, "module "+q.mach["id"]+ ": stateless")
             acc.add(q.mach["id"])
     acc.clear()
+    trace.UNTAB()
     # the instances are now declared, top down
+    trace.OUT(res, m["id"]+ ": declaration of variables representing module instances")
+    trace.TAB()
     comps.reverse()
     for q in comps:
         if is_stateful(q.mach):
+            trace.OUT(res, "declaration of variable corresponding to "+q.bstr())
             res += (str(q)+" = common global "+state_t_name(q.mach) +
                     " zeroinitializer"+nl)
+    trace.UNTAB()
     # emit the declarations for the operations offered by root module
     # only the initialisation is necessary actually
-    res += section_interface(m)
+    section_interface(res, m)
     # generate the code of the routine that initializes the system
     # by calling the initialization function for the root module.
     args = [state_r_name(root.mach) + sp + str(root)]
     args += [state_r_name(q.mach)+sp+str(q) for q in comp_stateful(m)]
-    res += "define void @$init$() {"+nl
-    res += "entry:"+nl
-    res += tb+"call void "+init_name(m)+"("+commas(args)+")"+nl
-    res += tb+"ret void"+nl
-    res += "}"
-    return res
+    trace.OUT(res, "definition of function to initialize an instance of "+m["id"]+ " and its components")
+    trace.TAB()
+    res.extend("define void @$init$() {"+nl+
+               "entry:"+nl)
+    trace.OUT(res, "call to initialization function of "+m["id"])
+    res.extend(tb+"call void "+init_name(m)+"("+commas(args)+")"+nl
+               +tb+"ret void"+nl
+               + "}")
+    trace.UNTAB()
 
 #
 # SECTION-LEVEL CODE GENERATION FUNCTIONS
 # 
 
-def section_interface(m):
+def section_interface(res, m):
     '''
     Generates the declaration of all externally visible elements of machine n:
     reference type, initialisation function, operation function.
 
     Input:
+      - res: bytearray where output shall be stored
       - n: AST root node of a machine
     Output:
-    Text of LLVM declarations (see section interface in translation definition).
+    Extends res with text of LLVM declarations (see section interface in translation 
+    definition).
     '''
     check_kind(m, {"Machine"})
-    res = str()
-    res += section_interface_init(m)
-    res += nconc([ section_interface_op(m, op) for op in operations(m) ])
-    return res
+    section_interface_init(res, m)
+    for op in operations(m):
+        section_interface_op(res, m, op)
 
 def operations(m):
     '''
@@ -170,31 +203,33 @@ def operations(m):
     else:
         return m["operations"]
 
-def section_interface_init(m):
+def section_interface_init(res, m):
     '''
     Generates the declaration of the initialization function for n
 
     Inputs:
+      - res: bytearray to store output
       - m: a machine AST root node
     Output:
-      Text of a LLVM function declaration.
+      res is extended with the text of a LLVM function declaration for
+      the initalisation
     '''
     global nl
     check_kind(m, {"Machine"})
     comp = list()
+    trace.OUT(res, m["id"]+": declaration of function implementing initialization")
     if is_stateful(m):
         comp.append(m)
     comp.extend([x.mach for x in comp_indirect(m)])
-    res = str()
-    res += "declare void"+sp+init_name(m)
-    res += "("+commas(list_machine_refs(comp))+")"+nl
-    return res
+    res.extend("declare void"+sp+init_name(m))
+    res.extend("("+commas(list_machine_refs(comp))+")"+nl)
 
-def section_interface_op(m, op):
+def section_interface_op(res, m, op):
     '''
     Declaration of the function implementing operation op in m.
 
     Inputs:
+      - res: bytearray to store output
       - m: a machine AST root node
       - op: an operation AST node
     Output:
@@ -202,18 +237,20 @@ def section_interface_op(m, op):
     '''
     global nl
     # compute in tl the list of arguments types
+    trace.OUT(res, m["id"]+": declaration of function implementing operation " + op["id"])
     tl = list()
     if is_stateful(m):
         tl.append(state_r_name(m))
     tl.extend([ x_type(i["type"]) for i in op["inp"] ])
     tl.extend([ x_type(o["type"])+"*" for o in op["out"] ])
-    return "declare void"+sp+op_name(op)+"("+commas(tl)+")"+nl
+    res.extend("declare void"+sp+op_name(op)+"("+commas(tl)+")"+nl)
 
-def section_typedef(m):
+def section_typedef(res, m):
     '''
-    Generates the definition of the state type and reference type of machine n.
+    Generates the definition of the state type machine m.
 
     Inputs:
+      - res: bytearray to store output
       - m: AST root node of a machine
     Output:
       Text of LLVM definitions for the types associated with the state of
@@ -225,22 +262,21 @@ def section_typedef(m):
     global nl
     check_kind(m, {"Machine"})
     if is_developed(m):
-        return section_typedef_impl(implementation(m), m)
+        section_typedef_impl(res, implementation(m), m)
     else:
         assert is_base(m)
-        res = str()
         if is_stateful(m):
-            res += state_t_name(m)+" = type {"
-            res += commas([x_type(v["type"]) for v in m["variables"]])
-            res += "}"+nl
-        return res
+            trace.OUT(res, m["id"] + ": definition of type coding the state")
+            res.extend(state_t_name(m)+" = type {")
+            res.extend(commas([x_type(v["type"]) for v in m["variables"]]))
+            res.extend("}"+nl)
 
-def section_typedef_impl(i, m):
+def section_typedef_impl(res, i, m):
     '''
     Generates the section implementation of the translation to LLVM.
 
     Inputs:
-      - c: cache
+      - res: bytearray to store output
       - i: AST node for a B implementation
       - m: AST node for the B machine corresponding to i
     Output:
@@ -249,19 +285,19 @@ def section_typedef_impl(i, m):
     '''
     check_kind(i, {"Impl"})
     check_kind(m, {"Machine"})
-    res = str()
     if is_stateful(i):
-        res += state_t_name(m)+" = type {"
-        res += commas(imports_type(i["imports"]) +
-                           [x_type(v["type"]) for v in i["variables"]])
-        res += "}"+nl
-    return res
+        trace.OUT(res, "module "+m["id"] + ": definition of type coding the state (impl.: "+i["id"] + ")")
+        res.extend(state_t_name(m)+" = type {")
+        res.extend(commas(imports_type(i["imports"]) +
+                          [x_type(v["type"]) for v in i["variables"]]))
+        res.extend("}"+nl)
 
-def section_implementation(m):
+def section_implementation(res, m):
     '''
     Generates the section implementation of the translation to LLVM.
 
     Inputs:
+      - res: a bytearray where text is appended
       - m: AST node for a B machine
     Output:
     String with the definitions of the LLVM functions implementing the
@@ -269,13 +305,11 @@ def section_implementation(m):
     project proj.    
     '''
     check_kind(m, {"Machine"})
-    res = str()
     if is_developed(m):
         i = implementation(m)
-        res += x_init(m, i)
+        x_init(res, m, i)
         for op in i["operations"]:
-            res += x_operation(op)
-    return res
+            x_operation(res, op)
 
 #
 # TRANSLATION FUNCTIONS OF INDIVIDUAL ELEMENTS OF THE B AST
@@ -296,9 +330,10 @@ def x_type(t):
 
 ### TRANSLATION FOR INITIALISATION
 
-def x_init(m, i):
+def x_init(res, m, i):
     '''
     Input:
+      - res: a bytearray to store output
       - m: root AST node of a B machine
       - i: root AST node of the implementation of m
     Output:
@@ -307,11 +342,11 @@ def x_init(m, i):
     global tb, nl, sp
     check_kind(m, {"Machine"})
     check_kind(i, {"Impl"})
+    trace.OUT(res, "definition of function implementing initialization for "+i["id"])
     tm = state_r_name(m) # LLVM type name: pointer to structure storing m data
     names.reset()
     # 1. generate function signature: one parameter for the implementation
     # instance, one parameter for each transitively imported module instance.
-    res = str()
     # 1.1 generate argument names for the imported instances, store in lexicon
     lexicon = dict()
     count = 0 # to generate fresh names
@@ -325,83 +360,106 @@ def x_init(m, i):
         if is_stateful(q.mach):
             arg_list.append(state_r_name(q.mach)+sp+lexicon[q])
     # 1.3 the signature
-    res += "define void"+sp+init_name(i)+"("+commas(arg_list)+")"
+    res.extend("define void"+sp+init_name(i)+"("+commas(arg_list)+") {"+nl)
+    trace.TAB()
+    trace.OUT(res, "%self$: address of structure storing main component")
+    for q in comp_indirect(m):
+        if is_stateful(q.mach):
+            trace.OUT(res, lexicon[q]+": address of structure storing component "+q.bstr())
+    trace.UNTAB()
     # 2. generate function body
-    res += "{"+nl
-    res += "entry:"+nl
+    res.extend("entry:"+nl)
     # 2.1 reserve stack space for local variables
-    res += x_alloc_inst_list(i["initialisation"])
+    x_alloc_inst_list(res, i["initialisation"])
     # 2.2 bind direct imports to elements of state structure
     direct = [ q for q in comp_direct(m) if is_stateful(q.mach) ]
-    for j in range(len(direct)):
-        lbl = names.new_local()
-        q = direct[j]
-        tm2 = state_r_name(q.mach)
-        res += tb+lbl+" = getelementptr "+tm+" %self$, i32 0, i32 "+str(j)+nl
-        res += tb+"store "+tm2+sp+lexicon[q]+", "+tm2+"* "+lbl+nl
+    if direct != []:
+        trace.OUT(res, "bind addresses of structures representing components of "+i["id"])
+        trace.OUT(res, "to fields of main structure.")
+        trace.TAB()
+        for j in range(len(direct)):
+            lbl = names.new_local()
+            q = direct[j]
+            trace.OUT(res, "bind component " + q.bstr() + " to structure element " + str(j))
+            tm2 = state_r_name(q.mach)
+            res.extend(tb+lbl+" = getelementptr "+tm+" %self$, i32 0, i32 "+str(j)+nl)
+            res.extend(tb+"store "+tm2+sp+lexicon[q]+", "+tm2+"* "+lbl+nl)
+        trace.UNTAB()
     # 2.3 initialize direct imports
     offset = len(direct)+1
-    for q in comp_direct(m):
-        mq = q.mach     # the imported machine
-        arg_list2 = []  # to store parameters needed to initialize mq
-        if is_stateful(mq):
-            arg_list2.append(state_r_name(mq)+sp+lexicon[q])
-        n = len([x for x in comp_indirect(mq) if is_stateful(x.mach)])
-        arg_list2.extend(arg_list[offset:offset+n])
-        res += tb+"call void "+init_name(mq)+"("+commas(arg_list2)+")"+nl
+    if comp_direct(m) != []:
+        trace.OUT(res, "initialize components")
+        trace.TAB()
+        for q in comp_direct(m):
+            mq = q.mach     # the imported machine
+            arg_list2 = []  # to store parameters needed to initialize mq
+            if is_stateful(mq):
+                arg_list2.append(state_r_name(mq)+sp+lexicon[q])
+                n = len([x for x in comp_indirect(mq) if is_stateful(x.mach)])
+                arg_list2.extend(arg_list[offset:offset+n])
+                trace.OUT(res, "call to initialization function for component " + q.bstr())
+                res.extend(tb+"call void "+init_name(mq)+"("+commas(arg_list2)+")"+nl)
+        trace.UNTAB()
     # 2.4 translate initialisation instructions
-    res += x_inst_list_label(i["initialisation"], "exit")
-    res += "exit:"+nl
-    res += tb+"ret void"+nl
-    res += "}"+nl
-    return res
+    trace.OUT(res, "execute substitutions in initialisation of "+i["id"]+", then branch to exit")
+    res.extend(x_inst_list_label(i["initialisation"], "exit"))
+    trace.OUT(res, "exit point of the initialisation")
+    res.extend("exit:"+nl)
+    res.extend(tb+"ret void"+nl)
+    res.extend("}"+nl)
 
 ### TRANSLATION OF OPERATIONS
 
-def x_operation(n):
+def x_operation(res, n):
     global tb, nl
     check_kind(n, {"Oper"})
     names.reset()
-    res = str()
-    res += "define void "+op_name(n)
-    res += "("+commas([state_r_name(n["root"])+sp+"%self$"]+
-                           [x_type(i["type"])+sp+"%"+i["id"] for i in n["inp"]]+
-                           [x_type(o["type"])+"*"+sp+"%"+o["id"] for o in n["out"]])+")"
-    res += "{"+nl
-    res += "entry:"+nl
-    res += x_alloc_inst(n["body"])
-    res += x_inst_label(n["body"], "exit")
-    res += "exit:"+nl
-    res += tb+"ret void"+nl
-    res += "}"+nl
-    return res
+    trace.OUT(res, "definition of function implementing operation "+n["id"]+" in "+n["root"]["id"])
+    res.extend("define void "+op_name(n))
+    res.extend("("+commas([state_r_name(n["root"])+sp+"%self$"]+
+                          [x_type(i["type"])+sp+"%"+i["id"] for i in n["inp"]]+
+                          [x_type(o["type"])+"*"+sp+"%"+o["id"] for o in n["out"]])+")")
+    res.extend("{"+nl)
+    trace.TAB()
+    res.extend("entry:"+nl)
+    x_alloc_inst(res, n["body"])
+    res.extend(x_inst_label(n["body"], "exit"))
+    res.extend("exit:"+nl)
+    res.extend(tb+"ret void"+nl)
+    res.extend("}"+nl)
+    trace.UNTAB()
 
 ### TRANSLATION OF STACK VARIABLE ALLOCATION
 
-def x_alloc_inst_list(n):
-    return nconc([x_alloc_inst(inst) for inst in n])
+def x_alloc_inst_list(res, n):
+    for inst in n:
+        x_alloc_inst(res, inst)
 
-def x_alloc_inst(n):
+def x_alloc_inst(res, n):
     check_kind(n, {"Beq", "Blk", "Call", "Case", "If", "Skip", "VarD", "While"})
     if n["kind"] in {"Beq", "Call"}:
         return ""
     elif n["kind"] in {"Case", "If"}:
-        return nconc(x_alloc_inst(br["body"]) for br in n["branches"])
+        for br in n["branches"]:
+            x_alloc_inst(res, br["body"])
     elif n["kind"] in {"Blk", "While"}: 
-        return x_alloc_inst_list(n["body"])
+        return x_alloc_inst_list(res, n["body"])
     elif n["kind"] == "VarD":
-        return x_alloc_var_decl(n)
+        return x_alloc_var_decl(res, n)
     else:
         print("error: unknown instruction kind")
-        return ""
+        res.extend("<error inserted by b2llvm>")
     
-def x_alloc_var_decl(n):
+def x_alloc_var_decl(res, n):
     global tb, nl, sp
     check_kind(n, {"VarD"})
-    res = nconc([ tb+"%"+v["id"]+" = alloca "+x_type(v["type"])+nl
-                  for v in n["vars"] ])
-    res += x_alloc_inst_list(n["body"])
-    return res
+    trace.OUT(res, "local variable declarations implemented as frame stack allocations")
+    trace.TAB()
+    for v in n["vars"]:
+        trace.OUT(res, "frame stack allocation for variable "+v["id"])
+        res.extend(tb+"%"+v["id"]+" = alloca "+x_type(v["type"])+nl)
+    x_alloc_inst_list(res, n["body"])
+    trace.UNTAB()
 
 ### TRANSLATION OF INSTRUCTIONS ###
 
@@ -423,31 +481,35 @@ def x_inst_list_label(l, lbl):
     else:
         i = l[0]
         l2 = l[1:]
+        res = str()
         if i["kind"] in {"Case", "If", "While"}:
             lbl2 = names.new_label()
-            p1 = x_inst_label(i, lbl2) + lbl2 + ":\n"
+            res += x_inst_label(i, lbl2)
+            res += lbl2 + ":\n"
         elif i["kind"] in {"Blk"}:
-            p1 = x_inst_list(i["body"])
+            res += x_inst_list(i["body"])
         else:
-            p1 = x_inst(i)
-        p2 = x_inst_list_label(l2, lbl)
-        return p1 + p2
+            res += x_inst(i)
+        res += x_inst_list_label(l2, lbl)
+        return res
 
 def x_inst_list(l):
-    if len(l) == 0:
-        return ""
-    else:
+    if len(l) > 0:
         i = l[0]
         l2 = l[1:]
+        res = str()
         if i["kind"] in {"If", "While"}:
             lbl2 = names.new_label()
-            p1 = x_inst_label(i, lbl2) + lbl2 + ":\n"
+            res += x_inst_label(i, lbl2)
+            res += lbl2 + ":\n"
         elif i["kind"] in {"Blk"}:
-            p1 = x_inst_list(i["body"])
+            res += x_inst_list(i["body"])
         else:
-            p1 = x_inst(i)
-        p2 = x_inst_list(l2)
-        return p1 + p2
+            res += x_inst(i)
+        res += x_inst_list(l2)
+        return res
+    else:
+        return ""
 
 def x_inst_label(n, lbl):
     check_kind(n, {"Beq", "Blk", "Call", "Case", "If", "VarD", "While"})
@@ -460,14 +522,14 @@ def x_inst_label(n, lbl):
     elif n["kind"] == "While":
         return x_while(n, lbl)
     elif n["kind"] in {"Beq", "Call"}:
-        res = str()
-        res += x_inst(n)
+        res = x_inst(n)
         res += tb + "br label %" + lbl + nl
         return res
     elif n["kind"] == "VarD":
         return x_inst_list_label(n["body"], lbl)
     else:
         print("error: instruction type unknown")
+        return "<error inserted by b2llvm>"
 
 def x_inst(n):
     check_kind(n, {"Beq", "Call", "VarD"})
@@ -477,8 +539,6 @@ def x_inst(n):
         return x_call(n)
     elif n["kind"] == "VarD":
         return x_inst_list(n["body"])
-    else:
-        return ""
 
 ### TRANSLATION OF CASE INSTRUCTIONS
 
@@ -556,7 +616,7 @@ def x_if_br(lbr, lbl):
         else:
             lbl_1 = names.new_label()
             res = str()
-            res += translate_form(br["cond"], lbl_1, lbl)
+            res += x_formula(br["cond"], lbl_1, lbl)
             res += lbl_1 + ":" + nl
             res += x_inst_label(br["body"], lbl)
     # br is not the last branch
@@ -564,7 +624,7 @@ def x_if_br(lbr, lbl):
         lbl_1 = names.new_label()
         lbl_2 = names.new_label()
         res = str()
-        res += translate_form(br["cond"], lbl_1, lbl_2)
+        res += x_formula(br["cond"], lbl_1, lbl_2)
         res += lbl_1 + ":" + nl
         res += x_inst_label(br["body"], lbl)
         res += lbl_2 + ":" + nl
@@ -577,7 +637,7 @@ def x_while(n, lbl):
     global nl, tb, sp
     check_kind(n, {"While"})
     lbl1 = names.new_label()
-    c, v = translate_pred(n["cond"])
+    c, v = x_pred(n["cond"])
     lbl2 = names.new_label()
     body = x_inst_list_label(n["body"], lbl1)
     res = str()
@@ -686,6 +746,80 @@ def x_outputs(n):
         preamble += p
         args.append(t + sp + v)
     return preamble, args
+
+### TRANSLATION OF CONDITIONS ###
+
+def x_formula(n, lbl1, lbl2):
+    check_kind(n, {"Comp", "Form"})
+    if n["kind"] == "Comp":
+        text, v = x_comp(n)
+        text += tb + "br i1" + sp + v + sp + ", label %" + lbl1 + ", label %" + lbl2 + nl
+        return text
+    elif n["kind"] == "Form":
+        if n["op"] == "and":
+            return x_and(n, lbl1, lbl2)
+        elif n["op"] == "or":
+            return x_or(n, lbl1, lbl2)
+        elif n["op"] == "not":
+            return x_not(n, lbl1, lbl2)
+        else:
+            print("error: unrecognized formula")
+            return ""
+    else:
+        print("error: not implemented x_formula for formulas.")
+        return ""
+
+def x_comp(n):
+    global tb, sp, nl
+    check_kind(n, {"Comp"})
+    p1,v1,t1 = translate_expression(n["arg1"])
+    p2,v2,t2 = translate_expression(n["arg2"])
+    v = names.new_local()
+    return (p1 +
+            p2 +
+            tb + v + " = icmp " + llvm_op(n["op"]) + sp + t1 + sp + v1 + ", " + v2 + nl), v
+
+def x_and(n, lbl1, lbl2):
+    check_kind(n, {"Form"})
+    assert(n["op"] == "and")
+    assert(len(n["args"]) == 2)
+    arg1 = n["args"][0]
+    arg2 = n["args"][1]
+    lbl = names.new_label()
+    p1 = x_formula(arg1, lbl, lbl2)
+    p2 = x_formula(arg2, lbl1, lbl2)
+    result = ""
+    result += p1
+    result += lbl + ":" + nl
+    result += p2
+    return result
+
+def x_or(n, lbl1, lbl2):
+    check_kind(n, {"Form"})
+    assert(n["op"] == "or")
+    assert(len(n["args"]) == 2)
+    arg1 = n["args"][0]
+    arg2 = n["args"][1]
+    lbl = names.new_label()
+    p1 = x_formula(arg1, lbl1, lbl)
+    p2 = x_formula(arg2, lbl1, lbl2)
+    result = ""
+    result += p1
+    result += lbl + ":" + nl
+    result += p2
+    return result
+
+def x_not(n, lbl1, lbl2):
+    check_kind(n, {"Form"})
+    assert(n["op"] == "not")
+    return x_formula(n["args"][0], lbl2, lbl1)
+
+def x_pred(n):
+    if n["kind"] == "Comp":
+        return x_comp(n)
+    else:
+        print("error: not implemented translation for such predicate")
+        return ("", "")
 
 ### LLVM IDENTIFIER GENERATION ###
 
@@ -814,29 +948,33 @@ def state_position(n):
     print("error: position of imported machine or variable not found in implementation")
     return 0
 
-def state_opaque_typedef(m):
+def state_opaque_typedef(res, m):
     '''
     Input:
+      - res: bytearray to store output
       - m: represents a B machine
-    Output:
-      String for LLVM definition of type pointer to type representing the
+    Desc:
+      Appends to res the LLVM definition of type pointer to type representing the
       state of n.
       This only makes sense if n is stateful.
     '''
     global nl
-    return state_t_name(m) + " = type opaque" + nl
+    trace.OUT(res, "module "+m["id"]+": declaration of type for state")
+    res.extend(state_t_name(m) + " = type opaque" + nl)
 
-def state_ref_typedef(m):
+def state_ref_typedef(res, m):
     '''
     Input:
+      - res: bytearray to store output
       - m: represents a B machine
-    Output:
-      String for LLVM definition of type pointer to type representing the
+    Desc:
+      Adds to res the LLVM definition of type pointer to type representing the
       state of n.
       This only makes sense if n is stateful.
     '''
     global nl
-    return state_r_name(m) + " = type " + state_t_name(m) + "*" + nl
+    trace.OUT(res, "module "+m["id"]+": definition of type pointer to state")
+    res.extend(state_r_name(m) + " = type " + state_t_name(m) + "*" + nl)
 
 ###
 
@@ -974,80 +1112,6 @@ def translate_expression(n):
         return translate_expression(n["value"])
     else:
         return ("","","")
-
-### TRANSLATION OF CONDITIONS ###
-
-def translate_comp(n):
-    global tb, sp, nl
-    check_kind(n, {"Comp"})
-    p1,v1,t1 = translate_expression(n["arg1"])
-    p2,v2,t2 = translate_expression(n["arg2"])
-    v = names.new_local()
-    return (p1 +
-            p2 +
-            tb + v + " = icmp " + llvm_op(n["op"]) + sp + t1 + sp + v1 + ", " + v2 + nl), v
-
-def translate_pred(n):
-    if n["kind"] == "Comp":
-        return translate_comp(n)
-    else:
-        print("error: not implemented translation for such predicate")
-        return ("", "")
-
-def translate_and(n, lbl1, lbl2):
-    check_kind(n, {"Form"})
-    assert(n["op"] == "and")
-    assert(len(n["args"]) == 2)
-    arg1 = n["args"][0]
-    arg2 = n["args"][1]
-    lbl = names.new_label()
-    p1 = translate_form(arg1, lbl, lbl2)
-    p2 = translate_form(arg2, lbl1, lbl2)
-    result = ""
-    result += p1
-    result += lbl + ":" + nl
-    result += p2
-    return result
-
-def translate_or(n, lbl1, lbl2):
-    check_kind(n, {"Form"})
-    assert(n["op"] == "or")
-    assert(len(n["args"]) == 2)
-    arg1 = n["args"][0]
-    arg2 = n["args"][1]
-    lbl = names.new_label()
-    p1 = translate_form(arg1, lbl1, lbl)
-    p2 = translate_form(arg2, lbl1, lbl2)
-    result = ""
-    result += p1
-    result += lbl + ":" + nl
-    result += p2
-    return result
-
-def translate_not(n, lbl1, lbl2):
-    check_kind(n, {"Form"})
-    assert(n["op"] == "not")
-    return translate_form(n["args"][0], lbl2, lbl1)
-
-def translate_form(n, lbl1, lbl2):
-    check_kind(n, {"Comp", "Form"})
-    if n["kind"] == "Comp":
-        text, v = translate_comp(n)
-        text += tb + "br i1" + sp + v + sp + ", label %" + lbl1 + ", label %" + lbl2 + nl
-        return text
-    elif n["kind"] == "Form":
-        if n["op"] == "and":
-            return translate_and(n, lbl1, lbl2)
-        elif n["op"] == "or":
-            return translate_or(n, lbl1, lbl2)
-        elif n["op"] == "not":
-            return translate_not(n, lbl1, lbl2)
-        else:
-            print("error: unrecognized formula")
-            return ""
-    else:
-        print("error: not implemented translate_form for formulas.")
-        return ""
 
 ### TRANSLATION OF INSTRUCTIONS ###
 
@@ -1199,30 +1263,6 @@ def translate_op_decl_import_list(n):
             result += translate_op_decl_import(m)
     return result
 
-def translate_implementation(i, toplevel):
-    '''
-    - Input:
-      i: a node representing a B implementation
-      toplevel: a boolean indicating if this implementation is
-      a top-level component (and not a library component)
-    - Output:
-      The text of the LLVM encoding for i.
-    '''
-    check_kind(i, {"Impl"})
-    result = ""
-    result += x_type_def_import_list(i)
-    result += translate_op_decl_import_list(i)
-    result += translate_constants(i)
-    result += translate_state(i)
-    result += x_init(i)
-    for op in i["operations"]:
-        result += x_operation(op)
-    if toplevel:
-        result += (instance_name(i) + " = common global " 
-                   + state_t_name(i) + " zeroinitializer" + nl)
-    return result
-
-
 ### COMP(ONENTS)
 
 class Comp:
@@ -1238,11 +1278,14 @@ class Comp:
         check_kind(m, {"Machine"})
         self.path = p
         self.mach = m
-        self.id = "@"+"$".join(p)+"$"+m["id"]  
+        self.id = "@"+"$".join(p)+"$"+m["id"] 
+        self.b_id = m["id"] if p == [""] else ".".join(p+[m["id"]])
     def __str__(self):
         return self.id
     def __hash__(self):
         return self.id.__hash__()
+    def bstr(self):
+        return self.b_id
 
 def comp_direct(m):
     ''' 
