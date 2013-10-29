@@ -30,9 +30,9 @@ def translate_bxml(bmodule, outfile, mode='comp', dir='bxml', settings='project.
     Main function for applying the code generator to a B module
 
     Keywords:
-      - mode: the code generation mode
       - bmodule: the name of the B machine to have code generated for
       - outfile: the name of the file where code shall be output
+      - mode: the code generation mode
       - dir: the name of the directory where files shall be read (default is 'bxml')
       - settings: the name of the file in dir where the project settings
       are stored (default: project.xml)
@@ -61,138 +61,136 @@ def translate_bxml(bmodule, outfile, mode='comp', dir='bxml', settings='project.
 # TOP-LEVEL FUNCTION FOR EACH TRANSLATION MODE
 #
 
-def translate_mode_comp(res, m):
+def translate_mode_comp(text, m):
     '''
     Translation in component mode.
 
     Inputs:
-      - c: cache
-      - n: root AST node for a B machine in proj
-    Output:
-      LLVM text corresponding to the implementation of n. The produced
-      LLVM module is a component to be linked against in the compilation
-      of a full project.
+      - res: a bytearray to store LLVM code
+      - m: root AST node for a B machine in proj
+
+    LLVM text corresponding to the implementation of n is stored into res
     '''
     check_kind(m, {"Machine"})
-    trace.OUT(res, "B machine: " + m["id"])
+    trace.OUT(text, "B machine: " + m["id"])
     if is_base(m):
-        trace.OUT(res, "machine category: base")
-        section_typedef(res, m)
+        trace.OUT(text, "machine category: base")
+        section_typedef(text, m)
     else:
         assert is_developed(m)
-        trace.OUT(res, "machine category: developed")
+        trace.OUT(text, "machine category: developed")
         i = implementation(m)
         tmp = comp_indirect(m)
         if tmp != []:
-            trace.OUT(res, m["id"] + ": types for transitively imported modules")
+            trace.OUT(text, m["id"] + ": types for transitively imported modules")
             trace.TAB()
             acc = set()
+            # TODO see if one should not filter out types for stateless modules
             for q in comp_indirect(m):
                 if q.mach["id"] not in acc:
-                    state_opaque_typedef(res, q.mach)
-                    state_ref_typedef(res, q.mach)
+                    state_opaque_typedef(text, q.mach)
+                    state_ref_typedef(text, q.mach)
                     acc.add(q.mach["id"])
             acc.clear()
             trace.UNTAB()
         tmp = comp_direct(m)
         if tmp != []:
-            trace.OUT(res, m["id"] + ": interfaces of directly imported modules")
+            trace.OUT(text, m["id"] + ": interfaces of directly imported modules")
             trace.TAB()
             for q in tmp:
                 if q.mach["id"] not in acc:
-                    trace.OUT(res, "module "+q.mach["id"]+": interface")
-                    section_interface(res, q.mach)
+                    trace.OUT(text, "module "+q.mach["id"]+": interface")
+                    section_interface(text, q.mach)
                     acc.add(q.mach["id"])
             acc.clear()
             trace.UNTAB()
         if is_stateful(m):
-            trace.OUT(res, "module "+m["id"]+ ": stateful")
-            section_typedef_impl(res, i, m)
-            state_ref_typedef(res, m)
-        section_implementation(res, m)
+            trace.OUT(text, "module "+m["id"]+ ": stateful")
+            section_typedef_impl(text, i, m)
+            state_ref_typedef(text, m)
+        section_implementation(text, m)
 
-def translate_mode_proj(res, m):
+def translate_mode_proj(text, m):
     '''
     Translation in project mode.
 
     Inputs:
-      - n: root AST node for a B machine
-    Output:
-      LLVM text corresponding to the implementation of n. The produced
-      LLVM module is the main component to be linked against in the compilation
-      of a full project.
+      - text: a bytearray where LLVM code is stored
+      - m: root AST node for a B machine
+
+    Appends to text the LLVM code corresponding to the LLVM code generation for m
+    in project mode.
     '''
     check_kind(m, "Machine")
     assert is_developed(m)
-    trace.OUT(res, "B machine: " + m["id"])
-    trace.OUT(res, "machine category: developed")
+    trace.OUT(text, "B machine: " + m["id"])
+    trace.OUT(text, "machine category: developed")
     # identify all the module instances that need to be created
     root = Comp([], m)
     comps = [root] + comp_indirect(m)
     # emit the type definitions corresponding to the instantiated modules
     # forward references are disallowed: enumerate definitions bottom-up
     comps.reverse()
-    trace.OUT(res, m["id"]+ ": definition of module types")
+    trace.OUT(text, m["id"]+ ": definition of module types")
     trace.TAB()
     acc = set()
     for q in comps:
         if q.mach["id"] not in acc:
             if is_stateful(q.mach):
-                trace.OUT(res, "module "+q.mach["id"]+ ": stateful")
-                section_typedef(res, q.mach)
-                state_ref_typedef(res, q.mach)
+                trace.OUT(text, "module "+q.mach["id"]+ ": stateful")
+                section_typedef(text, q.mach)
+                state_ref_typedef(text, q.mach)
             else:
-                trace.OUT(res, "module "+q.mach["id"]+ ": stateless")
+                trace.OUT(text, "module "+q.mach["id"]+ ": stateless")
             acc.add(q.mach["id"])
     acc.clear()
     trace.UNTAB()
     # the instances are now declared, top down
-    trace.OUT(res, m["id"]+ ": declaration of variables representing module instances")
+    trace.OUT(text, m["id"]+ ": declaration of variables representing module instances")
     trace.TAB()
     comps.reverse()
     for q in comps:
         if is_stateful(q.mach):
-            trace.OUT(res, "declaration of variable corresponding to "+q.bstr())
-            res += (str(q)+" = common global "+state_t_name(q.mach) +
-                    " zeroinitializer"+nl)
+            trace.OUT(text, "declaration of variable corresponding to "+q.bstr())
+            text.extend(str(q)+" = common global "+state_t_name(q.mach)+" zeroinitializer"+nl)
     trace.UNTAB()
     # emit the declarations for the operations offered by root module
     # only the initialisation is necessary actually
-    section_interface(res, m)
+    section_interface(text, m)
     # generate the code of the routine that initializes the system
     # by calling the initialization function for the root module.
     args = [state_r_name(root.mach) + sp + str(root)]
     args += [state_r_name(q.mach)+sp+str(q) for q in comp_stateful(m)]
-    trace.OUT(res, "definition of function to initialize an instance of "+m["id"]+ " and its components")
+    trace.OUT(text, "definition of function to initialize an instance of "+m["id"]+ " and its components")
     trace.TAB()
-    res.extend("define void @$init$() {"+nl+
-               "entry:"+nl)
-    trace.OUT(res, "call to initialization function of "+m["id"])
-    res.extend(tb+"call void "+init_name(m)+"("+commas(args)+")"+nl
-               +tb+"ret void"+nl
-               + "}")
+    text.extend("define void @$init$() {"+nl+
+                "entry:"+nl)
+    trace.OUT(text, "call to initialization function of "+m["id"])
+    text.extend(tb+"call void "+init_name(m)+"("+commas(args)+")"+nl+
+                tb+"ret void"+nl+
+                "}")
     trace.UNTAB()
 
 #
 # SECTION-LEVEL CODE GENERATION FUNCTIONS
 # 
 
-def section_interface(res, m):
+def section_interface(text, m):
     '''
     Generates the declaration of all externally visible elements of machine n:
     reference type, initialisation function, operation function.
 
     Input:
-      - res: bytearray where output shall be stored
+      - text: bytearray where output shall be stored
       - n: AST root node of a machine
-    Output:
+
     Extends res with text of LLVM declarations (see section interface in translation 
     definition).
     '''
     check_kind(m, {"Machine"})
-    section_interface_init(res, m)
+    section_interface_init(text, m)
     for op in operations(m):
-        section_interface_op(res, m, op)
+        section_interface_op(text, m, op)
 
 def operations(m):
     '''
@@ -208,7 +206,7 @@ def operations(m):
     else:
         return m["operations"]
 
-def section_interface_init(res, m):
+def section_interface_init(text, m):
     '''
     Generates the declaration of the initialization function for n
 
@@ -222,99 +220,106 @@ def section_interface_init(res, m):
     global nl
     check_kind(m, {"Machine"})
     comp = list()
-    trace.OUT(res, m["id"]+": declaration of function implementing initialization")
+    trace.OUT(text, m["id"]+": declaration of function implementing initialization")
     if is_stateful(m):
         comp.append(m)
     comp.extend([x.mach for x in comp_indirect(m)])
-    res.extend("declare void"+sp+init_name(m))
-    res.extend("("+commas(list_machine_refs(comp))+")"+nl)
+    text.extend("declare void"+sp+init_name(m))
+    text.extend("("+commas(list_machine_refs(comp))+")"+nl)
 
-def section_interface_op(res, m, op):
+def section_interface_op(text, m, op):
     '''
     Declaration of the function implementing operation op in m.
 
     Inputs:
-      - res: bytearray to store output
+      - text: bytearray to store output
       - m: a machine AST root node
       - op: an operation AST node
-    Output:
-      Text of a LLVM function declaration.
+
+    The declaration of A LLVM function implementing operation op from m is
+    appended to text.
     '''
     global nl
     # compute in tl the list of arguments types
-    trace.OUT(res, m["id"]+": declaration of function implementing operation " + op["id"])
+    trace.OUT(text, m["id"]+": declaration of function implementing operation " + op["id"])
     tl = list()
     if is_stateful(m):
         tl.append(state_r_name(m))
     tl.extend([ x_type(i["type"]) for i in op["inp"] ])
     tl.extend([ x_type(o["type"])+"*" for o in op["out"] ])
-    res.extend("declare void"+sp+op_name(op)+"("+commas(tl)+")"+nl)
+    text.extend("declare void"+sp+op_name(op)+"("+commas(tl)+")"+nl)
 
-def section_typedef(res, m):
+def section_typedef(text, m):
     '''
     Generates the definition of the state type machine m.
 
     Inputs:
-      - res: bytearray to store output
+      - text: bytearray to store output
       - m: AST root node of a machine
-    Output:
-      Text of LLVM definitions for the types associated with the state of
-      machine m. If the machine is stateful, two types are created: an
-      aggregate type encoding the state of n (or its implementation if it is a 
-      developed machine), and one reference type, pointer to the previous type.
-      Otherwise, nothing is generated.
+
+    Text of LLVM definitions for the types associated with the state of machine
+    m is appended to text. If the machine is stateful, two types are created: an
+    aggregate type encoding the state of n (or its implementation if it is a
+    developed machine), and one reference type, pointer to the previous type.
+    Otherwise, nothing is generated.
     '''
     global nl
     check_kind(m, {"Machine"})
     if is_developed(m):
-        section_typedef_impl(res, implementation(m), m)
+        section_typedef_impl(text, implementation(m), m)
     else:
         assert is_base(m)
         if is_stateful(m):
-            trace.OUT(res, m["id"] + ": definition of type coding the state")
-            res.extend(state_t_name(m)+" = type {")
-            res.extend(commas([x_type(v["type"]) for v in m["variables"]]))
-            res.extend("}"+nl)
+            trace.OUT(text, m["id"] + ": definition of type coding the state")
+            text.extend(state_t_name(m)+" = type {"+nl)
+            vars = m["variables"]
+            for i in range(len(vars)-1):
+                v = vars[i]
+                text.extend(tb+x_type(v["type"])+",")
+                trace.OUT(text, "represents "+v["id"])
+            v = vars[len(vars)-1]
+            text.extend(x_type(v["type"])+",")
+            trace.OUT(text, "represents "+v["id"])
+            text.extend("}"+nl)
 
-def section_typedef_impl(res, i, m):
+def section_typedef_impl(text, i, m):
     '''
     Generates the section implementation of the translation to LLVM.
 
     Inputs:
-      - res: bytearray to store output
+      - text: bytearray to store output
       - i: AST node for a B implementation
       - m: AST node for the B machine corresponding to i
-    Output:
-    String with the definitions of the LLVM functions implementing the
-    initialisation and operations of the implementation i.
+
+    Definition of the type representing the states of implementation i
+    of machine m is appended to text.
     '''
     check_kind(i, {"Impl"})
     check_kind(m, {"Machine"})
     if is_stateful(i):
-        trace.OUT(res, "module "+m["id"] + ": definition of type coding the state (impl.: "+i["id"] + ")")
-        res.extend(state_t_name(m)+" = type {")
-        res.extend(commas(imports_type(i["imports"]) +
+        trace.OUT(text, "module "+m["id"] + ": type coding the states (impl.: "+i["id"] + ")")
+        text.extend(state_t_name(m)+" = type {")
+        text.extend(commas(imports_type(i["imports"]) +
                           [x_type(v["type"]) for v in i["variables"]]))
-        res.extend("}"+nl)
+        text.extend("}"+nl)
 
-def section_implementation(res, m):
+def section_implementation(text, m):
     '''
     Generates the section implementation of the translation to LLVM.
 
     Inputs:
-      - res: a bytearray where text is appended
+      - text: a bytearray where text is appended
       - m: AST node for a B machine
-    Output:
-    String with the definitions of the LLVM functions implementing the
-    initialisation and operations of the implementation of n in the
-    project proj.    
+
+    The definitions of the LLVM functions implementing the initialisation and
+    operations of the implementation of m are appended to text.
     '''
     check_kind(m, {"Machine"})
     if is_developed(m):
         i = implementation(m)
-        x_init(res, m, i)
+        x_init(text, m, i)
         for op in i["operations"]:
-            x_operation(res, op)
+            x_operation(text, op)
 
 #
 # TRANSLATION FUNCTIONS OF INDIVIDUAL ELEMENTS OF THE B AST
@@ -335,19 +340,20 @@ def x_type(t):
 
 ### TRANSLATION FOR INITIALISATION
 
-def x_init(res, m, i):
+def x_init(text, m, i):
     '''
     Input:
-      - res: a bytearray to store output
+      - text: a bytearray to store output
       - m: root AST node of a B machine
       - i: root AST node of the implementation of m
-    Output:
-    LLVM implementation of the initialization clause of i (a LLVM function).
+
+    LLVM implementation of the initialization clause of i (a LLVM function) is
+    appended to text.
     '''
     global tb, nl, sp
     check_kind(m, {"Machine"})
     check_kind(i, {"Impl"})
-    trace.OUT(res, "definition of function implementing initialization for "+i["id"])
+    trace.OUT(text, "definition of function implementing initialization for "+i["id"])
     tm = state_r_name(m) # LLVM type name: pointer to structure storing m data
     names.reset()
     # 1. generate function signature: one parameter for the implementation
@@ -365,35 +371,35 @@ def x_init(res, m, i):
         if is_stateful(q.mach):
             arg_list.append(state_r_name(q.mach)+sp+lexicon[q])
     # 1.3 the signature
-    res.extend("define void"+sp+init_name(i)+"("+commas(arg_list)+") {"+nl)
+    text.extend("define void"+sp+init_name(i)+"("+commas(arg_list)+") {"+nl)
     trace.TAB()
-    trace.OUT(res, "%self$: address of structure storing main component")
+    trace.OUT(text, "%self$: address of structure storing main component")
     for q in comp_indirect(m):
         if is_stateful(q.mach):
-            trace.OUT(res, lexicon[q]+": address of structure storing component "+q.bstr())
+            trace.OUT(text, lexicon[q]+": address of structure storing component "+q.bstr())
     trace.UNTAB()
     # 2. generate function body
-    res.extend("entry:"+nl)
+    text.extend("entry:"+nl)
     # 2.1 reserve stack space for local variables
-    x_alloc_inst_list(res, i["initialisation"])
+    x_alloc_inst_list(text, i["initialisation"])
     # 2.2 bind direct imports to elements of state structure
     direct = [ q for q in comp_direct(m) if is_stateful(q.mach) ]
     if direct != []:
-        trace.OUT(res, "bind addresses of structures representing components of "+i["id"])
-        trace.OUT(res, "to fields of main structure.")
+        trace.OUT(text, "bind addresses of structures representing components of "+i["id"])
+        trace.OUT(text, "to fields of main structure.")
         trace.TAB()
         for j in range(len(direct)):
             lbl = names.new_local()
             q = direct[j]
-            trace.OUT(res, "bind component " + q.bstr() + " to structure element " + str(j))
+            trace.OUT(text, "bind component " + q.bstr() + " to structure element " + str(j))
             tm2 = state_r_name(q.mach)
-            res.extend(tb+lbl+" = getelementptr "+tm+" %self$, i32 0, i32 "+str(j)+nl)
-            res.extend(tb+"store "+tm2+sp+lexicon[q]+", "+tm2+"* "+lbl+nl)
+            text.extend(tb+lbl+" = getelementptr "+tm+" %self$, i32 0, i32 "+str(j)+nl)
+            text.extend(tb+"store "+tm2+sp+lexicon[q]+", "+tm2+"* "+lbl+nl)
         trace.UNTAB()
     # 2.3 initialize direct imports
     offset = len(direct)+1
     if comp_direct(m) != []:
-        trace.OUT(res, "initialize components")
+        trace.OUT(text, "initialize components")
         trace.TAB()
         for q in comp_direct(m):
             mq = q.mach     # the imported machine
@@ -402,16 +408,16 @@ def x_init(res, m, i):
                 arg_list2.append(state_r_name(mq)+sp+lexicon[q])
                 n = len([x for x in comp_indirect(mq) if is_stateful(x.mach)])
                 arg_list2.extend(arg_list[offset:offset+n])
-                trace.OUT(res, "call to initialization function for component " + q.bstr())
-                res.extend(tb+"call void "+init_name(mq)+"("+commas(arg_list2)+")"+nl)
+                trace.OUT(text, "call to initialization function for component " + q.bstr())
+                text.extend(tb+"call void "+init_name(mq)+"("+commas(arg_list2)+")"+nl)
         trace.UNTAB()
     # 2.4 translate initialisation instructions
-    trace.OUT(res, "execute substitutions in initialisation of "+i["id"]+", then branch to exit")
-    x_inst_list_label(res, i["initialisation"], "exit")
-    trace.OUT(res, "exit point of the initialisation")
-    res.extend("exit:"+nl)
-    res.extend(tb+"ret void"+nl)
-    res.extend("}"+nl)
+    trace.OUT(text, "execute substitutions in initialisation of "+i["id"]+" then exit")
+    x_inst_list_label(text, i["initialisation"], "exit")
+    trace.OUT(text, "exit point of the initialisation")
+    text.extend("exit:"+nl)
+    text.extend(tb+"ret void"+nl)
+    text.extend("}"+nl)
 
 ### TRANSLATION OF OPERATIONS
 
@@ -471,7 +477,7 @@ def x_alloc_inst(text, n):
     x_alloc_var_decl.
     '''
     check_kind(n, {"Beq", "Blk", "Call", "Case", "If", "Skip", "VarD", "While"})
-    if n["kind"] in {"Beq", "Call"}:
+    if n["kind"] in {"Beq", "Call", "Skip"}:
         return
     elif n["kind"] in {"Case", "If"}:
         for br in n["branches"]:
@@ -578,10 +584,12 @@ def x_inst(text, n):
         x_call(text, n)
     elif n["kind"] == "VarD":
         x_inst_list(text, n["body"])
+    elif n["kind"] == "Skip":
+        x_skip(text, n)
 
 ### TRANSLATION OF SKIP ###
 
-def translate_skip(text, n):
+def x_skip(text, n):
     check_kind(n, {"Skip"})
 
 ### TRANSLATION OF CASE INSTRUCTIONS
@@ -690,14 +698,19 @@ def x_if(text, n, lbl):
       executing n.
     '''
     check_kind(n, {"If"})
-    trace.OUT(text, "execute: "+ellipse(printer.subst_if(0, n)))
-    trace.OUT(text, "and branch to "+lbl)
+    trace.OUT(text, "execute \""+ellipse(printer.subst_if(0, n))+"\" and branch to "+lbl)
     x_if_br(text, n["branches"], lbl)
+    trace.OUT(text, "end of \""+ellipse(printer.subst_if(0, n))+"\"")
 
 def ellipse(str):
+    '''
+    Utility that creates a shortened version of a text. If str is greater than 24 characters,
+    the first 21 characters are kept, and elliptic ... replaces the rest of str. Therefore
+    the resulting string has at most 24 characters.
+    '''
     str2 = str.replace("\n", "")
-    if len(str2) > 22:
-        return str2[:20]+"..."
+    if len(str2) > 24:
+        return str2[:21]+"..."
     else:
         return str2
 
@@ -751,13 +764,20 @@ def x_while(text, n, lbl):
     '''
     global nl, tb, sp
     check_kind(n, {"While"})
+    trace.OUT(text, "execute \""+ellipse(printer.subst_while(0, n))+"\" and branch to "+lbl)
+    trace.TAB()
+    trace.OUT(text, "evaluate loop guard \""+ellipse(printer.condition(n["cond"]))+"\"")
     lbl1 = names.new_label()
     text.extend(lbl1 + ":" + nl)
     v = x_pred(text, n["cond"])
     lbl2 = names.new_label()
     text.extend(tb + "br i1 " + v + ", label %" + lbl2 + ", label %" + lbl + nl)
+    trace.OUT(text, "execute loop body \""+ellipse(printer.subst_l(0, n["body"]))+"\"")
     text.extend(lbl2 + ":" +nl)
     x_inst_list_label(text, n["body"], lbl1)
+    trace.OUT(text, "end of loop body \""+ellipse(printer.subst_l(0, n["body"]))+"\"")
+    trace.UNTAB()
+    trace.OUT(text, "end of \""+ellipse(printer.subst_while(0, n))+"\"")
 
 ### TRANSLATION OF BECOMES EQUAL INSTRUCTIONS
 
@@ -771,7 +791,7 @@ def x_beq(text, n):
     '''
     global tb, sp, nl
     check_kind(n, {"Beq"})
-    trace.OUT(text, "execute: "+printer.beq(0, n))
+    trace.OUT(text, "execute \""+printer.beq(0, n)+"\"")
     trace.TAB()
     trace.OUT(text, "evaluate value: "+printer.term(n["rhs"]))
     v,t = x_expression(text, n["rhs"])
@@ -780,6 +800,7 @@ def x_beq(text, n):
     trace.OUT(text, "assign value to location")
     text.extend(tb + "store " + t + sp + v + ", " + t + "* " + p + nl)
     trace.UNTAB()
+    trace.OUT(text, "end of \""+printer.beq(0, n)+"\"")
 
 def x_lvalue(text, n):
     '''
@@ -822,9 +843,16 @@ def x_lvalue(text, n):
 ### TRANSLATION OF CALL INSTRUCTIONS
 
 def x_call(text, n):
+    '''
+    Generates LLVM code for a B call operation instruction.
+
+    Input:
+      - text: a byterray where LLVM code is stored
+      - n: an AST node representing a B call operation
+    '''
     global sp
     check_kind(n, {"Call"})
-    trace.OUT(text, "execute: "+printer.call(0, n))
+    trace.OUT(text, "execute \""+printer.call(0, n)+"\"")
     operation = n["op"]
     local = (n["inst"] == None) # is a local operation?
     impl = operation["root"]
@@ -862,6 +890,7 @@ def x_call(text, n):
     trace.OUT(text, "call function implementing operation")
     text.extend(tb + "call void" + sp + id + "(" + commas(args) + ")" + nl)
     trace.UNTAB()
+    trace.OUT(text, "end of \""+printer.call(0, n)+"\"")
 
 def x_inputs(text, args, n):
     global sp
@@ -1197,54 +1226,6 @@ def machine(m):
     check_kind(m, {"Impl"})
     return m["machine"]
     
-#
-# This function is responsible for building the LLVM type expression for
-# the type corresponding to the state of B0 implementation n.
-#
-def state_expression(n):
-    check_kind(n, {"Impl", "Machine"})
-    result = "{"
-    components = []
-    for impo in n["imports"]:
-        components += [state_t_name(impo["mach"]["impl"])]
-    for var in n["variables"]:
-        components += [x_type(var["type"])]
-    for i in range(len(components)):
-        if i > 0:
-            result += ", "
-        result += components[i]
-    result += "}"
-    return result
-
-#
-# Function responsible for producing LLVM code defining type corresponding to
-# the state of B0 implementation n
-#
-def translate_state(n):
-    global nl
-    check_kind(n, {"Impl", "Machine"})
-    if (len(n["variables"]) == 0):
-        return ""
-    else:
-        return state_t_name(n) + " = type " + state_expression(n) + nl
-
-### TRANSLATION OF CONSTANT DEFINITIONS
-
-def translate_constant(n):
-    global tb, sp, nl
-    check_kind(n, {"Cons"})
-    if n["type"] not in {"INTEGER", "BOOL"}:
-        print("error: constant " + n["id"] + " cannot be translated")
-    return ""
-
-def translate_constants(n):
-    check_kind(n, {"Impl"})
-    result = ""
-    if "concrete_constants" in n.keys():
-        for const in n["concrete_constants"]:
-            result += translate_constant(const)
-    return result
-
 ### TRANSLATION OF IMPLEMENTATION
 
 def x_type_expr_impo(n):
