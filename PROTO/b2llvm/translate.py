@@ -690,7 +690,16 @@ def x_if(text, n, lbl):
       executing n.
     '''
     check_kind(n, {"If"})
+    trace.OUT(text, "execute: "+ellipse(printer.subst_if(0, n)))
+    trace.OUT(text, "and branch to "+lbl)
     x_if_br(text, n["branches"], lbl)
+
+def ellipse(str):
+    str2 = str.replace("\n", "")
+    if len(str2) > 22:
+        return str2[:20]+"..."
+    else:
+        return str2
 
 def x_if_br(text, lbr, lbl):
     '''
@@ -747,7 +756,7 @@ def x_while(text, n, lbl):
     v = x_pred(text, n["cond"])
     lbl2 = names.new_label()
     text.extend(tb + "br i1 " + v + ", label %" + lbl2 + ", label %" + lbl + nl)
-    text.extend(lbl2 + ":")
+    text.extend(lbl2 + ":" +nl)
     x_inst_list_label(text, n["body"], lbl1)
 
 ### TRANSLATION OF BECOMES EQUAL INSTRUCTIONS
@@ -762,9 +771,15 @@ def x_beq(text, n):
     '''
     global tb, sp, nl
     check_kind(n, {"Beq"})
+    trace.OUT(text, "execute: "+printer.beq(0, n))
+    trace.TAB()
+    trace.OUT(text, "evaluate value: "+printer.term(n["rhs"]))
     v,t = x_expression(text, n["rhs"])
+    trace.OUT(text, "evaluate location: "+printer.term(n["lhs"]))
     p,_ = x_lvalue(text, n["lhs"])
+    trace.OUT(text, "assign value to location")
     text.extend(tb + "store " + t + sp + v + ", " + t + "* " + p + nl)
+    trace.UNTAB()
 
 def x_lvalue(text, n):
     '''
@@ -785,11 +800,19 @@ def x_lvalue(text, n):
     check_kind(n, {"Vari"})
     t = x_type(n["type"]) + "*"
     if n["scope"] == "Impl":
+        pos=state_position(n)
         v = names.new_local()
+        trace.TAB()
+        trace.OUT(text, n["id"]+" is represented as element "+str(pos)+" of %self$")
+        trace.OUT(text, "temporary " + v + " is the corresponding address")
+        trace.UNTAB()
         text.extend(tb + v + " = getelementptr " + state_r_name(n["root"])+ 
                     " %self$, i32 0, i32 " + str(state_position(n)) + nl)
         return (v, t)
     elif n["scope"] in {"Oper", "Local"}:
+        trace.TAB()
+        trace.OUT(text, n["id"]+" is represented on the frame by LLVM variable %"+n["id"])
+        trace.UNTAB()
         return ("%"+n["id"],t)
     else:
         text.extend("<error inserted by b2llvm>")
@@ -801,43 +824,56 @@ def x_lvalue(text, n):
 def x_call(text, n):
     global sp
     check_kind(n, {"Call"})
+    trace.OUT(text, "execute: "+printer.call(0, n))
     operation = n["op"]
     local = (n["inst"] == None) # is a local operation?
     impl = operation["root"]
     # evaluate arguments
+    trace.TAB()
+    trace.OUT(text, "evaluate operation arguments")
     args = list()
+    trace.TAB()
     if is_stateful(impl):
+        trace.OUT(text, "(implicit) address of structure representing operation component")
         # get the LLVM type of the machine offering the operation
         if local:
-            mach_t = state_r_name(operation["root"])
+            mach = operation["root"]
         else:
-            mach_t = state_r_name(n["inst"]["root"])
+            mach = n["inst"]["root"]
+        mach_t = state_r_name(mach)
         if local:
             t = selftype
             v = "%self$"
+            trace.OUT(text, "is %self$")
         else:
+            pos = state_position(n["inst"])
+            trace.OUT(text, "is element "+str(pos)+" of %self$")
             t = state_r_name(n["inst"]["mach"])
             v1 = names.new_local()
             v2 = names.new_local()
             text.extend(tb+v1+" = getelementptr "+mach_t+
-                        " %self$, i32 0, i32 "+str(state_position(n["inst"]))+
-                    nl)
+                        " %self$, i32 0, i32 "+str(pos)+nl)
             text.extend(tb + v2 + " = load " + t +"*" + sp + v1 + nl)
         args.append(t + sp + v2)
     x_inputs(text, args, n["inp"])
     x_outputs(text, args, n["out"])
+    trace.UNTAB()
     id = op_name(operation)
+    trace.OUT(text, "call function implementing operation")
     text.extend(tb + "call void" + sp + id + "(" + commas(args) + ")" + nl)
+    trace.UNTAB()
 
 def x_inputs(text, args, n):
     global sp
     for elem in n:
+        trace.OUT(text, "evaluate input "+printer.term(elem))
         v,t = translate_expression(text, elem)
         args.append(t + sp + v)
 
 def x_outputs(text, args, n):
     global sp
     for elem in n:
+        trace.OUT(text, "evaluate output "+printer.term(elem))
         v,t = x_lvalue(text, elem)
         args.append(t + sp + v)
 
@@ -945,7 +981,12 @@ def x_name(text, n):
     elif n["scope"] == "Impl":
         p = names.new_local()
         v = names.new_local()
-        text.extend(tb+p+" = getelementptr "+state_t_name(n["root"])+" %self$, i32 0, i32 "+str(state_position(n))+nl)
+        pos = state_position(n)
+        trace.TAB()
+        trace.OUT(text, n["id"]+" is represented as element "+str(pos)+" of %self$")
+        trace.OUT(text, "temporary " + v + " is the corresponding address")
+        trace.UNTAB()
+        text.extend(tb+p+" = getelementptr "+state_t_name(n["root"])+" %self$, i32 0, i32 "+str(pos)+nl)
         text.extend(tb + v + " = load " + t + "* " + p + nl)
         return (v, t)
     else:
@@ -1408,5 +1449,4 @@ def list_machine_refs(ml):
       each stateful machine in ml. Order is maintained.
     '''
     return [state_r_name(m) for m in ml if is_stateful(m)]
-
 
