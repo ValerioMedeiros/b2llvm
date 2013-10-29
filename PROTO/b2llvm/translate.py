@@ -6,11 +6,16 @@
 # that an object oriented (or, rather, a class oriented) solution could be
 # appropriate.
 #
+# Error handling: When an error is detected, the code generator emits a
+# message to stdout, inserts an error in the generated LLVM code and 
+# tries to proceed processing the input.
+#
 ###
 
 import b2llvm.ast as ast
 import b2llvm.loadbxml as loadbxml 
 import b2llvm.names as names
+import b2llvm.printer as printer
 from b2llvm.strutils import commas, nconc, sp, nl, tb, tb2
 from b2llvm.bproject import BProject
 
@@ -402,7 +407,7 @@ def x_init(res, m, i):
         trace.UNTAB()
     # 2.4 translate initialisation instructions
     trace.OUT(res, "execute substitutions in initialisation of "+i["id"]+", then branch to exit")
-    res.extend(x_inst_list_label(i["initialisation"], "exit"))
+    x_inst_list_label(res, i["initialisation"], "exit")
     trace.OUT(res, "exit point of the initialisation")
     res.extend("exit:"+nl)
     res.extend(tb+"ret void"+nl)
@@ -410,55 +415,94 @@ def x_init(res, m, i):
 
 ### TRANSLATION OF OPERATIONS
 
-def x_operation(res, n):
+def x_operation(text, n):
+    '''
+    Code generation for B operations.
+
+    Input:
+      - text: a byte array where LLVM code is stored
+      - n: an AST node for a B operation
+    '''
     global tb, nl
     check_kind(n, {"Oper"})
     names.reset()
-    trace.OUT(res, "definition of function implementing operation "+n["id"]+" in "+n["root"]["id"])
-    res.extend("define void "+op_name(n))
-    res.extend("("+commas([state_r_name(n["root"])+sp+"%self$"]+
+    trace.OUT(text, "definition of function implementing operation "+n["id"]+" in "+n["root"]["id"])
+    text.extend("define void "+op_name(n))
+    text.extend("("+commas([state_r_name(n["root"])+sp+"%self$"]+
                           [x_type(i["type"])+sp+"%"+i["id"] for i in n["inp"]]+
                           [x_type(o["type"])+"*"+sp+"%"+o["id"] for o in n["out"]])+")")
-    res.extend("{"+nl)
+    text.extend("{"+nl)
     trace.TAB()
-    res.extend("entry:"+nl)
-    x_alloc_inst(res, n["body"])
-    res.extend(x_inst_label(n["body"], "exit"))
-    res.extend("exit:"+nl)
-    res.extend(tb+"ret void"+nl)
-    res.extend("}"+nl)
+    text.extend("entry:"+nl)
+    x_alloc_inst(text, n["body"])
+    x_inst_label(text, n["body"], "exit")
+    text.extend("exit:"+nl)
+    text.extend(tb+"ret void"+nl)
+    text.extend("}"+nl)
     trace.UNTAB()
 
 ### TRANSLATION OF STACK VARIABLE ALLOCATION
 
-def x_alloc_inst_list(res, n):
-    for inst in n:
-        x_alloc_inst(res, inst)
+def x_alloc_inst_list(text, il):
+    '''
+    Generation of frame stack allocation for instruction lists.
 
-def x_alloc_inst(res, n):
+    Input:
+      - text: a bytearray where LLVM code is stored
+      - il: a list of B instructions AST nodes
+
+    This function is part of a recursive traversal of the syntax tree so that
+    all variable declarations are visisted and handled by function
+    x_alloc_var_decl.
+    '''
+    for inst in il:
+        x_alloc_inst(text, inst)
+
+def x_alloc_inst(text, n):
+    '''
+    Generation of frame stack allocation for individual instructions.
+    
+    Input:
+      - text: a byterray where LLVM code is stored
+      - n: AST node for a B instruction
+
+    This function is part of a recursive traversal of the syntax tree so that
+    all variable declarations are visisted and handled by function
+    x_alloc_var_decl.
+    '''
     check_kind(n, {"Beq", "Blk", "Call", "Case", "If", "Skip", "VarD", "While"})
     if n["kind"] in {"Beq", "Call"}:
-        return ""
+        return
     elif n["kind"] in {"Case", "If"}:
         for br in n["branches"]:
-            x_alloc_inst(res, br["body"])
+            x_alloc_inst(text, br["body"])
     elif n["kind"] in {"Blk", "While"}: 
-        return x_alloc_inst_list(res, n["body"])
+        x_alloc_inst_list(text, n["body"])
     elif n["kind"] == "VarD":
-        return x_alloc_var_decl(res, n)
+        x_alloc_var_decl(text, n)
     else:
         print("error: unknown instruction kind")
         res.extend("<error inserted by b2llvm>")
     
-def x_alloc_var_decl(res, n):
+def x_alloc_var_decl(text, n):
+    '''
+    Generation of frame stack allocation for variable declarations.
+    
+    Input:
+      - text: a byterray where LLVM code is stored
+      - n: AST node for a B variable declaration
+
+    Emits one LLVM alloca instruction for each declared variable and 
+    processes the variable declaration body of instructions.
+    '''
     global tb, nl, sp
     check_kind(n, {"VarD"})
-    trace.OUT(res, "local variable declarations implemented as frame stack allocations")
+    trace.OUT(text, "local variable declarations implemented as frame stack allocations")
     trace.TAB()
     for v in n["vars"]:
-        trace.OUT(res, "frame stack allocation for variable "+v["id"])
-        res.extend(tb+"%"+v["id"]+" = alloca "+x_type(v["type"])+nl)
-    x_alloc_inst_list(res, n["body"])
+        trace.OUT(text, "frame stack allocation for variable "+v["id"])
+        text.extend(tb+"%"+v["id"]+" = alloca "+x_type(v["type"])+nl)
+    x_alloc_inst_list(text, n["body"])
     trace.UNTAB()
 
 ### TRANSLATION OF INSTRUCTIONS ###
@@ -474,134 +518,190 @@ def x_alloc_var_decl(res, n):
 # WARNING:
 #
 
-def x_inst_list_label(l, lbl):
+def x_inst_list_label(text, l, lbl):
     global tb, nl
     if len(l) == 0:
-        return tb + "br label %" + lbl + nl
+        text.extend(tb + "br label %" + lbl + nl)
     else:
         i = l[0]
         l2 = l[1:]
-        res = str()
         if i["kind"] in {"Case", "If", "While"}:
             lbl2 = names.new_label()
-            res += x_inst_label(i, lbl2)
-            res += lbl2 + ":\n"
+            x_inst_label(res, i, lbl2)
+            text.extend(lbl2 + ":\n")
         elif i["kind"] in {"Blk"}:
-            res += x_inst_list(i["body"])
+            x_inst_list(text, i["body"])
         else:
-            res += x_inst(i)
-        res += x_inst_list_label(l2, lbl)
-        return res
+            x_inst(text, i)
+        x_inst_list_label(text, l2, lbl)
 
-def x_inst_list(l):
-    if len(l) > 0:
-        i = l[0]
-        l2 = l[1:]
-        res = str()
-        if i["kind"] in {"If", "While"}:
-            lbl2 = names.new_label()
-            res += x_inst_label(i, lbl2)
-            res += lbl2 + ":\n"
-        elif i["kind"] in {"Blk"}:
-            res += x_inst_list(i["body"])
+def x_inst_list(text, il):
+    '''
+    Input:
+      - text: bytearray to store LLVM code
+      - il: list of instruction AST nodes
+    '''
+    for inst in il:
+        if inst["kind"] in {"If", "While"}:
+            label = names.new_label()
+            x_inst_label(text, inst, label)
+            text.extend(label + ":\n")
+        elif inst["kind"] in {"Blk"}:
+            x_inst_list(text, inst["body"])
         else:
-            res += x_inst(i)
-        res += x_inst_list(l2)
-        return res
-    else:
-        return ""
+            x_inst(text, inst)
 
-def x_inst_label(n, lbl):
+def x_inst_label(text, n, lbl):
     check_kind(n, {"Beq", "Blk", "Call", "Case", "If", "VarD", "While"})
     if n["kind"] == "Blk":
-        return x_inst_list_label(n["body"], lbl)
+        x_inst_list_label(text, n["body"], lbl)
     elif n["kind"] == "Case":
-        return x_case(n, lbl)
+        x_case(text, n, lbl)
     elif n["kind"] == "If":
-        return x_if(n, lbl)
+        x_if(text, n, lbl)
     elif n["kind"] == "While":
-        return x_while(n, lbl)
+        x_while(text, n, lbl)
     elif n["kind"] in {"Beq", "Call"}:
-        res = x_inst(n)
-        res += tb + "br label %" + lbl + nl
-        return res
+        x_inst(text, n)
+        text.extend(tb + "br label %" + lbl + nl)
     elif n["kind"] == "VarD":
-        return x_inst_list_label(n["body"], lbl)
+        x_inst_list_label(text, n["body"], lbl)
     else:
         print("error: instruction type unknown")
-        return "<error inserted by b2llvm>"
+        text.extend("<error inserted by b2llvm>")
 
-def x_inst(n):
+def x_inst(text, n):
     check_kind(n, {"Beq", "Call", "VarD"})
     if n["kind"] == "Beq":
-        return x_beq(n)
+        x_beq(text, n)
     elif n["kind"] == "Call":
-        return x_call(n)
+        x_call(text, n)
     elif n["kind"] == "VarD":
-        return x_inst_list(n["body"])
+        x_inst_list(text, n["body"])
+
+### TRANSLATION OF SKIP ###
+
+def translate_skip(text, n):
+    check_kind(n, {"Skip"})
 
 ### TRANSLATION OF CASE INSTRUCTIONS
 
-def x_case(n, lbl):
+def x_case(text, n, lbl):
+    '''
+    Generates LLVM code for a B case instruction.
+
+    Input:
+      - text: a byterray where LLVM code is stored
+      - n: an AST node representing a B instruction
+      - lbl: a LLVM label for the block where control flow must go after
+      executing n.
+    '''
     global nl, tb, sp
     check_kind(n, {"Case"})
-    p,v,t = translate_expression(n["expr"])
-    lblo = names.new_label()
-    # j is a jump table, b is a list of blocks
-    j, b = x_case_branch_list(n["branches"], lblo, lbl)
-    res = str()
-    res += p
-    res += tb + "switch " + t + sp + v + ", label %" + lblo + " [" + nl
-    res += j
-    res += tb + "]" + nl
-    res += b
-    return res
-
-def x_case_branch_list(bl, lblo, lble):
-    # br: first branch, bl2: list of remaining branches
-    br = bl[0]
-    bl2 = bl[1:]
-    j, b = str(), str()
-    # if br is the last branch
-    if bl2 == []:
-        # if the last branch is a default branch
-        if "val" not in br.keys() or br["val"] == [] or br["val"] == None:
-            b += tb + lblo + ":" + nl
-            b += x_inst_label(br["body"], lble)
-        # if the last branch has some associated values
-        else:
-            lbl = names.new_label()
-            j += x_case_val_list(br["val"], lbl)
-            b += tb + lbl + ":" + nl
-            b += x_inst_label(br["body"], lble)
-            b += tb + lblo + ":" + nl
-            b += tb + "branch label %" + lble
-    # if br is not the last branch
+    v,t = x_expression(text, n["expr"])
+    branches = n["branches"]
+    # generate one block label for each branch
+    labels = x_case_label_list(branches)
+    # there is a special treatment for in case there is no explicit
+    # default branch (the last branch in the AST is not a default branch)
+    last = branches(len(branches)-1)
+    default = "val" not in br.keys() or br["val"] == [] or br["val"] == None
+    # generate block label for default branch
+    if default:
+        lblo = labels[len(branches)-1]
     else:
-        lbl = names.new_label()
-        j += x_case_val_list(br["val"], lbl)
-        b += lbl + ":" + nl
-        b += x_inst_label(br["body"], lble)
-        j2, b2 = x_case_branch_list(bl2, lblo, lble)
-        j += j2
-        b += b2
-    return j, b
+        lblo = names.new_label()
+    text.extend(tb + "switch " + t + sp + v + ", label %" + lblo + " [" + nl)
+    x_case_jump_table(text, branches, labels)
+    text.extend(tb + "]" + nl)
+    text.extend(x_case_block_list(branches, labels, default, lblo))
 
-def x_case_val_list(vl, lbl):
+def x_case_label_list(bl):
+    '''
+    Input:
+      - bl: list of case branches
+    Output:
+      - list of LLVM block labels, one for each non-default branch
+    '''
+    return [ names.new_label() for branch in bl]
+
+def x_case_jump_table(text, bl, labels):
+    ''' 
+    Generates a LLVM jump table for a switch instruction implementing the case
+    branches.
+
+    Input:
+      - text: a bytearray where LLVM output is stored
+      - bl: a list of case branches
+      - labels: a list block labels
+    '''
+    for i in range(len(bl)):
+        x_case_val_list(text, bl[i]["val"], labels[i])
+
+def x_case_val_list(text, vl, lbl):
+    '''
+    Generates entries in the LLVM jump table from values to a block label.
+
+    Input:
+      - text: a bytearray where output is stored
+      - vl: a list of AST nodes representing B values
+      - lbl: a LLVM block label
+    '''
     global tb2, sp, nl
-    res = str()
+    text2 = bytearray()
     for v in vl:
-        _, v, t = translate_expression(v)
-        res += tb2 + t + sp + v + ", label %" + lbl + nl
-    return res
+        # the evaluation of the values should not emit LLVM code
+        v, t = x_expression(text2, v)
+        assert(len(text2) == 0)
+        text.extend(tb2 + t + sp + v + ", label %" + lbl + nl)
+
+def x_case_block_list(text, bl, labels, lble, default, lbld):
+    ''' 
+    Generates LLVM code blocks of a switch implementing the instructions in the
+    branches of a case instruction.
+
+    Input:
+      - text: a bytearray where LLVM output is stored
+      - bl: a list of case branches
+      - labels: a list block labels
+      - lble: label of block where control flow must go after executing a branch
+      - default: flag indicating if the last branch is a default branch
+      - lbld: label of block for default block 
+    '''
+    for i in range(len(bl)):
+        branch = bl[i]
+        lbl = labels[i]
+        text.extend(tb+lbl+":"+nl)
+        text.extend(x_inst_label(branch["body"], lble))
+    if not default:
+        text.extend(tb+lbld+":"+nl)
+        text.extend(tb+"branch label %"+lble)
 
 ### TRANSLATION OF IF INSTRUCTIONS
 
-def x_if(n, lbl):
-    check_kind(n, {"If"})
-    return x_if_br(n["branches"], lbl)
+def x_if(text, n, lbl):
+    '''
+    Generates LLVM code for a B if instruction.
 
-def x_if_br(lbr, lbl):
+    Input:
+      - text: a byterray where LLVM code is stored
+      - n: an AST node representing a B if instruction
+      - lbl: a LLVM label for the block where control flow must go after
+      executing n.
+    '''
+    check_kind(n, {"If"})
+    x_if_br(text, n["branches"], lbl)
+
+def x_if_br(text, lbr, lbl):
+    '''
+    Generates LLVM code for a list of B if instruction branches.
+
+    Input:
+      - text: a byterray where LLVM code is stored
+      - lbr: a list of AST nodes representing B if instruction branches
+      - lbl: a LLVM label for the block where control flow must go after
+      executing n.
+    '''
     assert(len(lbr)>=1)
     # br: first if branch, lbr2: list of remaining branches
     br = lbr[0]
@@ -611,56 +711,62 @@ def x_if_br(lbr, lbl):
     if lbr2 == []:
         # br is an else branch
         if "cond" not in br.keys() or br["cond"] == None:
-            res = x_inst_label(br["body"], lbl)
+            x_inst_label(text, br["body"], lbl)
         # br is an elsif branch
         else:
             lbl_1 = names.new_label()
-            res = str()
-            res += x_formula(br["cond"], lbl_1, lbl)
-            res += lbl_1 + ":" + nl
-            res += x_inst_label(br["body"], lbl)
+            x_formula(text, br["cond"], lbl_1, lbl)
+            text.extend(lbl_1 + ":" + nl)
+            x_inst_label(text, br["body"], lbl)
     # br is not the last branch
     else:
         lbl_1 = names.new_label()
         lbl_2 = names.new_label()
-        res = str()
-        res += x_formula(br["cond"], lbl_1, lbl_2)
-        res += lbl_1 + ":" + nl
-        res += x_inst_label(br["body"], lbl)
-        res += lbl_2 + ":" + nl
-        res += x_if_br(lbr2, lbl)
-    return res
+        x_formula(text, br["cond"], lbl_1, lbl_2)
+        text.extend(lbl_1 + ":" + nl)
+        x_inst_label(text, br["body"], lbl)
+        text.extend(lbl_2 + ":" + nl)
+        x_if_br(text, lbr2, lbl)
 
 ### TRANSLATION OF WHILE INSTRUCTIONS
 
-def x_while(n, lbl):
+def x_while(text, n, lbl):
+    '''
+    Generates LLVM code for a B while instruction.
+
+    Input:
+      - text: a byterray where LLVM code is stored
+      - n: an AST node representing a B while instruction
+      - lbl: a LLVM label for the block where control flow must go after
+      executing n.
+    '''
     global nl, tb, sp
     check_kind(n, {"While"})
     lbl1 = names.new_label()
-    c, v = x_pred(n["cond"])
+    text.extend(lbl1 + ":" + nl)
+    v = x_pred(text, n["cond"])
     lbl2 = names.new_label()
-    body = x_inst_list_label(n["body"], lbl1)
-    res = str()
-    res += tb + "br label %" + lbl1 + nl
-    res += lbl1 + ":" + nl
-    res += c
-    res += tb + "br i1 " + v + ", label %" + lbl2 + ", label %" + lbl + nl
-    res += lbl2 + ":" + nl
-    res += body
-    return res
+    text.extend(tb + "br i1 " + v + ", label %" + lbl2 + ", label %" + lbl + nl)
+    text.extend(lbl2 + ":")
+    x_inst_list_label(text, n["body"], lbl1)
 
 ### TRANSLATION OF BECOMES EQUAL INSTRUCTIONS
 
-def x_beq(n):
+def x_beq(text, n):
+    '''
+    Generates LLVM code for a B assignment (becomes equal) instruction.
+
+    Input:
+      - text: a byterray where LLVM code is stored
+      - n: an AST node representing a B assignment instruction
+    '''
     global tb, sp, nl
     check_kind(n, {"Beq"})
-    r,v,t = translate_expression(n["rhs"])
-    l,p,_ = x_lvalue(n["lhs"])
-    return (r + 
-            l + 
-            tb + "store " + t + sp + v + ", " + t + "* " + p + nl)
+    v,t = x_expression(text, n["rhs"])
+    p,_ = x_lvalue(text, n["lhs"])
+    text.extend(tb + "store " + t + sp + v + ", " + t + "* " + p + nl)
 
-def x_lvalue(n):
+def x_lvalue(text, n):
     '''
     Translate of "lvalues" (elements to the left of an assignment).
 
@@ -680,28 +786,25 @@ def x_lvalue(n):
     t = x_type(n["type"]) + "*"
     if n["scope"] == "Impl":
         v = names.new_local()
-        return (tb + v + " = getelementptr " + state_r_name(n["root"])+ 
-                " %self$, i32 0, i32 " + str(state_position(n)) + nl, v, t)
+        text.extend(tb + v + " = getelementptr " + state_r_name(n["root"])+ 
+                    " %self$, i32 0, i32 " + str(state_position(n)) + nl)
+        return (v, t)
     elif n["scope"] in {"Oper", "Local"}:
-        return ("", "%"+n["id"],t)
+        return ("%"+n["id"],t)
     else:
+        text.extend("<error inserted by b2llvm>")
         print("error: unknown scope for variable " + v["id"])
-        return ("", "UNKNOWN", "UNKNOWN")
+        return ("UNKNOWN", "UNKNOWN")
 
 ### TRANSLATION OF CALL INSTRUCTIONS
 
-def x_call(n):
+def x_call(text, n):
     global sp
     check_kind(n, {"Call"})
-    res = str()
-    # pi, po: evaluate arguments - il, ol: get parameters types and names
-    pi, il = x_inputs(n["inp"])
-    po, ol = x_outputs(n["out"])
-    res += pi
-    res += po
     operation = n["op"]
     local = (n["inst"] == None) # is a local operation?
     impl = operation["root"]
+    # evaluate arguments
     args = list()
     if is_stateful(impl):
         # get the LLVM type of the machine offering the operation
@@ -716,109 +819,167 @@ def x_call(n):
             t = state_r_name(n["inst"]["mach"])
             v1 = names.new_local()
             v2 = names.new_local()
-            res += (tb + v1 + " = getelementptr " + mach_t + 
-                    " %self$, i32 0, i32 " + str(state_position(n["inst"])) +
+            text.extend(tb+v1+" = getelementptr "+mach_t+
+                        " %self$, i32 0, i32 "+str(state_position(n["inst"]))+
                     nl)
-            res += tb + v2 + " = load " + t +"*" + sp + v1 + nl
+            text.extend(tb + v2 + " = load " + t +"*" + sp + v1 + nl)
         args.append(t + sp + v2)
-    args.extend(il)
-    args.extend(ol)
+    x_inputs(text, args, n["inp"])
+    x_outputs(text, args, n["out"])
     id = op_name(operation)
-    res += tb + "call void" + sp + id + "(" + commas(args) + ")" + nl
-    return res
+    text.extend(tb + "call void" + sp + id + "(" + commas(args) + ")" + nl)
 
-def x_inputs(n):
+def x_inputs(text, args, n):
     global sp
-    preamble = str()
-    args = list()
     for elem in n:
-        p,v,t = translate_expression(elem)
-        preamble += p
+        v,t = translate_expression(text, elem)
         args.append(t + sp + v)
-    return preamble, args
 
-def x_outputs(n):
+def x_outputs(text, args, n):
     global sp
-    preamble = str()
-    args = list()
     for elem in n:
-        p,v,t = x_lvalue(elem)
-        preamble += p
+        v,t = x_lvalue(text, elem)
         args.append(t + sp + v)
-    return preamble, args
 
 ### TRANSLATION OF CONDITIONS ###
 
-def x_formula(n, lbl1, lbl2):
+def x_formula(text, n, lbl1, lbl2):
     check_kind(n, {"Comp", "Form"})
     if n["kind"] == "Comp":
-        text, v = x_comp(n)
-        text += tb + "br i1" + sp + v + sp + ", label %" + lbl1 + ", label %" + lbl2 + nl
-        return text
+        v = x_comp(text, n)
+        text.extend(tb+"br i1 "+v+" , label %"+lbl1+", label %"+lbl2+nl)
     elif n["kind"] == "Form":
         if n["op"] == "and":
-            return x_and(n, lbl1, lbl2)
+            x_and(text, n, lbl1, lbl2)
         elif n["op"] == "or":
-            return x_or(n, lbl1, lbl2)
+            x_or(text, n, lbl1, lbl2)
         elif n["op"] == "not":
-            return x_not(n, lbl1, lbl2)
+            x_not(text, n, lbl1, lbl2)
         else:
-            print("error: unrecognized formula")
-            return ""
+            text.extend("<error inserted by b2llvm>")
     else:
-        print("error: not implemented x_formula for formulas.")
-        return ""
+        text.extend("<error inserted by b2llvm>")
 
-def x_comp(n):
+def x_comp(text, n):
     global tb, sp, nl
     check_kind(n, {"Comp"})
-    p1,v1,t1 = translate_expression(n["arg1"])
-    p2,v2,t2 = translate_expression(n["arg2"])
+    v1,t1 = x_expression(text, n["arg1"])
+    v2,t2 = x_expression(text, n["arg2"])
     v = names.new_local()
-    return (p1 +
-            p2 +
-            tb + v + " = icmp " + llvm_op(n["op"]) + sp + t1 + sp + v1 + ", " + v2 + nl), v
+    text.extend(tb+v+" = icmp "+llvm_op(n["op"])+sp+t1+sp+v1+", "+v2+nl)
+    return v
 
-def x_and(n, lbl1, lbl2):
+def x_and(text, n, lbl1, lbl2):
     check_kind(n, {"Form"})
     assert(n["op"] == "and")
     assert(len(n["args"]) == 2)
     arg1 = n["args"][0]
     arg2 = n["args"][1]
     lbl = names.new_label()
-    p1 = x_formula(arg1, lbl, lbl2)
-    p2 = x_formula(arg2, lbl1, lbl2)
-    result = ""
-    result += p1
-    result += lbl + ":" + nl
-    result += p2
-    return result
+    x_formula(text, arg1, lbl, lbl2)
+    text.extend(lbl + ":" + nl)
+    x_formula(text, arg2, lbl1, lbl2)
 
-def x_or(n, lbl1, lbl2):
+def x_or(text, n, lbl1, lbl2):
     check_kind(n, {"Form"})
     assert(n["op"] == "or")
     assert(len(n["args"]) == 2)
     arg1 = n["args"][0]
     arg2 = n["args"][1]
     lbl = names.new_label()
-    p1 = x_formula(arg1, lbl1, lbl)
-    p2 = x_formula(arg2, lbl1, lbl2)
-    result = ""
-    result += p1
-    result += lbl + ":" + nl
-    result += p2
-    return result
+    x_formula(text, arg1, lbl1, lbl)
+    text.extend(lbl + ":" + nl)
+    x_formula(text, arg2, lbl1, lbl2)
 
-def x_not(n, lbl1, lbl2):
+def x_not(text, n, lbl1, lbl2):
     check_kind(n, {"Form"})
     assert(n["op"] == "not")
-    return x_formula(n["args"][0], lbl2, lbl1)
+    x_formula(text, n["args"][0], lbl2, lbl1)
 
-def x_pred(n):
+def x_pred(text, n):
     if n["kind"] == "Comp":
-        return x_comp(n)
+        return x_comp(text, n)
     else:
-        print("error: not implemented translation for such predicate")
+        text.extend("<error inserted by b2llvm>")
+        return ""
+
+### TRANSLATION OF EXPRESSIONS ###
+
+def x_expression(text, n):
+    check_kind(n, {"IntegerLit", "BooleanLit", "Vari", "Term", "Cons"})
+    if n["kind"] == "IntegerLit":
+        return x_integerlit(text, n)
+    elif n["kind"] == "BooleanLit":
+        return x_booleanlit(text, n)
+    elif n["kind"] == "Vari":
+        return x_name(text, n)
+    elif n["kind"] == "Term":
+        return x_term(text, n)
+    elif n["kind"] == "Cons":
+        return x_expression(text, n["value"])
+    else:
+        return ("","")
+
+def x_integerlit(text, n):
+    check_kind(n, {"IntegerLit"})
+    return (n["value"],"i32")
+
+def x_booleanlit(text, n):
+    check_kind(n, {"BooleanLit"})
+    if n["value"] == "TRUE":
+        val = "1"
+    else:
+        val = "0"
+    return (val,"i1")
+
+def x_name(text, n):
+    check_kind(n, {"Vari"})
+    t = x_type(n["type"])
+    if n["scope"] == "Local":
+        v1 = "%"+n["id"]
+        v2 = names.new_local()
+        text.extend(tb + v2 + " = load" + sp + t + "*" + sp + v1 + nl)
+        return (v2, t)
+    elif n["scope"] == "Oper":
+        return ("%"+n["id"], t)
+    elif n["scope"] == "Impl":
+        p = names.new_local()
+        v = names.new_local()
+        text.extend(tb+p+" = getelementptr "+state_t_name(n["root"])+" %self$, i32 0, i32 "+str(state_position(n))+nl)
+        text.extend(tb + v + " = load " + t + "* " + p + nl)
+        return (v, t)
+    else:
+        text.extend("<error inserted by b2llvm>")
+        return ("", "")
+        
+def x_term(text, n):
+    global tb, sp, nl
+    check_kind(n, {"Term"})
+    if n["op"] == "succ" or n["op"] == "pred":
+        return x_unary(text, n)
+    else:
+        assert(len(n["args"]) == 2)
+        v1,t1 = x_expression(text, n["args"][0])
+        v2,t2 = x_expression(text, n["args"][1])
+        v = names.new_local()
+        text.extend(tb + v + " = " + llvm_op(n["op"]) + sp + t1 + sp + v1 + ", " + v2 + nl)
+        return (v, t1)
+
+def x_unary(text, n):
+    check_kind(n, {"Term"})
+    assert (n["op"] in {"succ", "pred"})
+    if n["op"] == "succ":
+        v,t = x_expression(text, n["args"][0])
+        w = names.new_local()
+        text.extend(tb + w + " = add i32 1," + sp + v + nl)
+        return (w, "i32")
+    elif n["op"] == "pred":
+        v,t = x_expression(text, n["args"][0])
+        w = names.new_local()
+        text.extend(tb + w + " = sub i32 " + v + ", 1" + nl)
+        return (w, "i32")
+    else:
+        text.extend("<error inserted by b2llvm>")
         return ("", "")
 
 ### LLVM IDENTIFIER GENERATION ###
@@ -1026,99 +1187,6 @@ def translate_state(n):
     else:
         return state_t_name(n) + " = type " + state_expression(n) + nl
 
-### TRANSLATION OF EXPRESSIONS ###
-
-def translate_integerlit(n):
-    check_kind(n, {"IntegerLit"})
-    return ("",n["value"],"i32")
-
-def translate_booleanlit(n):
-    check_kind(n, {"BooleanLit"})
-    if n["value"] == "TRUE":
-        val = "1"
-    else:
-        val = "0"
-    return ("",val,"i1")
-
-def translate_name(n):
-    check_kind(n, {"Vari"})
-    t = x_type(n["type"])
-    if n["scope"] == "Local":
-        v1 = "%"+n["id"]
-        v2 = names.new_local()
-        t = x_type(n["type"])
-        text = tb+ v2 + " = load" + sp + t + "*" + sp + v1 + nl
-        return (text, v2, t)
-    elif n["scope"] == "Oper":
-        return ("", "%"+n["id"], t)
-    elif n["scope"] == "Impl":
-        p = names.new_local()
-        v = names.new_local()
-        text = ""
-        text += (tb + p + " = getelementptr " + state_t_name(n["root"]) + 
-                 sp + "%self$, i32 0, i32 " + str(state_position(n)) + nl)
-        text += tb + v + " = load " + t + "* " + p + nl
-        return (text, v, t)
-    else:
-        print("error: name translation not supported")
-        return ("", "", "")
-        
-def translate_unary(n):
-    check_kind(n, {"Term"})
-    assert (n["op"] in {"succ", "pred"})
-    if n["op"] == "succ":
-        p,v,t = translate_expression(n["args"][0])
-        w = names.new_local()
-        text = ""
-        text += p
-        text += tb + w + " = add i32 1," + sp + v + nl
-        return (text, w, "i32")
-    elif n["op"] == "pred":
-        p,v,t = translate_expression(n["args"][0])
-        w = names.new_local()
-        text = ""
-        text += p
-        text += tb + w + " = sub i32 " + v + ", 1" + nl
-        return (text, w, "i32")
-    else:
-        print("error: unary operator translation not supported")
-        return ("", "", "")
-
-def translate_term(n):
-    global tb, sp, nl
-    check_kind(n, {"Term"})
-    if n["op"] == "succ" or n["op"] == "pred":
-        return translate_unary(n)
-    else:
-        assert(len(n["args"]) == 2)
-        p1,v1,t1 = translate_expression(n["args"][0])
-        p2,v2,t2 = translate_expression(n["args"][1])
-        v = names.new_local()
-        return (p1 +
-                p2 +
-                tb + v + " = " + llvm_op(n["op"]) + sp + t1 + sp + v1 + ", " + v2 + nl), v, t1
-
-def translate_expression(n):
-    check_kind(n, {"IntegerLit", "BooleanLit", "Vari", "Term", "Cons"})
-    if n["kind"] == "IntegerLit":
-        return translate_integerlit(n)
-    elif n["kind"] == "BooleanLit":
-        return translate_booleanlit(n)
-    elif n["kind"] == "Vari":
-        return translate_name(n)
-    elif n["kind"] == "Term":
-        return translate_term(n)
-    elif n["kind"] == "Cons":
-        return translate_expression(n["value"])
-    else:
-        return ("","","")
-
-### TRANSLATION OF INSTRUCTIONS ###
-
-def translate_skip(n):
-    check_kind(n, {"Skip"})
-    return ""
-
 ### TRANSLATION OF CONSTANT DEFINITIONS
 
 def translate_constant(n):
@@ -1197,70 +1265,6 @@ def x_type_def_import_list(n, acc = None):
         if mach["id"] not in acc:
             acc.add(mach["id"])
             result += x_type_def_import(mach, acc)
-    return result
-
-def translate_op_decl(n, state_t):
-    '''
-    - Input:
-      n: a node representing an operation in a B implementation
-      state_t: the LLVM type representing the state of the implementation
-    - Output:
-      String corresponding to the declaration of the LLVM function
-      encoding the operation.
-    '''
-    check_kind(n, {"Oper"})
-    # tl: parameter signature of the LLVM function coding n
-    tl = [state_t + "*"]
-    for i in n["inp"]:
-        tl.append(x_type(i["type"]))
-    for o in n["out"]:
-        tl.append(x_type(o["type"])+"*")
-    result = ""
-    result += "declare void " + op_name(n) + "(" + commas(tl) + ")" + nl
-    return result
-
-def translate_op_decl_import(n):
-    '''
-    - Input:
-      n: a node representing a B machine
-    - Output:
-      String corresponding to the declaration of the LLVM functions
-      encoding the initialization and operations of the imported machine.
-    '''
-    global nl, sp
-    check_kind(n, {"Machine"})
-    impl = n["impl"]
-    state_t = state_t_name(impl) 
-    result = ""
-    result += "declare void" + sp + init_name(impl) + "(" + state_t + "*)" + nl
-    impl = n["impl"]
-    for op in impl["operations"]:
-        result += translate_op_decl(op, state_t)
-    return result
-
-def translate_op_decl_import_list(n):
-    '''
-    - Input:
-      n: a node representing a B implementation
-      acc: a set containing all the machines that have already
-      been processed (optional, default being empty set)
-    - Output:
-      String corresponding to the declaration of the LLVM functions
-      encoding the initialization and operations of the imported 
-      machines.
-    '''
-    check_kind(n, {"Impl"})
-    result = ""
-    imports = n["imports"]
-    acc = set()
-    if imports == None:
-        return result
-    for i in imports:
-        m = i["mach"]
-        check_kind(m, {"Machine"})
-        if m["id"] not in acc:
-            acc.add(m["id"])
-            result += translate_op_decl_import(m)
     return result
 
 ### COMP(ONENTS)
