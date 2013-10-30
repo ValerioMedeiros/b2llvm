@@ -702,18 +702,6 @@ def x_if(text, n, lbl):
     x_if_br(text, n["branches"], lbl)
     trace.OUT(text, "end of \""+ellipse(printer.subst_if(0, n))+"\"")
 
-def ellipse(str):
-    '''
-    Utility that creates a shortened version of a text. If str is greater than 24 characters,
-    the first 21 characters are kept, and elliptic ... replaces the rest of str. Therefore
-    the resulting string has at most 24 characters.
-    '''
-    str2 = str.replace("\n", "")
-    if len(str2) > 24:
-        return str2[:21]+"..."
-    else:
-        return str2
-
 def x_if_br(text, lbr, lbl):
     '''
     Generates LLVM code for a list of B if instruction branches.
@@ -724,31 +712,30 @@ def x_if_br(text, lbr, lbl):
       - lbl: a LLVM label for the block where control flow must go after
       executing n.
     '''
-    assert(len(lbr)>=1)
-    # br: first if branch, lbr2: list of remaining branches
-    br = lbr[0]
-    lbr2 = lbr[1:]
-    check_kind(br, {"IfBr"})
-    # br is the last branch
-    if lbr2 == []:
-        # br is an else branch
-        if "cond" not in br.keys() or br["cond"] == None:
-            x_inst_label(text, br["body"], lbl)
-        # br is an elsif branch
+    nbr = len(lbr)
+    assert(nbr>=1)
+    for i in range(nbr):
+        br = lbr[i]
+        check_kind(br, {"IfBr"})
+        if i != 0:
+            trace.OUT(text, "execute branch \""+ellipse(printer.if_br(0, 0, br))+"\"")
+        if i == nbr-1:
+            # br is an else branch
+            if "cond" not in br.keys() or br["cond"] == None:
+                x_inst_label(text, br["body"], lbl)
+            # br is an elsif branch
+            else:
+                lbl_1 = names.new_label()
+                x_formula(text, br["cond"], lbl_1, lbl)
+                text.extend(lbl_1 + ":" + nl)
+                x_inst_label(text, br["body"], lbl)
         else:
             lbl_1 = names.new_label()
-            x_formula(text, br["cond"], lbl_1, lbl)
+            lbl_2 = names.new_label()
+            x_formula(text, br["cond"], lbl_1, lbl_2)
             text.extend(lbl_1 + ":" + nl)
             x_inst_label(text, br["body"], lbl)
-    # br is not the last branch
-    else:
-        lbl_1 = names.new_label()
-        lbl_2 = names.new_label()
-        x_formula(text, br["cond"], lbl_1, lbl_2)
-        text.extend(lbl_1 + ":" + nl)
-        x_inst_label(text, br["body"], lbl)
-        text.extend(lbl_2 + ":" + nl)
-        x_if_br(text, lbr2, lbl)
+            text.extend(lbl_2 + ":" + nl)
 
 ### TRANSLATION OF WHILE INSTRUCTIONS
 
@@ -1430,4 +1417,16 @@ def list_machine_refs(ml):
       each stateful machine in ml. Order is maintained.
     '''
     return [state_r_name(m) for m in ml if is_stateful(m)]
+
+def ellipse(str):
+    '''
+    Utility that creates a shortened version of a text. If str is greater than 24 characters,
+    the first 21 characters are kept, and elliptic ... replaces the rest of str. Therefore
+    the resulting string has at most 24 characters.
+    '''
+    str2 = str.replace("\n", "")
+    if len(str2) > 24:
+        return str2[:21]+"..."
+    else:
+        return str2
 

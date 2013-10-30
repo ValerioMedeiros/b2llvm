@@ -127,11 +127,13 @@ def var_decl(indent, n):
     result += (indent*tb) + "END"
     return result
 
-def if_br(indent, position, cond, body):
+def if_br(indent, position, branch):
     '''
     If branch
     '''
     global nl
+    cond = branch["cond"]
+    body = branch["body"]
     if cond == None:
         kw = "ELSE"
     elif position == 0:
@@ -156,7 +158,7 @@ def subst_if(indent, n):
     branches = n["branches"]
     for i in range(len(branches)):
         branch = branches[i]
-        bits.append(if_br(indent, i, branch["cond"], branch["body"]))
+        bits.append(if_br(indent, i, branch))
     return nl.join(bits)
 
 def case_br(indent, position, values, body):
