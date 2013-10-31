@@ -146,7 +146,7 @@ def if_br(indent, position, branch):
     result += nl
     result += subst(indent+1, body)
     if cond == None:
-        result += nl+(indent*tb)+"END"
+        result += sp+nl+(indent*tb)+"END"
     return result
 
 def subst_if(indent, n):
