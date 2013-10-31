@@ -135,27 +135,31 @@ def translate_mode_proj(text, m):
     '''
     check_kind(m, "Machine")
     assert is_developed(m)
-    trace.OUTU(text, "This file contains LLVM code that instantiates B machine \"" + m["id"]+"\"")
-    trace.OUTU(text, "and for a function to initialise this instantiation.")
+    trace.OUTU(text, "Preamble")
+    trace.OUTU(text, "")
+    trace.OUTU(text, "This file instantiates B machine \"" + m["id"]+"\", and all its components,")
+    trace.OUTU(text, "and a function to initialise this instantiation.")
+    trace.OUTU(text, "")
     # identify all the module instances that need to be created
     root = Comp([], m)
     comps = [root] + comp_indirect(m)
     # emit the type definitions corresponding to the instantiated modules
     # forward references are disallowed: enumerate definitions bottom-up
     comps.reverse()
-    trace.TAB()
     acc = set()
-    trace.OUT(text, "The type declarations for state encodings of all imported modules are:")
+    trace.OUT(text, "There are the types encoding the state of each module.")
+    trace.TAB()
     for q in comps:
         if q.mach["id"] not in acc:
             if is_stateful(q.mach):
-                trace.OUTU(text, "Machine "+q.mach["id"]+ " is stateful.")
                 section_typedef(text, q.mach)
             else:
                 trace.OUTU(text, "Module "+q.mach["id"]+ " is stateless and has no associated encoding type.")
             acc.add(q.mach["id"])
     acc.clear()
-    trace.OUT(text, "The type definitions for references to these state encodings are:")
+    trace.UNTAB()
+    trace.OUT(text, "The type definitions for references to these state encodings follow.")
+    trace.TAB()
     for q in comps:
         if q.mach["id"] not in acc:
             if is_stateful(q.mach):
@@ -164,12 +168,12 @@ def translate_mode_proj(text, m):
     acc.clear()
     trace.UNTAB()
     # the instances are now declared, top down
-    trace.OUT(text, m["id"]+ ": declaration of variables representing module instances")
+    trace.OUT(text, "Variables representing instances of components forming \""+m["id"]+ "\".")
     trace.TAB()
     comps.reverse()
     for q in comps:
         if is_stateful(q.mach):
-            trace.OUT(text, "declaration of variable corresponding to "+q.bstr())
+            trace.OUT(text, "Variable representing to "+q.bstr())
             text.extend(str(q)+" = common global "+state_t_name(q.mach)+" zeroinitializer"+nl)
     trace.UNTAB()
     # emit the declarations for the operations offered by root module
@@ -179,14 +183,14 @@ def translate_mode_proj(text, m):
     # by calling the initialization function for the root module.
     args = [state_r_name(root.mach) + sp + str(root)]
     args += [state_r_name(q.mach)+sp+str(q) for q in comp_stateful(m)]
-    trace.OUT(text, "definition of the function to initialise an instance of "+m["id"]+ " and its components")
+    trace.OUT(text, "Definition of the function to initialise instance \""+str(comps[0])+"\" of \""+m["id"]+ "\".")
     trace.TAB()
     text.extend("define void @$init$() {"+nl+
                 "entry:"+nl)
-    trace.OUT(text, "call to initialisation function of "+m["id"])
+    trace.OUT(text, "Call to initialisation function of \""+m["id"]+"\".")
     text.extend(tb+"call void "+init_name(m)+"("+commas(args)+")"+nl+
                 tb+"ret void"+nl+
-                "}")
+                "}"+nl)
     trace.UNTAB()
 
 #
@@ -321,7 +325,7 @@ def section_typedef_impl(text, i, m):
         imports = [imp for imp in i["imports"] if is_stateful(imp["mach"])]
         variables = i["variables"]
         left = len(imports)+len(variables)
-        pos = 1
+        pos = 0
         for imp in imports:
             trace.OUTU(text, "The state of \""+printer.imports(imp)+ "\" is at position "+str(pos)+" and has type:")
             text.extend(tb+state_r_name(imp["mach"])+("" if left == 1 else ",")+nl)
