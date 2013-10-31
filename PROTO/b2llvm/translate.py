@@ -896,6 +896,15 @@ def x_outputs(text, args, n):
 ### TRANSLATION OF CONDITIONS ###
 
 def x_formula(text, n, lbl1, lbl2):
+    '''
+    Generates LLVM code to evaluate a B formula and branch to either labels.
+
+    Input:
+      - text: a byterray where LLVM code is stored
+      - n: an AST node representing a B formula.
+      - lbl1: a LLVM label string
+      - lbl2: a LLVM label string
+    '''
     check_kind(n, {"Comp", "Form"})
     if n["kind"] == "Comp":
         v = x_comp(text, n)
@@ -913,6 +922,16 @@ def x_formula(text, n, lbl1, lbl2):
         text.extend("<error inserted by b2llvm>")
 
 def x_comp(text, n):
+    '''
+    Generates LLVM code to evaluate a B comparison.
+
+    Input:
+      - text: a byterray where LLVM code is stored.
+      - n: an AST node representing a B comparison.
+    Output:
+      The identifier of the LLVM temporary variable storing the result of
+      the comparison. This variable has type "i1".
+    '''
     global tb, sp, nl
     check_kind(n, {"Comp"})
     v1,t1 = x_expression(text, n["arg1"])
@@ -922,6 +941,15 @@ def x_comp(text, n):
     return v
 
 def x_and(text, n, lbl1, lbl2):
+    '''
+    Generates LLVM code to evaluate a B conjunction and branch to either label.
+
+    Input:
+      - text: a byterray where LLVM code is stored.
+      - n: an AST node representing a B conjunction.
+      - lbl1: a LLVM label string
+      - lbl2: a LLVM label string
+    '''
     check_kind(n, {"Form"})
     assert(n["op"] == "and")
     assert(len(n["args"]) == 2)
@@ -933,6 +961,15 @@ def x_and(text, n, lbl1, lbl2):
     x_formula(text, arg2, lbl1, lbl2)
 
 def x_or(text, n, lbl1, lbl2):
+    '''
+    Generates LLVM code to evaluate a B disjunction and branch to either label.
+
+    Input:
+      - text: a byterray where LLVM code is stored.
+      - n: an AST node representing a B disjunction.
+      - lbl1: a LLVM label string
+      - lbl2: a LLVM label string
+    '''
     check_kind(n, {"Form"})
     assert(n["op"] == "or")
     assert(len(n["args"]) == 2)
@@ -944,6 +981,15 @@ def x_or(text, n, lbl1, lbl2):
     x_formula(text, arg2, lbl1, lbl2)
 
 def x_not(text, n, lbl1, lbl2):
+    '''
+    Generates LLVM code to evaluate a B negation and branch to either label.
+
+    Input:
+      - text: a byterray where LLVM code is stored.
+      - n: an AST node representing a B negation.
+      - lbl1: a LLVM label string
+      - lbl2: a LLVM label string
+    '''
     check_kind(n, {"Form"})
     assert(n["op"] == "not")
     x_formula(text, n["args"][0], lbl2, lbl1)
@@ -958,11 +1004,21 @@ def x_pred(text, n):
 ### TRANSLATION OF EXPRESSIONS ###
 
 def x_expression(text, n):
+    '''
+    Generates LLVM code to evaluate a B expression.
+
+    Input:
+      - text: a byterray where LLVM code is stored.
+      - n: an AST node representing a B expression.
+    Output:
+      A pair containing, the identifier of the LLVM temporary variable storing the value
+      of the expression, and the LLVM type of this temporary variable.
+    '''
     check_kind(n, {"IntegerLit", "BooleanLit", "Vari", "Term", "Cons"})
     if n["kind"] == "IntegerLit":
-        return x_integerlit(text, n)
+        return x_integerlit(text, n), "i32"
     elif n["kind"] == "BooleanLit":
-        return x_booleanlit(text, n)
+        return x_booleanlit(text, n), "i1"
     elif n["kind"] == "Vari":
         return x_name(text, n)
     elif n["kind"] == "Term":
@@ -973,18 +1029,42 @@ def x_expression(text, n):
         return ("","")
 
 def x_integerlit(text, n):
+    '''
+    Generates LLVM code to evaluate a B integer literal.
+
+    Input:
+      - text: a byterray where LLVM code is stored.
+      - n: an AST node representing a B integer literal.
+    Output:
+      A string of the integer literal value.
+    '''
     check_kind(n, {"IntegerLit"})
-    return (n["value"],"i32")
+    return n["value"]
 
 def x_booleanlit(text, n):
+    '''
+    Generates LLVM code to evaluate a B boolean literal.
+
+    Input:
+      - text: a byterray where LLVM code is stored.
+      - n: an AST node representing a B integer literal.
+    Output:
+      A string of the LLVM boolean literal value, i.e. "1" or "0".
+    '''
     check_kind(n, {"BooleanLit"})
-    if n["value"] == "TRUE":
-        val = "1"
-    else:
-        val = "0"
-    return (val,"i1")
+    return "1" if n["value"] == "TRUE" else "0"
 
 def x_name(text, n):
+    '''
+    Generates LLVM code to evaluate a B identifier in an expression.
+
+    Input:
+      - text: a byterray where LLVM code is stored.
+      - n: an AST node representing a B expression.
+    Output:
+      A pair containing, the identifier of the LLVM variable storing the value
+      of the B variable of the given identifier, and the LLVM type of this variable.
+    '''
     check_kind(n, {"Vari"})
     t = x_type(n["type"])
     if n["scope"] == "Local":
@@ -997,60 +1077,42 @@ def x_name(text, n):
     elif n["scope"] == "Impl":
         p = names.new_local()
         v = names.new_local()
-        pos = state_position(n)
+        pos = str(state_position(n))
         trace.TAB()
-        trace.OUT(text, n["id"]+" is represented as element "+str(pos)+" of %self$")
+        trace.OUT(text, n["id"]+" is represented as element "+pos+" of %self$")
         trace.OUT(text, "temporary " + v + " is the corresponding address")
         trace.UNTAB()
-        text.extend(tb+p+" = getelementptr "+state_t_name(n["root"])+" %self$, i32 0, i32 "+str(pos)+nl)
-        text.extend(tb + v + " = load " + t + "* " + p + nl)
+        text.extend(tb+p+" = getelementptr "+state_t_name(n["root"])+" %self$, i32 0, i32 "+pos+nl)
+        text.extend(tb+v+" = load "+t+"* "+p+nl)
         return (v, t)
     else:
         text.extend("<error inserted by b2llvm>")
         return ("", "")
         
 def x_term(text, n):
+    '''
+    Generates LLVM code to evaluate a B term.
+
+    Input:
+      - text: a byterray where LLVM code is stored.
+      - n: an AST node representing a B term.
+    Output:
+      A pair containing, the identifier of the LLVM variable storing the value
+      of the B term, and the LLVM type of this value.
+    '''
     global tb, sp, nl
     check_kind(n, {"Term"})
+    v1,t = x_expression(text, n["args"][0])
     if n["op"] == "succ" or n["op"] == "pred":
-        return x_unary(text, n)
+        v2 = "1"
     else:
         assert(len(n["args"]) == 2)
-        v1,t1 = x_expression(text, n["args"][0])
-        v2,t2 = x_expression(text, n["args"][1])
-        v = names.new_local()
-        text.extend(tb + v + " = " + llvm_op(n["op"]) + sp + t1 + sp + v1 + ", " + v2 + nl)
-        return (v, t1)
-
-def x_unary(text, n):
-    check_kind(n, {"Term"})
-    assert (n["op"] in {"succ", "pred"})
-    if n["op"] == "succ":
-        v,t = x_expression(text, n["args"][0])
-        w = names.new_local()
-        text.extend(tb + w + " = add i32 1," + sp + v + nl)
-        return (w, "i32")
-    elif n["op"] == "pred":
-        v,t = x_expression(text, n["args"][0])
-        w = names.new_local()
-        text.extend(tb + w + " = sub i32 " + v + ", 1" + nl)
-        return (w, "i32")
-    else:
-        text.extend("<error inserted by b2llvm>")
-        return ("", "")
+        v2,_ = x_expression(text, n["args"][1])
+    v = names.new_local()
+    text.extend(tb + v + " = " + llvm_op(n["op"]) + sp + t + sp + v1 + ", " + v2 + nl)
+    return (v, t)
 
 ### LLVM IDENTIFIER GENERATION ###
-
-def instance_name(n):
-    '''
-    - Input:
-      n: A node representing a B implementation
-    - Output:
-      A string for the name of the LLVM variable representing the instance 
-      of that implementation.
-    '''
-    check_kind(n, {"Impl"})
-    return "@"+n["id"]+"$self$"
 
 def state_t_name(n):
     '''
@@ -1123,6 +1185,7 @@ def llvm_op(str):
     lex = dict({"=":"eq", "!=": "ne", 
                 "<":"slt", "<=":"sle", ">":"sgt", ">=":"sge",
                 "+":"add", "-": "sub", 
+                "succ":"add", "pred":"sub",
                 "*":"mul", "/":"sdiv", "mod":"srem"})
     if str not in lex.keys():
         print("error: operator " + str + " not translated")
