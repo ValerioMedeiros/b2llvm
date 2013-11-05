@@ -40,6 +40,7 @@ define i32 @main() nounwind uwtable ssp {
   br label %13
 
 ; <label>:13                                      ; preds = %2, %9, %8, %7
+  call void @$print$()
   br label %2
                                                   ; No predecessors!
   %15 = load i32* %1
@@ -47,6 +48,7 @@ define i32 @main() nounwind uwtable ssp {
 }
 
 declare void @$init$()
+declare void @$print$()
 
 declare i32 @printf(i8*, ...)
 

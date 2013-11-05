@@ -25,7 +25,7 @@ import b2llvm.trace as trace
 # Main entry point for this module
 #
 
-def translate_bxml(bmodule, outfile, mode='comp', dir='bxml', settings='project.xml'):
+def translate_bxml(bmodule, outfile, mode='comp', dir='bxml', settings='project.xml', emit_printer=False):
     '''
     Main function for applying the code generator to a B module
 
@@ -50,9 +50,9 @@ def translate_bxml(bmodule, outfile, mode='comp', dir='bxml', settings='project.
     trace.OUTU(res, "code generation mode: " + ("component" if mode == "comp" else "project"))
     trace.OUTU(res, "output file: "+outfile)
     if mode == 'comp':
-        translate_mode_comp(res, ast)
+        translate_mode_comp(res, ast, emit_printer)
     else:
-        translate_mode_proj(res, ast)
+        translate_mode_proj(res, ast, emit_printer)
     llvm = open(outfile, 'w')
     llvm.write(res)
     llvm.close()
@@ -61,13 +61,14 @@ def translate_bxml(bmodule, outfile, mode='comp', dir='bxml', settings='project.
 # TOP-LEVEL FUNCTION FOR EACH TRANSLATION MODE
 #
 
-def translate_mode_comp(text, m):
+def translate_mode_comp(text, m, emit_printer):
     '''
     Translation in component mode.
 
     Inputs:
       - res: a bytearray to store LLVM code
       - m: root AST node for a B machine in proj
+      - emit_printer: flag indicating if printing functions shall be produced
 
     LLVM text corresponding to the implementation of n is stored into res
     '''
@@ -112,7 +113,7 @@ def translate_mode_comp(text, m):
                 if q.mach["id"] not in acc:
                     trace.OUT(text, "The interface of \""+q.mach["id"]+"\" is composed of:")
                     trace.TAB()
-                    section_interface(text, q.mach)
+                    section_interface(text, q.mach, emit_printer)
                     trace.UNTAB()
                     acc.add(q.mach["id"])
             acc.clear()
@@ -120,15 +121,16 @@ def translate_mode_comp(text, m):
         if is_stateful(m):
             section_typedef_impl(text, i, m)
             state_ref_typedef(text, m)
-        section_implementation(text, m)
+        section_implementation(text, m, emit_printer)
 
-def translate_mode_proj(text, m):
+def translate_mode_proj(text, m, emit_printer):
     '''
     Translation in project mode.
 
     Inputs:
       - text: a bytearray where LLVM code is stored
       - m: root AST node for a B machine
+      - emit_printer: flag indicating if printing functions shall be produced
 
     Appends to text the LLVM code corresponding to the LLVM code generation for m
     in project mode.
@@ -147,23 +149,16 @@ def translate_mode_proj(text, m):
     # forward references are disallowed: enumerate definitions bottom-up
     comps.reverse()
     acc = set()
-    trace.OUT(text, "There are the types encoding the state of each module.")
+    trace.OUT(text, "These are the types encoding the state of each module,")
+    trace.OUT(text, "and the corresponding pointer types.")
     trace.TAB()
     for q in comps:
         if q.mach["id"] not in acc:
             if is_stateful(q.mach):
                 section_typedef(text, q.mach)
+                state_ref_typedef(text, q.mach)
             else:
                 trace.OUTU(text, "Module "+q.mach["id"]+ " is stateless and has no associated encoding type.")
-            acc.add(q.mach["id"])
-    acc.clear()
-    trace.UNTAB()
-    trace.OUT(text, "The type definitions for references to these state encodings follow.")
-    trace.TAB()
-    for q in comps:
-        if q.mach["id"] not in acc:
-            if is_stateful(q.mach):
-                state_ref_typedef(text, q.mach)
             acc.add(q.mach["id"])
     acc.clear()
     trace.UNTAB()
@@ -178,7 +173,7 @@ def translate_mode_proj(text, m):
     trace.UNTAB()
     # emit the declarations for the operations offered by root module
     # only the initialisation is necessary actually
-    section_interface(text, m)
+    section_interface(text, m, emit_printer)
     # generate the code of the routine that initializes the system
     # by calling the initialization function for the root module.
     args = [state_r_name(root.mach) + sp + str(root)]
@@ -192,12 +187,20 @@ def translate_mode_proj(text, m):
                 tb+"ret void"+nl+
                 "}"+nl)
     trace.UNTAB()
-
+    if emit_printer:
+        trace.OUT(text, "Definition of a function to print the state of the system")
+        text.extend("define void @$print$() {"+nl)
+        text.extend("entry:"+nl)
+        trace.OUT(text, "Call to printing function of \""+m["id"]+"\".")
+        text.extend(tb+"call void "+print_name(m)+"("+args[0]+")"+nl)
+        text.extend(tb+"ret void"+nl)
+        text.extend("}"+nl)
+        
 #
 # SECTION-LEVEL CODE GENERATION FUNCTIONS
 # 
 
-def section_interface(text, m):
+def section_interface(text, m, emit_printer):
     '''
     Generates the declaration of all externally visible elements of machine n:
     reference type, initialisation function, operation function.
@@ -205,6 +208,7 @@ def section_interface(text, m):
     Input:
       - text: bytearray where output shall be stored
       - n: AST root node of a machine
+      - emit_printer: flag indicating if printing functions shall be produced
 
     Extends res with text of LLVM declarations (see section interface in translation 
     definition).
@@ -213,6 +217,9 @@ def section_interface(text, m):
     section_interface_init(text, m)
     for op in operations(m):
         section_interface_op(text, m, op)
+    if emit_printer:
+        trace.OUT(text, "Declaration of function responsible for printing the state")
+        text.extend("declare void "+print_name(m)+"("+state_r_name(m)+")"+nl)
 
 def operations(m):
     '''
@@ -339,13 +346,14 @@ def section_typedef_impl(text, i, m):
         assert left == 0
         text.extend("}"+nl)
 
-def section_implementation(text, m):
+def section_implementation(text, m, emit_printer):
     '''
     Generates the section implementation of the translation to LLVM.
 
     Inputs:
       - text: a bytearray where text is appended
       - m: AST node for a B machine
+      - emit_printer: flag indicating if printing functions shall be produced
 
     The definitions of the LLVM functions implementing the initialisation and
     operations of the implementation of m are appended to text.
@@ -356,6 +364,8 @@ def section_implementation(text, m):
         x_init(text, m, i)
         for op in i["operations"]:
             x_operation(text, op)
+        if emit_printer:
+            x_printer(text, m, i)
 
 #
 # TRANSLATION FUNCTIONS OF INDIVIDUAL ELEMENTS OF THE B AST
@@ -458,6 +468,72 @@ def x_init(text, m, i):
     text.extend(tb+"ret void"+nl)
     text.extend("}"+nl)
     trace.UNTAB()
+
+### TRANSLATION FOR PRINTER
+
+def x_printer(text, m, i):
+    '''
+    Input:
+      - text: a bytearray to store output
+      - m: root AST node of a B machine
+      - i: root AST node of the implementation of m
+
+    Definition of a LLVM function that prints the value of the elements
+    composing the state of m m to the standard output stream.
+    '''
+    global tb, nl, sp
+    check_kind(m, {"Machine"})
+    check_kind(i, {"Impl"})
+    tm = state_r_name(m) # LLVM type name: pointer to structure storing m data
+    names.reset()
+
+    trace.OUT(text, "Definition of function responsible for printing the state,")
+    trace.OUTU(text, "its generation was activated by option --emit-printer.")
+    emit_print_i1 = False
+    emit_print_i32 = False
+    text.extend("define void "+print_name(m)+"("+state_r_name(m)+"%self$) {"+nl)
+    j, nb = 0, len(comp_direct(m))+len(i["variables"])
+    text.extend("entry:"+nl)
+    text.extend(tb+"call void @$b2llvm.print.ldelim()"+nl)
+    for q in comp_direct(m):
+        m2 = q.mach
+        t2 = state_r_name(m2)
+        lbl1 = names.new_local()
+        lbl2 = names.new_local()
+        text.extend(tb+lbl1+" = getelementptr "+tm+" %self$, i32 0, i32 "+str(j)+nl)
+        text.extend(tb+lbl2+" = load "+t2+"* "+lbl1+nl)
+        text.extend(tb+"call void "+print_name(m2)+"("+state_r_name(m2)+sp+lbl2+")"+nl)
+        j += 1
+        if j < nb:
+            text.extend(tb+"call void @$b2llvm.print.space()"+nl)
+    for var in i["variables"]:
+        lbl1 = names.new_local()
+        lbl2 = names.new_local()
+        t2 = x_type(var["type"])
+        text.extend(tb+lbl1+" = getelementptr "+tm+" %self$, i32 0, i32 "+str(j)+nl)
+        text.extend(tb+lbl2+" = load "+t2+"* "+lbl1+nl)
+        if t2 == "i1":
+            text.extend(tb+"call void @$b2llvm.print.i1("+t2+sp+lbl2+")"+nl)
+            emit_print_i1 = True
+        else:
+            assert t2 == "i32"
+            text.extend(tb+"call void @$b2llvm.print.i32("+t2+sp+lbl2+")"+nl)
+            emit_print_i32 = True
+        j += 1
+        if j < nb:
+            text.extend(tb+"call void @$b2llvm.print.space()"+nl)
+    text.extend(tb+"call void @$b2llvm.print.rdelim()"+nl)
+    text.extend(tb+"ret void"+nl)
+    text.extend("}"+nl)
+    text.extend("declare void @$b2llvm.print.ldelim()"+nl)
+    text.extend("declare void @$b2llvm.print.rdelim()"+nl)
+    if nb > 1:
+        text.extend("declare void @$b2llvm.print.space()"+nl)
+    if emit_print_i1:
+        text.extend("declare void @$b2llvm.print.i1(i1)"+nl)
+    if emit_print_i32:
+        text.extend("declare void @$b2llvm.print.i32(i32)"+nl)
+
 
 ### TRANSLATION OF OPERATIONS
 
@@ -1229,6 +1305,18 @@ def init_name(n):
     check_kind(n, {"Machine", "Impl"})
     mach = n if n["kind"] == "Machine" else n["machine"]
     return "@"+mach["id"]+"$init$"
+
+def print_name(n):
+    '''
+    - Input:
+      n : a node representing a B machine or implementation
+    - Output:
+    String with the name of the LLVM function responsible for printing
+    the state of the component.
+    '''
+    check_kind(n, {"Machine", "Impl"})
+    mach = n if n["kind"] == "Machine" else n["machine"]
+    return "@"+mach["id"]+"$printf$"
 
 ### LLVM names for B operators ###
 

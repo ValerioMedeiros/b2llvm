@@ -17,12 +17,12 @@ parser.add_argument('-m', '--mode', choices=['comp','proj'], default='comp',
                     help='Selects code generation mode.')
 parser.add_argument('-t', '--trace', action='store_true',
                     help= 'enables emission of references to B source in LLVM code')
+parser.add_argument('-p', '--emit-printer', action='store_true',
+                    help= 'enables emission of LLVM functions that print the state of the components')
 parser.add_argument('-v', '--verbose', action='store_true',
                     help= 'outputs some information while running')
 args = parser.parse_args()
 trace.INI(args.trace)
-translate_bxml(args.b_module, args.llvm_file, mode=args.mode, 
-               dir=args.directory, settings=args.settings)
 if (args.verbose):
     print("b2llvm code generation completed")
     print("- BXML directory: " + args.directory)
@@ -31,3 +31,7 @@ if (args.verbose):
     print("- LLVM output file: " + args.llvm_file)
     print("- code generation mode: " + args.mode)
     print("- emits traceability information: " + str(args.trace))
+    print("- emits printing functions: " + str(args.emit_printer))
+translate_bxml(args.b_module, args.llvm_file, mode=args.mode, 
+               dir=args.directory, settings=args.settings,
+               emit_printer=args.emit_printer)
