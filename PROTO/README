@@ -18,6 +18,7 @@ The implementation of the prototype is in Python and consists of the following
   - b2llvm/printer.py: To generate human-readable texts corresponding to AST encodings.
   - b2llvm/strutils.py: Custom string functionality.
   - b2llvm/translate.py: Generation of LLVM programs from B AST encodings.
+* b2llvmio.llvm: a LLVM file providing output functions for basic types that are used when the option --emit-printer is set.
 
 V&V
 ===
@@ -44,5 +45,5 @@ The directory also contains elements for the verification and validation of the 
 Currently, the verification and validation infrastructure is functional for the following B projects: counter, wd and timer.
 
 --
-David Deharbe, October 2013.
+David Deharbe, November 2013.
 
