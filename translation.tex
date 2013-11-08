@@ -111,20 +111,64 @@ of assertion violations.
 
 \paragraph{Overview.} Following this introduction, the paper is organized as
 follows. The implementation constructs of the B language, and selected elements
-of the LLVM are presented in section~\ref{sec:b-impl}
+of the LLVM are presented in section~\ref{sec:b-aspects}
 and~\ref{sec:llvm}. Section~\ref{sec:overview} presents a bird's-eye view that
 is then detailed in sections~\ref{sec:module} (for component modularity)
 ~\ref{sec:data} (for data aspects),~\ref{sec:expr} (expressions) and
 instructions~\ref{sec:control}. We conclude and discuss future work
 in~\ref{sec:conclusion}.
 
-\section{Implementation Language in the B-method}
-\label{sec:b-impl}
+\section{Project structure in the B-method}
+\label{sec:b-aspects}
 
-This section describes the B implementation constructs that are considered in
-the compilation to the LLVM. This description introduces the notations used in
-the definition of the translation. The elements of the B language are denoted
-using a \B{sans serif} font.
+A B \emph{project} consists in specifying a system at an abstract level and
+producing a software system implementing this specification. A project is
+essentially carried out decomposing the specification into modules and refining
+such specification modules until they can be translated directly to a
+programming language.
+
+In the B method, software is organized in libraries of \emph{modules} that are
+composed to build new modules and realize projects. A module has a
+specification, called a \emph{machine} and can be developed formally using by a
+series of \emph{refinements}. When a refinement satisfies a number of formal
+established criteria (all the data is scalar, all the activity is described in a
+procedural fashion), it is a B \emph{implementation\/}. Machines, refinements
+and implementations are called \emph{components}. When the implementation of a
+module is thus developed with the B-method, it is called a \emph{developed}
+module. It is also possible that a module has its implementation developed out
+of the realm of the B method, in which case it is called a \emph{base} module.
+
+Amongst the several constructs of the B notation supporting modular design, the
+\emph{import} relation is related to separate compilation. At the implementation
+level, one module may import several instances of a machine to construct its
+internal data structures. Such imported machines may be either basic, or
+developed. In the latter case, the implementation of the imported machines may
+in turn import other machine instances and there is no pre-established limit to
+such chain of imports. Hence, the import relation between module instances forms
+a tree, where the root is an implementation and the descendants of a node are
+the instances imported from the module in that node.
+
+\begin{figure}
+\begin{center}
+ \includegraphics[width=.8\textwidth]{B-project.pdf}
+\caption{Structure of the imports relation in a B project}
+\label{fig:structure}
+\end{center}
+\end{figure}
+Figure~\ref{fig:structure} illustrates this with the structure of a B project
+where an implementation \B{I0} of a specification \B{M0} imports one unnamed
+instance of a basic machine \B{M1} and two instances named \B{A} and \B{B} of a
+developed machine \B{M2}. Its implementation \B{I2} in turn imports two
+instances \B{C} and \B{D} of a developed machine \B{M3}, implemented as \B{I3}
+(which has no imports itself).  
+
+\section{Description of the input of the code generator}
+\label{sec:b-ast}
+
+We detail here the constructs that are considered in the compilation to the
+LLVM. This description introduces the notations used in the definition of the
+translation. The elements of the B language are denoted using a \B{sans serif}
+font.
 
 Figure~\ref{tab:node-attr} summarizes the structure
 of the abstract syntax that is relevant in the definition of the proposed
@@ -139,9 +183,12 @@ implementation; \B{var}, a set of variable names, their type and possibly
 additional functional restrictions forming the rest of the state; \B{init}, a
 sequence of instructions executed upon initialization of the implementation;
 \B{op}, a set of operations, each being an algorithmic description of the
-different functionalities provided by the implementation.\DD{Include the
-possibility that the import is a machine without implementation. Instead it
-has a list of typed, implementable, variables.}
+different functionalities provided by the implementation.
+
+We distinguish the base module machines from developed module machines by
+testing the \B{impl} attribute of the \B{Machine} element: if it is $\bot$, then
+the machine is basic, otherwise it is the root of the corresponding
+implementation.
 
 The initialization and the operations are defined as (sequences of)
 instructions. Operations also have a name, inputs and outputs. Possible
@@ -163,7 +210,7 @@ Boolean constants \B{FALSE} and \B{TRUE}, integer literals, and integer
 constants \B{MAXINT} and \B{MININT}. The development through the application of
 the B method ensures the absence of overflows and underflows.
 
-\begin{figure}[H]
+\begin{figure}[t]
   \begin{center}
     {\footnotesize
       \frame{
@@ -342,7 +389,7 @@ C code appears on the left) with two temporary variables \llvm{\%0} and
   \begin{minipage}[t]{.6\textwidth}
     \begin{tabbing}
       foo \= \kill  \\
-      \llvm{define void @inc(i32* \%pi) nounwind \{} \\
+      \llvm{define void @inc(i32* \%pi) \{} \\
       \llvm{entry:}                      \\
       \> \llvm{\%0 = load i32* \%pi}     \\
       \> \llvm{\%1 = add i32 \%0, 1}     \\
@@ -409,15 +456,17 @@ of the LLVM.
   \label{fig:llvm-grammar}
 \end{figure}
 
-LLVM programs are organized into modules, one per translation unit. A module may
-contain declarations of external entities (functions, constants) and definitions
-of internal items (functions, variables, constants). All data is explicitly
-typed. The name and type of external entities must be declared.  All names,
-e.g. non-reserved identifiers, shall start with \llvm{@}, when they are global,
-or\llvm{\%}, when they are local. For instance, \llvm{@max = external constant
-  i32} declares \llvm{@max} as a 32-bit integer constant and \llvm{declare void
-  @inc(i32*)} declares \llvm{@inc} as a function having as parameter a pointer
-to an integer and \llvm{void} as a return type.
+LLVM programs are organized into modules\footnote{The term ``module'' has
+  different meanings when considering the B method and LLVM.  We will use
+  ``module'' for the former and ``LLVM module'' for the latter.}, one per
+translation unit. A module may contain declarations of external entities
+(functions, constants) and definitions of internal items (functions, variables,
+constants). All data is explicitly typed. The name and type of external entities
+must be declared.  All names, e.g. non-reserved identifiers, shall start with
+\llvm{@}, when they are global, or\llvm{\%}, when they are local. For instance,
+\llvm{@max = external constant i32} declares \llvm{@max} as a 32-bit integer
+constant and \llvm{declare void @inc(i32*)} declares \llvm{@inc} as a function
+having as parameter a pointer to an integer and \llvm{void} as a return type.
 
 The type system contains the empty type \llvm{void}, an infinite, countable
 number of integer types, one for each possible bit width (e.g. \llvm{i8} is the
@@ -441,9 +490,8 @@ for these aspects, but they are not needed in this work and their presentation
 is omitted. For each such definition, a memory block is statically allocated to
 stores the variable value. Function definitions are composed of the signature
 and body. The signature contains the return type, name, parameters, and
-attributes for target code generation. Attribute \llvm{nounwind} states that the
-function never generate exceptions. The body is a sequence of blocks of
-instructions in single-static assignment (SSA) form, i.e. are such that each
+attributes for target code generation. The body is a sequence of blocks of
+instructions in single-static assignment (SSA) form, i.e., each
 variable may be assigned exactly once.
 
 The grammar rule \nt{inst} describes the different kind of instructions. All
@@ -488,137 +536,130 @@ on the current stack frame, by using the \llvm{alloca} instruction.
 
 In addition to producing LLVM code that is faithful to the design developed in
 B, our code generator is designed to satisfy the following two requirements:
-\begin{enumerate}
-\item Memory is allocated statically, save for the function call frame stack: no
-  dynamic memory allocation library is required. Many safety critical systems
-  preclude use of this programming facility.
-\item The code generator features separate compilation: an internal change in a
-  component should only require generating new LLVM code for that component, and
-  not for the other components that depend on it. This condition is important
-  for large, distributed projects.
-\end{enumerate}
-
-In Atelier-B, software development is organized in libraries of modules. A
-module has a specification, called a machine. A machine may be:
 \begin{description}
-\item[basic] In that case its implementation is carried out outside the realm of
-  the B method. Even though no LLVM code needs to be generated to implement the
-  basic machines, the code generator still needs to produce LLVM declarations of
-  the entities (e.g., constants and operations) that are supplied by those
-  machines.
-\item[developed] In that case, this module also contains a series of
-  refinements, eventually reaching an implementable version, from which LLVM
-  code may be generated.
+\item[static memory allocation] Many safety critical systems preclude use of
+  this programming facility. All memory shall be allocated statically, save for
+  the function call frame stack. As a side effect, no dynamic memory allocation
+  library is required.
+\item[separate compilation] An internal change in a module should only require
+  generating new LLVM code for that module, and not for the modules that depend
+  on it. This condition is important for large projects, where the development
+  may be distributed to different persons.  If the change is in the interface
+  though, the code generated from the dependent modules shall be updated.
 \end{description}
-We distinguish basic machines from developed machines in the abstract syntax by
-testing the \B{impl} attribute of the \B{Machine} element: if it is $\bot$, then
-the machine is basic, otherwise it is the root of the corresponding
-implementation.
 
-Amongst the several constructs of the B notation supporting modular design, the
-\emph{import} relation is related to separate compilation. At the implementation
-level, one module may import several instances of a machine to construct its
-internal data structures. Such imported machines may be either basic, or
-developed. In the latter case, the implementation of the imported machines may
-in turn import other machine instances and there is no pre-established limit to
-such chain of imports. Hence, the import relation between module instances forms
-a tree, where the root is an implementation and the descendants of a node are
-the instances imported from the module in that node.
+We will use the example of the B project structure from
+figure~\ref{fig:structure} to justify some decision taken in the design of the
+code generator.  The example project consists of four modules. The corresponding
+executable file shall include one instance of module \B{M0}, one instance of
+\B{M1}, two instances of \B{M2} and four instances of \B{M3}. 
 
-\begin{figure}
-\begin{center}
- \includegraphics[width=.8\textwidth]{B-project.pdf}
-\caption{Structure of the imports relation in a B project}
-\label{fig:structure}
-\end{center}
-\end{figure}
-Figure~\ref{fig:structure} illustrates this with the structure of a B project
-where an implementation \B{I0} of a specification \B{M0} imports one unnamed
-instance of a basic machine \B{M1} and two instances named \B{A} and \B{B} of a
-developed machine \B{M2}. Its implementation \B{I2} in turn imports two
-instances \B{C} and \B{D} of a developed machine \B{M3}, implemented as \B{I3}
-(which has no imports itself).  The generation of LLVM code for the project
-shall produce the representation for one instance of \B{I0}, two instances of
-\B{I2} and four instances of \B{I3}.
+The module \B{M1} is basic, and we expect that the corresponding instance is
+produced by another tool chain. Nevertheless, the LLVM code for \B{M0} may use
+all the symbols defined in the interface of \B{M1} and we shall produce
+corresponding LLVM declarations in the LLVM file for \B{M0}. Note that,
+similarly, \B{M0} accesses the interface of \B{M2}, and \B{M2} accesses that of
+\B{M3}.
 
-At that point, let us remark that, when generating code for a given module, we
-need to consider the following two cases:
+\begin{quote}
+  Given a module \B{M}, we need a procedure that generates the LLVM declarations
+  for all the elements in the interface of \B{M}.
+  The code produced by this procedure is called the \emph{interface section} of
+  (the translation of) \B{M}.
+\end{quote}
+
+Now, consider that the modules have some data space. The LLVM code generator
+needs to allocate memory to store the representation of the corresponding
+data. Dynamic memory allocation being out of the picture, the sole solution is
+static memory allocation, that is using global variables. Also, when the code
+generator processes a B module, the number of instances there will be at run
+time is not known, and we would not want to have to regenerate code each time
+the module is used in a project to suit the number of instances. Indeed, the
+best moment to instantiate the representation of the modules data space is when
+the code for a whole project is generated.  
+
+\begin{quote}
+When generating code
+for a given module, we need to consider the following two cases:
 \begin{enumerate}
-\item The code generation aims at producing a component, that will further be
-  instantiated by importations. We call this the \emph{COMP} mode for code
-  generation. This case is further split into two sub-cases:
-  \begin{enumerate}
-  \item The module is basic, and only declarations need to be emitted.
-  \item The module is developed, and declarations and definitions are produced.
-  \end{enumerate}
-\item The generated code corresponds to a full project. Given the root module,
-  the code generator must identify all the transitively imported module instances. We call this the \emph{PROJ} mode for code generation.
+\item Code generation aims at producing a LLVM module,
+  that will later be instantiated when generating the code for a project. We
+  call this the \emph{COMP} mode for code generation.
+\item Code generation is applied to build a full system from a project. Given
+  the root module of the project, the code generator must identify all the
+  transitively imported module instances. We call this the \emph{PROJ} mode for
+  code generation.
 \end{enumerate}
-One key issue in the code generation is how memory shall be allocated to store
-the state of the modules. To satisfy our first initial requirement (no dynamic
-memory allocation), this allocation shall be static, that is to say the
-generator must include the code that creates the module instances when the
-project starts execution. Note that this cannot be done in \emph{COMP} mode as,
-at that point, we cannot assume any knowledge on the number of instances the
-module being compiled will there be at run time. Consequently, the
-responsibility for the static allocation of instances is assigned to the
-\emph{PROJ} mode, which shall also perform the proper bindings between the
-actual and formal instances in the generated code.
+\end{quote}
 
-To encode the data space of a module, the translation produces a structure type,
-named \llvm{\%M\$state\$}, such that the elements of the structure represent the
-variables and the instances of imported modules. To satisfy our second initial
-requirement (separate compilation), the instances cannot be part of the
-structure itself, instead references to those instances (encoded as pointers)
-are used. Let \llvm{\%M\$ref\$} denote the type pointer to \llvm{\%M\$state\$}.
+The code generated for a module needs to address separately the representation
+of the variables and the imported module instances. To do so, all the variables
+and imported module instances are aggregated within a structure-like data
+element. So, to encode the data space of a module, the code generator produces a
+the definition of a LLVM structure type, named \llvm{\%M\$state\$}. This LLVM
+definition is called the \emph{typedef section} of (the translation of) \B{M}.
+
+However, to satisfy our second initial requirement (separate compilation), the
+representation of the imported module instances cannot be part of the structure
+itself.  Instead, the instances of the imported modules are represented as
+references to the corresponding encoding structures (i.e., as pointers) are
+used. We denote \llvm{\%M\$ref\$} the type pointer to \llvm{\%M\$state\$}.  
+
 To encode behavior of a module, each operation \B{op} is translated into the
 definition of a function named \llvm{@M\$op}. The parameter list of the
 functions thus produced contains one item for each input and output of the
 corresponding operation. There is also one parameter of type \llvm{\%M\$ref\$},
 to pass the address of the instance encoding structure associated with that
-operation. Also the translation produces a special function \llvm{@M\$init\$}
+operation. Also the translation produces a function \llvm{@M\$init\$}
 responsible for executing the initialization of \B{M}. The parameters of this
 function are the addresses of the instances found in the import tree of the
-module (including the module itself).
+module (including the module itself). These parameters are necessary to call the
+corresponding initialization functions and to bind the references to the
+imported modules to elements of the structure of the initialized module. These
+LLVM function definitions and the definition of the type \llvm{@M\$ref\$} form
+the so-called the \emph{implementation section} of (the translation of) \B{M}.
 
-Our approach consists in dividing the translation into three sections, and to
-combine these sections differently in \emph{PROJ\/} and \emph{COMP\/} mode. For
-a given module \B{M}, the sections are the following:
-\begin{enumerate}
-\item typedef: Defines an LLVM data type \llvm{\%M\$state\$} corresponding to
-  the data space of the module:
-  \begin{tabbing}
-    \llvm{\%M\$state\$ = type \{ \ListOf{\nt{type}} \}}
-  \end{tabbing}
-  In case the data space of a module is empty, this section is empty and the
-  type is not defined.
-\item interface: Defines an LLVM type \B{M\_ref}, pointer to \B{M\_data} (if
-  defined):
-  \begin{tabbing}
-    \llvm{\%M\$ref\$ = type \%M\$state\$*}
-  \end{tabbing}
-  The interface also contains declarations of one LLVM functions for each
-  operation of the module.
-  \begin{tabbing}
-    \llvm{declare void @M\$op(\%M\$ref\$, \ListOf{\nt{type}})}
-  \end{tabbing}
-  If the data space of the module is not empty, a function definition
-  corresponding to the initialisation is also emitted:
-  \begin{tabbing}
-    \llvm{declare void @M\$init\$(\%M\$ref\$, \ListOf{\nt{type}})}
-  \end{tabbing}
-\item implementation: Defines the functions declared in the interface:
-  \begin{tabbing}
-    foo \= \kill
-    \llvm{define void @M\$op(\%M\$state\$* \%self\$, \ListOf{\nt{param}}) \{} \\
-    \> \llvm{\ListOf{\nt{block}}} \\
-    \> \llvm{exit: ret void} \\
-    \llvm{\}}
-  \end{tabbing}
-  This section is produced only for the developed modules.
-\end{enumerate}
-Based on the definition of these sections, the \emph{COMP\/} translation
-assembles them as follows:
+\begin{figure}[t]
+\begin{center}
+\newcommand{\myind}{\hspace*{2em}}
+\framebox{
+\begin{minipage}{.9\textwidth}
+\noindent\textbf{typedef section:}
+Defines an LLVM data type \llvm{\%M\$state\$} corresponding to
+the data space of the module: \\
+\myind \llvm{\%M\$state\$ = type \{ \ListOf{\nt{type}} \}} \\
+In case the data space of a module is empty, this section is empty and the
+type is not defined. \\
+\\
+\noindent\textbf{interface section:} 
+Defines an LLVM type \B{M\_ref}, pointer to \B{M\_data} (if
+defined):\\
+\myind \llvm{\%M\$ref\$ = type \%M\$state\$*} \\
+The interface also contains declarations of one LLVM functions for each
+operation of the module. \\
+\myind \llvm{declare void @M\$op(\%M\$ref\$, \ListOf{\nt{type}})} \\
+If the data space of the module is not empty, a function definition
+corresponding to the initialisation is also emitted: \\
+\myind \llvm{declare void @M\$init\$(\%M\$ref\$, \ListOf{\nt{type}})} \\
+\\
+\noindent\textbf{implementation section:}
+Defines the functions declared in the interface (only for developed modules): \\
+\myind \llvm{define void @M\$op(\%M\$state\$* \%self\$, \ListOf{\nt{param}}) \{} \\
+\myind \myind \llvm{\ListOf{\nt{block}}} \\
+\myind \myind \llvm{exit: ret void} \\
+\myind \llvm{\}}
+\end{minipage}
+}
+\end{center}
+\caption{Summary of the different sections and the pattern of LLVM code
+  composing them.}
+\label{fig:summary}
+\end{figure}
+
+Figure~\ref{fig:summary} summarizes the three sections defined in our approach
+for the code generation. These sections are combined differently in
+\emph{PROJ\/} and \emph{COMP\/} mode. The \emph{COMP\/} translation assembles
+them as follows:
 \begin{center}
   \begin{tabbing}
     foo \= foo \= \kill
@@ -651,8 +692,8 @@ For a module \B{M}, the \emph{PROJ\/} translation is organized as follows:
   \end{tabbing}
 \end{center}
 
-The detailed presentation of the translation of the different elements of a B
-implementation is divided into:
+The following sections are devoted to the detailed presentation of the
+translation of the different elements of a B implementation, as follows:
 \begin{description}
 \item[Notation] and some auxiliary definitions are presented in sec.~\ref{sec:notation}.
 \item[Modularity] constructs to combine B components are described in
@@ -1302,18 +1343,17 @@ corresponding initialization function:
 \section{Validation}
 \label{sec:validation}
 
-Before implementing this translation, we want validate the rules that define it.
-For this, we follow a pragmatic approach, based on testing and simulation of the
-generated LLVM artifacts, and using the existing LLVM tool set. Consequently,
-the rules described in the preceding sections have been prototyped in the Python
-programming language. The input of the translation is in a XML-based format,
-named BXML, that is generated by the forthcoming version of Atelier-B. For each
-B component (machine or implementation), Atelier-B generates a BXML file that
-may then be used as input by our prototype. The output of the translation is in
-LLVM-IR format. Such output may then be processed by the LLVM tools either to
-generate binary in some compatible target platform or LLVM bitcode that may then
-be executed using the LLVM interpreter. We used the latter approach to validate
-our translation.
+To validate the rules defining the code generator, we follow a pragmatic
+approach, based on testing and simulation of the generated LLVM artifacts, and
+using the existing LLVM tool set. The rules described in the preceding sections
+have been prototyped in the Python programming language. The input of the
+translation is in a XML-based format, named BXML, that is generated by the
+forthcoming version of Atelier-B. For each B component (machine or
+implementation), Atelier-B generates a BXML file that may then be used as input
+by our prototype. The output of the translation is LLVM code. Such output may
+then be processed by the LLVM tools either to generate binary in some compatible
+target platform or LLVM bitcode that may then be executed using the LLVM
+interpreter. We used the latter approach to validate our translation.
 
 The LLVM tools that are employed are:
 \begin{description}
@@ -1328,7 +1368,7 @@ llvm-link example-01.bc example-02.bc -o prog.bc
 \end{verbatim}
 \item[lli] The LLVM bitcode interpreter, which may be invoked as follows:
 \begin{verbatim}
-lli-mp example-01.bc
+lli example-01.bc
 \end{verbatim}
 \end{description}
 
