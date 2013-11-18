@@ -1,0 +1,766 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+
+\usepackage[fleqn]{amsmath}
+\usepackage{xspace,framed,here,keystroke}
+\usepackage{graphicx}
+\usepackage[colorlinks=false]{hyperref}
+\usepackage{minted}   %Used to syntax highlight
+
+
+
+\newcommand{\trad}[2]{\ensuremath{\lVert \textsf{#1} \rVert^{\textit{#2}}}}
+\newcommand{\nl}[0]{\ensuremath{\downarrow}}
+\newcommand{\mty}[0]{\texttt{""}}
+\DeclareMathOperator{\conc}{\diamond}
+\DeclareMathOperator{\isdef}{\equiv}
+\DeclareMathOperator{\dom}{\mbox{dom}}
+\DeclareMathOperator{\lbl}{\mathcal{L}()}
+\DeclareMathOperator{\variable}{\mathcal{V}()}
+\newcommand{\llvm}[1]{\texttt{#1}}
+\newcommand{\B}[1]{\textsf{#1}}
+\newcommand{\lalt}[0]{$\langle$\xspace}
+\newcommand{\ralt}[0]{$\rangle$\xspace}
+\newcommand{\alt}[0]{$\mid\,$}
+\newcommand{\ListOf}[1]{$\mbox{#1}^+$}
+\newcommand{\nt}[1]{{\normalfont\textit{#1}}}
+\newcommand{\Dict}[0]{\mathbb{D}}
+\newcommand{\Text}[0]{\mathbb{T}}
+\newcommand{\IF}[0]{\textbf{ if }}
+\newcommand{\ELSIF}[0]{\textbf{ else if }}
+\newcommand{\ELSE}[0]{\textbf{ else }}
+\newcommand{\THEN}[0]{\textbf{ then }}
+\newcommand{\LET}[0]{\textbf{ let }}
+\newcommand{\IN}[0]{\textbf{ in }}
+\newcommand{\AND}[0]{\textbf{ and }}
+\newcommand{\PH}[1]{\framebox{$#1$}}
+\newcommand{\sep}[0]{\otimes}
+\newcommand{\intf}[0]{\ensuremath{\mathbb{I}}}
+\newcommand{\Global}[0]{\ensuremath{\sf\Gamma}}
+\newcommand{\local}[0]{\ensuremath{\sf\lambda}}
+\newcommand{\opmap}[0]{\ensuremath{\sf\Omega}}
+\newcommand{\developed}[0]{\ensuremath{\textsf{developed}}}
+\newcommand{\stateless}[0]{\ensuremath{\textsf{stateless}}}
+\newcommand{\importedmodules}[0]{\ensuremath{\textsf{i-mod}}}
+\newcommand{\trimportedmodules}[0]{\ensuremath{\textsf{i-mod$\mathsf{\ast}$}}}
+\newcommand{\importedinstances}[0]{\ensuremath{\textsf{i-inst}}}
+\newcommand{\trimportedinstances}[0]{\ensuremath{\textsf{i-inst$\mathsf{\ast}$}}}
+\newcommand{\idx}[0]{\ensuremath{\sf\Pi}}
+\newcommand{\state}[0]{\ensuremath{\sf\Theta}}
+\newcommand{\stateref}[0]{\ensuremath{\sf\Phi}}
+\newcommand{\self}[0]{\ensuremath{\sf\Sigma}}
+\newcommand{\init}[0]{\ensuremath{\mathsf{I}}}
+\newcommand{\tradi}[2]{\ensuremath{\langle \textsf{#1} \rangle^{\textit{#2}}}}
+
+\newcommand{\DD}[1]{\marginpar{\tiny{DD: #1}}}
+\newcommand{\VGM}[1]{\marginpar{\tiny{VGM: #1}}}
+
+\newcommand{\stateindex}[0]{\ensuremath{\sf\tau}}
+ 
+\author{David Déharbe, Valério Medeiros Jr.}
+\title{Array}
+
+\begin{document}
+
+%TODO Review the text before present to David
+
+\definecolor{bg}{rgb}{0.95,0.95,0.95}
+
+\usemintedstyle{friendly}
+
+\section{The abstract syntax tree with support for advanced types}
+
+The supported advanced types are array and structures. The nodes Array and 
+Structure can be used to declare a variable or to select an element in the array 
+or the structure. 
+
+
+\begin{figure}[H]
+  \begin{center}
+    {\footnotesize
+      \frame{
+    \begin{tabular}[t]{ccc}
+      \begin{tabular}[t]{rcl}
+        \hline
+        \multicolumn{3}{|c|}{Machine: \B{Machine}} \\
+        \hline
+        \B{id} & : & \B{Name} \\
+        \B{const} & : & seq \B{Cons} \\
+        \B{var} & : & seq \B{Vari} \\
+        \B{init} & : & seq \B{Inst} \\
+        \B{op} & : & seq \B{Oper} \\
+        \B{impl} & : & opt \B{Impl} \\
+        \hline
+        \multicolumn{3}{|c|}{Implementation: \B{Impl}} \\
+        \hline
+        \B{id} & : & \B{Name} \\
+        \B{impo} & : & seq \B{Import} \\
+        \B{const} & : & seq \B{Cons} \\
+        \B{var} & : & seq \B{Vari} \\
+        \B{init} & : & seq \B{Inst} \\
+        \B{op} & : & seq \B{Oper} \\
+        \hline
+        \multicolumn{3}{|c|}{Imports: \B{Import}} \\
+        \hline
+        \B{mach} & : & \B{Machine} \\
+        \B{pre} & : & opt \B{Name}
+        \\
+        \hline
+        \multicolumn{3}{|c|}{Constant: \B{Cons}} \\
+        \hline
+        \B{id} & : & \B{Name} \\
+        \B{type} & : & \B{Type} \\
+        \B{val} & : & \B{Value} \\
+        \hline
+        \multicolumn{3}{|c|}{Variable: \B{Vari}} \\
+        \hline
+        \B{id} & : & \B{Name} \\
+        \B{type} & : & \B{Type} \\
+        \B{scope} & : & \B{Impl} \alt \B{Oper}\\
+	\hline
+        \multicolumn{3}{|c|}{Operation: \B{Oper}} \\
+        \hline
+        \B{id} & : & \B{Name} \\
+        \B{inp} & : & seq \B{Vari} \\
+        \B{out} & : & seq \B{Vari} \\
+        \B{body} & : & \B{Inst}
+        \\
+       \hline
+        \multicolumn{3}{|c|}{Instruction: \B{Inst}} \\
+        \hline
+        \multicolumn{3}{c}{\B{Blk} \alt \B{VarD} \alt \B{If} \alt \B{BEq} \alt } \\
+        \multicolumn{3}{c}{\B{Call} \alt \B{While} \alt \B{Case} \alt \B{Skip}} \\
+      
+       \end{tabular}
+      
+       \begin{tabular}[t]{rcl}
+
+        \hline
+        \multicolumn{3}{|c|}{Block: \B{Blk}} \\
+        \hline
+        \B{body} & : & seq \B{Inst} \\   
+        \hline
+        \multicolumn{3}{|c|}{Variable declaration: \B{VarD}} \\
+        \hline
+        \B{vars} & : & seq \B{Name} \\
+        \B{body} & : & seq \B{Inst} \\
+	\hline
+        \multicolumn{3}{|c|}{If: \B{If}} \\
+        \hline
+        \B{branches} & : & seq \B{IfBr} \\
+        \hline
+        \multicolumn{3}{|c|}{Becomes equal: \B{Beq}} \\
+        \hline
+        \B{lhs} & : & \B{Vari} \\
+        \B{rhs} & : & \B{Expr} \\
+        \hline
+        \multicolumn{3}{|c|}{Operation call: \B{Call}} \\
+        \hline
+        \B{op} & : & \B{Oper} \\
+        \B{inp} & : & seq \B{Expr} \\
+        \B{out} & : & seq \B{Name} \\
+        \B{inst} & : & opt \B{Impo} \\
+        \hline
+        \multicolumn{3}{|c|}{Case conditional: \B{Case}} \\
+        \hline
+        \B{expr} & : & \B{Expr} \\
+        \B{branches} & : & seq \B{CaseBr}\\
+	\hline
+        \multicolumn{3}{|c|}{Case branch: \B{CaseBr}} \\
+        \hline
+        \B{val} & : & seq \B{Value} \\
+        \B{body} & : & \B{Inst}
+        \\
+        \hline
+        \multicolumn{3}{|c|}{While loop: \B{While}} \\
+        \hline
+        \B{cond} & : & \B{Pred} \\
+        \B{body} & : & \B{Inst} \\
+        \hline
+        \multicolumn{3}{|c|}{If branch: \B{IfBr}} \\
+        \hline
+        \B{cond} & : & opt \B{Pred} \\
+        \B{body} & : & \B{Inst} \\
+        \hline
+        \multicolumn{3}{|c|}{Expression: \B{Expr}} \\
+        \hline
+        \multicolumn{3}{c} {\B{Lit} \alt \B{Term} \alt \B{Pred} \alt \B{Vari}} \\
+        \hline
+        \multicolumn{3}{|c|}{Term expression: \B{Term}} \\
+        \hline
+        \B{op} & : & \B{ArithOp} \\
+        \B{args} & : & seq \B{Exp} \\
+
+      \end{tabular}
+       
+      \begin{tabular}[t]{rcl}
+
+        \hline
+        \multicolumn{3}{|c|}{Predicate: \B{Pred}} \\
+        \hline
+        \multicolumn{3}{c}{\B{Form} \alt \B{Comp}} \\
+        \hline
+        \multicolumn{3}{|c|}{Boolean formula: \B{Form}} \\
+        \hline
+        \B{op} & : & \B{BoolOp} \\
+        \B{args} & : & seq \B{Pred} \\
+        \hline
+        \multicolumn{3}{|c|}{Comparison: \B{Comp}} \\
+        \hline
+        \B{op} & : & \B{RelOp} \\
+        \B{arg1}, \B{arg2} & : & \B{Exp} \\
+        \hline
+        \multicolumn{3}{|c|}{Data type: \B{Type}} \\
+        \hline
+        \multicolumn{3}{c}{\B{INT} \alt \B{BOOL}\alt}\\
+	\multicolumn{3}{c}{\B{Struct} \alt \B{Array}}\\
+	\hline
+  	\multicolumn{3}{|c|}{Data structure : \B{Struct}} \\
+        \hline
+	\B{element} & : &  \B{Name}\\
+        \B{id} & : & seq \B{Name} \\
+	\B{type} & : & seq \B{Type}\\	
+        \hline
+        \multicolumn{3}{|c|}{Data array : \B{Array}} \\
+        \hline
+	\B{dec} & : &  seq \B{Vector} \\
+	\B{type} & : & seq \B{CSet}\\
+	\B{indexes} & : & seq \B{STerm}\\
+	\hline
+  	\multicolumn{3}{|c|}{Vector : \B{Vector}} \\
+        \hline
+	\B{elements} & : & seq \B{Expr}\\ 
+	\hline
+	\multicolumn{3}{|c|}{Concrete set : \B{CSet}} \\
+	\hline
+	\multicolumn{3}{c}{BOOL \alt NAT \alt NAT$_{1}$ \alt } \\
+	\multicolumn{3}{c}{INT \alt B0\_INTERVAL} \\
+	\hline
+	\multicolumn{3}{|c|}{B0 interval : \B{B0\_INTERVAL}} \\
+	\hline
+	\B{start} & : & \B{Exp} \\
+	\B{end} & : & \B{Exp} \\
+	\hline
+	\multicolumn{3}{|c|}{Simple term : \B{STerm}} \\
+	\hline
+	\B{index} & : &  \B{BOOL} \alt \B{INT} \alt \\ 
+	& &  \B{Vari} \alt \B{Cons} \\
+%	\multicolumn{3}{c}{ \B{BOOL} \alt \B{INT} \alt }\\
+%	\multicolumn{3}{c}{ \B{Vari} \alt \B{Cons} }\\
+      \end{tabular}
+    \end{tabular}
+  }
+  }
+    \caption{Abstract syntax structure of a B implementation.  For each abstract
+      syntax element, we give the name of the class (e.g. \B{CaseBr} for a
+      branch in a case instruction, and the different attributes of the class),
+      or a list of the possible sub-classes (e.g. \B{Inst} for the different
+      kinds of instructions).
+      Sequence and optional attributes are denoted ``seq'' and ``opt'',
+      respectively}
+    \label{tab:node-attr}
+  \end{center}
+\end{figure}
+
+
+
+\section{Translation of Array and Structures}
+
+
+Two approaches are possibles to support arrays. An approach is importing
+reusable libraries of AtelierB that are reported at official document of
+ClearSy\footnote{\url{http://www.atelierb.eu/ressources/DOC/english/reusable-components-reference.pdf}}.
+This approach is supported, but the generated code is more complex and it needs
+more intermediate steps to manipulate the data of imported components. Not only,
+this approach allows dynamic allocation for arrays, but it is extremely not
+recommended to safety-critical systems. A second approach enjoys the direct 
+correspondence between arrays native B0 and LLVM-IR and this approach is presented here.
+
+
+A concrete array is a total function, where the domain indexes the range 
+elements. The domain is composed by Cartesian product of sequence of concrete 
+sets. The node Data array in AST can represent a declaration of array or a 
+selection of element. The first element ``dec'' declares explicitly an array or does a 
+reference to a variable array. The second element ``type'' defines a sequence of 
+array types, where the last element defines the range of function and the others 
+elements defines the domain. The third element ``indexes'' is optional, and it 
+represents the selection of an element in array.
+
+Some examples of array are:
+\begin{itemize}
+	\item $array1 \in (0..10) \to INT $
+	\item $array2 \in (0..10) \times (0..10) \to INT $   (a multidimensional example)
+	\item $array3 \in BOOL \times (0..10) \to INT$ (a domain with two index types)
+\end{itemize} 
+
+
+The B0 language supports attributions between arrays, even though the attribution
+must have the same domain type and range type. 
+%TODO to add this restriction in become equals.
+
+
+
+\subsection{Relation arrays B0 and LLVM-IR}
+\VGM{It must be extended to support structure.}
+
+The arrays in B0 are represented by functions where an index pointer to an 
+element. By default, the element of index not initialized has the zero value. 
+
+This section shows the relation between arrays B0 and LLVM-IR. The sequence of
+steps are: defining  an array, getting an element and setting an
+element.
+
+\subsubsection{Defining an array}
+
+
+The essential elements of array are its name, size and type. The
+following code declares an array global called ``arr'' with 100 integer
+numbers with 32 bits and initialized with zero.
+
+\begin{footnotesize}
+\begin{minted}[frame=single,linenos=true,bgcolor=bg]{llvm}
+@arr = internal global [100 x i32] zeroinitializer
+\end{minted}
+\end{footnotesize}
+ 
+
+Some type examples are:
+\begin{itemize}
+	\item \verb|[25 x i32]| - Array with 25 elements of 32-bit integer values.
+	\item \verb|[4 x [5 x [6 x i16]]] | - Multidimensional array with (4 x 5
+x 6) elements of 16-bit integer values.
+\end{itemize}
+
+
+\subsubsection{Getting a element from array}
+\VGM{Maybe it can be summarized with text of section 3}
+
+The LLVM-IR instruction \textit{getelementptr} is used to select an element in
+the array or structure. A simple example is: 
+
+\begin{footnotesize}
+\begin{minted}[frame=single,linenos=true,bgcolor=bg]{llvm}
+%4 = getelementptr  ([100 x i32]* @Array__arr, i64 0, i64 %3)
+\end{minted}
+\end{footnotesize}
+
+
+The first parameter defines the type and name of variable, and the others are
+indexes to select the element in the data type. The second parameter (i64 0)
+selects the first element in the pointer (* @Array\_\_arr). The last element,
+(i64 \%3) selects the value in position obtained from \%3 of the array of 32-bit
+integer values. When the array is multidimensional, news index must be added
+separated by comma to get the specific element.
+
+\iffalse
+\begin{verbatim}
+<temporary variable> = getelementptr  
+  [<number of elements> x <element type>]   * @<variable_name>, 
+  <type and index of pointer> <index_value>,
+  <type and index. ex:i64>  <index_value>
+\end{verbatim}
+\fi
+
+\subsubsection{Setting an element to array}
+
+The following blocks illustrate a B code setting and getting values with array
+``arr''  and its translation to LLVM-IR. 
+\begin{footnotesize}
+
+\begin{minted}[frame=single,bgcolor=bg,linenos=true]{pascal}
+  arr(2):=5;
+  i = arr(2);
+\end{minted}
+\end{footnotesize}
+
+\begin{footnotesize}
+\begin{minted}[frame=single,bgcolor=bg,linenos=true]{llvm}
+  store i32 5, i32* getelementptr  ([100 x i32]* @arr, i32 0, i64 2)
+  %1 = load i32* getelementptr  ([100 x i32]* @arr, i32 0, i64 2)
+  store i32 %1, i32* @i, align 4
+\end{minted}
+\end{footnotesize}
+
+
+
+\subsection{Draft of Rules}
+
+\paragraph{An atomic expression}
+
+\begin{align*}
+\lefteqn{\trad{n}{\B{Name}} \isdef \LET t = \trad{n.type}{\B{Type}} \IN} \\
+& \IF \B{n} \mbox{ is a constant } \THEN \trad{n.value}{\B{Expr}} \\
+& \ELSIF \B{n} \mbox{ is a local variable } \THEN
+\llvm{""} \sep \local(\B{n}) \sep t \\
+& \ELSE (\B{n} \mbox{ is a primitive state variable }) \LET p = \variable \AND v = \variable \IN \\
+& \quad \llvm{"\PH{p} = getelementptr  \PH{\stateref(\B{n.root})} \%self\$, i32 0, i32 \PH{\idx(\B{n})} \nl} \\
+& \quad \llvm{\PH{v} = load \PH{t}* \PH{p}\nl"} \sep v \sep t\\
+& \ELSE (\B{n} \mbox{ is an array or structure state variable }) \LET p = \variable \AND v = \variable \IN \\
+& \quad \llvm{"\PH{p} = getelementptr \PH{\state(\B{n.root})} \%self\$,
+\PH{\stateindex(n)} \nl} \\
+& \quad \llvm{\PH{v} = load \PH{t}* \PH{p}\nl"} \sep v \sep t
+\
+\end{align*}
+
+Definition of a new function:
+
+\begin{itemize}
+\item $\stateindex(\B{n}) \isdef$ to get a sequence of index to select the 
+element. If $\B{n} $ is integer vector ``arr'' with 100 elements selecting the 
+element 1 then the result is this text ``, i32 0, i64 1''. It means to select 
+the element in dimension zero and position one of array, where the index types are 
+respectively ``i32'' and ``i64''. More detailed examples are presented in the reference 
+manual of LLVM-IR\ref{}.
+
+\end{itemize}
+
+\subsubsection{Issues and problems}
+\begin{itemize}
+	\item Integrate it to report
+
+	:promptfind
+\begin{itemize}
+	\item Identify the rules that must be updated:
+	\begin{itemize}
+		\item \textbf{Atomic expression} - getting an element to manipulate.
+		\item %TODO - setting a element 
+		\item Others involved rules ?
+ 
+	\end{itemize}
+	
+	\end{itemize}
+
+\end{itemize}
+
+
+\newpage
+
+\section*{Attachments}
+
+
+
+
+\iffalse  % This content is not visible to reader.
+A generic example available at repository ProB\footnote{
+\url{https://github.com/bendisposto/probparsers/blob/develop/bparser/src/test/resources/parsable/Array.mch}}.
+
+\subsection{A very simple and generic example}
+
+
+\begin{minted}[frame=single,bgcolor=bg,linenos=true]{pascal}
+MACHINE
+   Array(maxindex, TYPE)
+CONSTRAINTS maxindex : NAT
+VARIABLES arr
+INVARIANT arr : 1..maxindex +-> TYPE
+INITIALISATION arr := {}
+OPERATIONS 
+
+set(ix,tt)=
+        PRE ix : 1..maxindex & tt : TYPE
+        THEN arr := arr <+ {ix |-> tt}
+        END ;
+
+tt <-- read(ix) =
+        PRE ix : dom (arr)
+        THEN tt := arr(ix)
+        END;
+
+swap(ix, jx)=
+        PRE ix : dom(arr) & jx : dom(arr)
+        THEN arr := arr <+ {ix |-> arr(jx), jx|-> arr(ix)}
+        END
+
+END
+\end{minted}
+\fi
+\subsection{A  simple example and its LLVM-IR}
+\footnotesize{
+\begin{minted}[frame=single,bgcolor=bg,linenos=true]{pascal}
+MACHINE
+   Array
+VARIABLES arr
+
+INVARIANT 
+    arr : ((0..99) --> 0..1000)
+
+INITIALISATION arr := {1|->100}
+
+OPERATIONS 
+
+set(ix,tt)=
+        PRE ix : (0..99) & tt : (0..1000)
+        THEN arr := arr <+ {ix |-> tt}
+        END ;
+
+tt <-- read(ix) =
+        PRE ix : (0..99)
+        THEN tt := arr(ix)
+        END;
+
+swap(ix, jx)=
+        PRE ix : (0..99) & jx : (0..99)
+        THEN arr := arr <+ {ix |-> arr(jx), jx|-> arr(ix)}
+        END
+
+END
+\end{minted}
+
+\begin{minted}[frame=single,bgcolor=bg,linenos=true]{pascal}
+IMPLEMENTATION 
+   Array_i
+REFINES
+   Array
+CONCRETE_VARIABLES
+   arr
+INVARIANT 
+    arr :  ((0..99) --> 0..1000)
+INITIALISATION
+   arr(1) := 100
+OPERATIONS
+   set ( ix , tt ) =
+   IF
+       ix >= 0 & ix <=99 & tt >= 0  & tt <= 1000
+   THEN
+       
+      arr(ix) := tt 
+   END;
+
+   tt <-- read ( ix ) =
+   IF
+       ix >= 0 & ix <=99
+   THEN
+       tt := arr ( ix )
+   ELSE
+       tt := 0
+   END;
+
+   swap ( ix , jx ) =
+   IF
+        ix >= 0 & ix <=99 & jx >= 0 & jx <=99 
+   THEN
+
+       VAR temp IN
+           temp := arr(jx);
+           arr(jx) := arr(ix);
+           arr(ix) := temp
+       END
+   END
+
+
+END
+
+
+\end{minted}
+
+
+
+
+\begin{minted}[frame=single,bgcolor=bg,linenos=true]{llvm}
+
+@Array__arr = internal global [100 x i32] zeroinitializer, align 16
+
+define void @Array__INITIALISATION() nounwind ssp {
+  store i32 100, i32* getelementptr  ([100 x i32]* @Array__arr, i32 0, i64 1)
+  ret void
+}
+
+define void @Array__set(i32 %ix, i32 %tt) nounwind ssp {
+  %1 = alloca i32, align 4
+  %2 = alloca i32, align 4
+  store i32 %ix, i32* %1, align 4
+  store i32 %tt, i32* %2, align 4
+  %3 = load i32* %1, align 4
+  %4 = icmp sge i32 %3, 0
+  br i1 %4, label %5, label %19
+
+; <label>:5                                       ; preds = %0
+  %6 = load i32* %1, align 4
+  %7 = icmp sle i32 %6, 99
+  br i1 %7, label %8, label %19
+
+; <label>:8                                       ; preds = %5
+  %9 = load i32* %2, align 4
+  %10 = icmp sge i32 %9, 0
+  br i1 %10, label %11, label %19
+
+; <label>:11                                      ; preds = %8
+  %12 = load i32* %2, align 4
+  %13 = icmp sle i32 %12, 1000
+  br i1 %13, label %14, label %19
+
+; <label>:14                                      ; preds = %11
+  %15 = load i32* %2, align 4
+  %16 = load i32* %1, align 4
+  %17 = sext i32 %16 to i64
+  %18 = getelementptr  [100 x i32]* @Array__arr, i32 0, i64 %17
+  store i32 %15, i32* %18
+  br label %19
+; <label>:19                                      ; preds = %14, %11, %8, %5, %0
+  ret void
+}
+
+define void @Array__read(i32 %ix, i32* %tt) nounwind ssp {
+  %1 = alloca i32, align 4
+  %2 = alloca i32*, align 8
+  store i32 %ix, i32* %1, align 4
+  store i32* %tt, i32** %2, align 8
+  %3 = load i32* %1, align 4
+  %4 = icmp sge i32 %3, 0
+  br i1 %4, label %5, label %14
+
+; <label>:5                                       ; preds = %0
+  %6 = load i32* %1, align 4
+  %7 = icmp sle i32 %6, 99
+  br i1 %7, label %8, label %14
+
+; <label>:8                                       ; preds = %5
+  %9 = load i32* %1, align 4
+  %10 = sext i32 %9 to i64
+  %11 = getelementptr  [100 x i32]* @Array__arr, i32 0, i64 %10
+  %12 = load i32* %11
+  %13 = load i32** %2, align 8
+  store i32 %12, i32* %13
+  br label %16
+
+; <label>:14                                      ; preds = %5, %0
+  %15 = load i32** %2, align 8
+  store i32 0, i32* %15
+  br label %16
+
+; <label>:16                                      ; preds = %14, %8
+  ret void
+}
+
+define void @Array__swap(i32 %ix, i32 %jx) nounwind ssp {
+  %1 = alloca i32, align 4
+  %2 = alloca i32, align 4
+  %temp = alloca i32, align 4
+  store i32 %ix, i32* %1, align 4
+  store i32 %jx, i32* %2, align 4
+  %3 = load i32* %1, align 4
+  %4 = icmp sge i32 %3, 0
+  br i1 %4, label %5, label %30
+
+; <label>:5                                       ; preds = %0
+  %6 = load i32* %1, align 4
+  %7 = icmp sle i32 %6, 99
+  br i1 %7, label %8, label %30
+
+; <label>:8                                       ; preds = %5
+  %9 = load i32* %2, align 4
+  %10 = icmp sge i32 %9, 0
+  br i1 %10, label %11, label %30
+
+; <label>:11                                      ; preds = %8
+  %12 = load i32* %2, align 4
+  %13 = icmp sle i32 %12, 99
+  br i1 %13, label %14, label %30
+
+; <label>:14                                      ; preds = %11
+  %15 = load i32* %2, align 4
+  %16 = sext i32 %15 to i64
+  %17 = getelementptr  [100 x i32]* @Array__arr, i32 0, i64 %16
+  %18 = load i32* %17
+  store i32 %18, i32* %temp, align 4
+  %19 = load i32* %1, align 4
+  %20 = sext i32 %19 to i64
+  %21 = getelementptr  [100 x i32]* @Array__arr, i32 0, i64 %20
+  %22 = load i32* %21
+  %23 = load i32* %2, align 4
+  %24 = sext i32 %23 to i64
+  %25 = getelementptr  [100 x i32]* @Array__arr, i32 0, i64 %24
+  store i32 %22, i32* %25
+  %26 = load i32* %temp, align 4
+  %27 = load i32* %1, align 4
+  %28 = sext i32 %27 to i64
+  %29 = getelementptr  [100 x i32]* @Array__arr, i32 0, i64 %28
+  store i32 %26, i32* %29
+  br label %30
+
+; <label>:30                                      ; preds = %14, %11, %8, %5, %0
+  ret void
+}
+
+\end{minted}
+
+}
+
+
+\subsection{Real example - Bubble Sort}
+
+\begin{footnotesize}
+\begin{minted}[frame=single,bgcolor=bg,linenos=true]{pascal}
+MACHINE
+   Bubble
+VARIABLES
+   vec,sort
+INVARIANT
+   vec : 0..99 --> 0..99 & sort : 0..1 &
+   ( sort = 1 =>  !ii.(ii : 0..98 => vec(ii)<=vec(ii+1)))
+INITIALISATION
+   vec :: 0..99 --> 0..99 || sort := 0
+OPERATIONS
+   op_sort =
+   ANY sorted_vector WHERE
+    sorted_vector : 0..99 --> 0..99 &
+    !ii.(ii : 0..98 => sorted_vector(ii)<=sorted_vector(ii+1))
+   THEN
+    vec := sorted_vector|| sort := 1
+   END
+
+END
+
+
+IMPLEMENTATION
+   Bubble_i
+REFINES
+   Bubble
+CONCRETE_VARIABLES
+   vec1,sort1
+INVARIANT
+   vec1 : 0..99 --> 0..99 & sort1 : 0..1 &
+   vec = vec1 & sort1 = sort
+INITIALISATION
+   vec1(0) := 0  ;
+   sort1 := 0
+OPERATIONS
+   op_sort =
+   VAR nn, swapped, ii, tmp, vi, vi2 IN
+	swapped := 1;
+	nn := 100;
+	ii:=0;
+	WHILE swapped = 1 DO
+		swapped := 0;
+		ii:= 0;
+		nn:= nn-1;
+
+		WHILE ii<= nn DO
+		vi :=  vec1(ii);
+		vi2 := vec1(ii+1);
+		IF vi > vi2 THEN
+			tmp:= vec1(ii+1);
+			vec1(ii+1):=vec1(ii);
+			vec1(ii):=tmp;
+			swapped:= 1
+		END;
+		ii:= ii+1
+
+		INVARIANT 1>0
+		VARIANT nn-ii
+		END
+
+	INVARIANT 1>0
+	VARIANT nn-ii
+	END
+   END
+END
+
+
+\end{minted}
+\end{footnotesize}
+
+
+\end{document}
