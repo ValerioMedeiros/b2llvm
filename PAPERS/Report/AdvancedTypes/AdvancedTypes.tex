@@ -219,8 +219,8 @@ or the structure.
 	\hline
   	\multicolumn{3}{|c|}{Data structure : \B{Struct}} \\
         \hline
-	\B{element} & : &  \B{Name}\\
-        \B{id} & : & seq \B{Name} \\
+	\B{id} & : &  \B{Name}\\
+        \B{elements} & : & seq \B{Name} \\
 	\B{type} & : & seq \B{Type}\\	
         \hline
         \multicolumn{3}{|c|}{Data array : \B{Array}} \\
@@ -235,7 +235,7 @@ or the structure.
 	\hline
 	\multicolumn{3}{|c|}{Concrete set : \B{CSet}} \\
 	\hline
-	\multicolumn{3}{c}{BOOL \alt NAT \alt NAT$_{1}$ \alt } \\
+	\multicolumn{3}{c}{BOOL \alt NAT \alt NAT$_{1}$\alt } \\
 	\multicolumn{3}{c}{INT \alt B0\_INTERVAL} \\
 	\hline
 	\multicolumn{3}{|c|}{B0 interval : \B{B0\_INTERVAL}} \\
@@ -245,10 +245,8 @@ or the structure.
 	\hline
 	\multicolumn{3}{|c|}{Simple term : \B{STerm}} \\
 	\hline
-	\B{index} & : &  \B{BOOL} \alt \B{INT} \alt \\ 
+	\B{index} & : &  \B{BOOL} \alt \B{INT}\alt \\ 
 	& &  \B{Vari} \alt \B{Cons} \\
-%	\multicolumn{3}{c}{ \B{BOOL} \alt \B{INT} \alt }\\
-%	\multicolumn{3}{c}{ \B{Vari} \alt \B{Cons} }\\
       \end{tabular}
     \end{tabular}
   }
@@ -287,14 +285,16 @@ or the structure.
       & \alt & \nt{name} \llvm{=} \lalt \llvm{add} \alt \llvm{sub} \alt \llvm{mul} \alt \llvm{sdiv} \alt \llvm{srem} \ralt \nt{itype} \nt{exp} \llvm{,} \nt{exp} \\
       & \alt & \nt{name} \llvm{=} \llvm{icmp} \lalt \llvm{eq} \alt \llvm{ne} \alt \llvm{sgt} \alt \llvm{sge} \alt \llvm{slt} \alt \llvm{sle} \ralt \llvm{i1} \nt{exp} \llvm{,} \nt{exp}\\
       & \alt & \nt{name} \llvm{=} \llvm{call} \nt{type} \llvm{(} \ListOf{\nt{arg}} \llvm{)} \\
-      & \alt & \nt{name} \llvm{=} \llvm{getelementptr} \nt{type} \llvm{*} \nt{exp}\llvm{,} \nt{index}\llvm{,} \nt{index} \\
+      & \alt & \nt{name} \llvm{=} \llvm{getelementptr} \nt{type} \llvm{*} 
+\nt{exp}\llvm{,} \nt{index}\llvm{,} \ListOf{\nt{index}} \\
       & \alt & \nt{name} \llvm{=} \llvm{load} \nt{type} \nt{exp} \\
       & \alt & \llvm{store} \nt{type} \nt{exp}, \nt{type} \llvm{*} \nt{exp} \\
       & \alt & \llvm{br} \llvm{i1} \nt{exp} \llvm{,} \llvm{label} \nt{lbl} \llvm{,} \llvm{label} \nt{lbl} \\
       & \alt & \llvm{br} \llvm{label} \nt{lbl} \\
 %       & \alt & \llvm{switch} \nt{type} \nt{exp} \llvm{,} \llvm{branch} \nt{lbl} \llvm{[} \ListOf{\nt{branch}} \llvm{]} \\
       & \alt & \llvm{ret} \lalt \nt{type} \nt{exp} \alt \llvm{void} \ralt \\
-      \nt{exp} & ::= & \nt{name} \alt \nt{iliteral} \alt \llvm{getelementptr} \llvm{(} \nt{type} \nt{exp} \llvm{,} \nt{index} \llvm{,} \nt{index} \llvm{)} \\
+      \nt{exp} & ::= & \nt{name} \alt \nt{iliteral} \alt \llvm{getelementptr} 
+\llvm{(} \nt{type} \nt{exp} \llvm{,} \nt{index} \llvm{,} \ListOf{\nt{index}} \llvm{)} \\
       \nt{index} & ::= & \nt{itype} \nt{iliteral} \\
       \nt{branch} & ::= & \nt{iliteral} \nt{iliteral} \nt{lbl} \\
       \nt{arg} & ::= & \nt{type} \nt{exp}
@@ -304,11 +304,13 @@ or the structure.
     and \nt{name} correspond respectively to integer types, integer literals,
     labels and names. Choices are separated by \alt and optionally delimited by
     \lalt and \ralt.  The \ListOf{} superscript denotes a comma-separated list of
-    elements of the annotated entity.}
+    elements of the annotated entity. }
   \label{fig:llvm-grammar}
 \end{figure}
 
-
+\VGM{To support arrays and structures, I 
+    
+added only + after index.} 
 
 \section{Translation of Array and Structures}
 
@@ -345,10 +347,10 @@ Some examples of array are:
 The B0 language supports attribution directly between arrays or structure, even though the attribution
 must have the same domain type and range type. \VGM{Project Decision: How translate a direct 
 attribution between advanced types, for example, arrayA := arrayB ? The Commenc 
-uses a function called ``memmove''. } 
+uses a function called ``memmove''.  %TODO to add this restriction in become equals.
+ } 
 
 
-%TODO to add this restriction in become equals.
 
 
 
@@ -468,33 +470,24 @@ manual of LLVM-IR\ref{}.
 
 \subsubsection{Issues and problems}
 \begin{itemize}
-	\item Integrate it to report
-
-	:promptfind
-\begin{itemize}
-	\item Identify the rules that must be updated:
-	\begin{itemize}
-		\item \textbf{Atomic expression} - getting an element to manipulate.
-		\item %TODO - setting a element 
-		\item Others involved rules ?
- 
-	\end{itemize}
+	\item To develop support to structures (more easy)
+	\item To integrate it in translation.tex
+	\item To develop support to copy all  of an advanced types
+	\item To identify the rules that must be updated:
 	
-	\end{itemize}
 
 \end{itemize}
 
-
-\newpage
 
 \section*{Attachments}
 
 
 
 
-\iffalse  % This content is not visible to reader.
+%\iffalse  % This content is not visible to reader.
 A generic example available at repository ProB\footnote{
-\url{https://github.com/bendisposto/probparsers/blob/develop/bparser/src/test/resources/parsable/Array.mch}}.
+\url{https://github.com/bendisposto/probparsers/blob/develop/bparser/src/test/resources/parsable/Array.mch}}. 
+This example can be used in approach using imported components.
 
 \subsection{A very simple and generic example}
 
@@ -525,7 +518,7 @@ swap(ix, jx)=
 
 END
 \end{minted}
-\fi
+%\fi
 \subsection{A  simple example and its LLVM-IR}
 \footnotesize{
 \begin{minted}[frame=single,bgcolor=bg,linenos=true]{pascal}
@@ -651,6 +644,10 @@ define void @Array__set(i32 %ix, i32 %tt) nounwind ssp {
 ; <label>:19                                      ; preds = %14, %11, %8, %5, %0
   ret void
 }
+\end{minted}
+
+
+\begin{minted}[frame=single,bgcolor=bg,linenos=true]{llvm}
 
 define void @Array__read(i32 %ix, i32* %tt) nounwind ssp {
   %1 = alloca i32, align 4
@@ -683,6 +680,10 @@ define void @Array__read(i32 %ix, i32* %tt) nounwind ssp {
 ; <label>:16                                      ; preds = %14, %8
   ret void
 }
+\end{minted}
+
+
+\begin{minted}[frame=single,bgcolor=bg,linenos=true]{llvm}
 
 define void @Array__swap(i32 %ix, i32 %jx) nounwind ssp {
   %1 = alloca i32, align 4
