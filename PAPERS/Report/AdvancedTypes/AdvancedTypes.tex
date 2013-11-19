@@ -265,28 +265,72 @@ or the structure.
 \end{figure}
 
 
+\section{The LLVM grammar with support to array multidimensional}
+
+
+\begin{figure}
+  \begin{center}
+    \begin{tabular}{rcl}
+      \nt{module} & ::= & \ListOf{\nt{item}} \\
+      \nt{item} & ::= & \nt{const\_decl} \alt \nt{function\_decl} \alt \nt{type\_def}
+      \alt \nt{const\_def} \alt \nt{var\_def} \alt \nt{function\_def} \\
+      \nt{const\_decl} & ::= & \nt{name} \llvm{=} \llvm{external} \llvm{constant} \nt{type} \\
+      \nt{type\_def} & ::= & \nt{name} \llvm{=} \llvm{type} \nt{type} \\
+      \nt{type} & ::= & \llvm{void} \alt \nt{itype} \alt \llvm{\{} \ListOf{\nt{type}} \llvm{\}} \alt \nt{type}\llvm{*} \\
+      \nt{const\_def} & ::= & \nt{name} \llvm{=} \llvm{constant} \nt{type} \nt{iliteral} \\
+      \nt{var\_def} & ::= & \nt{name} \llvm{=} \llvm{common} \llvm{global} \nt{type} \llvm{zeroinitializer} \\
+      \nt{function\_decl} & ::= & \llvm{declare} \nt{type} \nt{name} \llvm{(} \ListOf{\nt{type}} \llvm{)}\\
+      \nt{function\_def} & ::= & \llvm{define} \nt{type} \nt{name} \llvm{(} \ListOf{\nt{param}} \llvm{)} \llvm{\{} \ListOf{\nt{block}} \llvm{\}} \\
+      \nt{param} & ::= & \nt{type} \nt{name} \\
+      \nt{block} & ::= & \nt{lbl} \llvm{:} \ListOf{\nt{inst}} \\
+      \nt{inst} & ::=  & \nt{name} \llvm{=} \llvm{alloca} \nt{type} \\
+      & \alt & \nt{name} \llvm{=} \lalt \llvm{add} \alt \llvm{sub} \alt \llvm{mul} \alt \llvm{sdiv} \alt \llvm{srem} \ralt \nt{itype} \nt{exp} \llvm{,} \nt{exp} \\
+      & \alt & \nt{name} \llvm{=} \llvm{icmp} \lalt \llvm{eq} \alt \llvm{ne} \alt \llvm{sgt} \alt \llvm{sge} \alt \llvm{slt} \alt \llvm{sle} \ralt \llvm{i1} \nt{exp} \llvm{,} \nt{exp}\\
+      & \alt & \nt{name} \llvm{=} \llvm{call} \nt{type} \llvm{(} \ListOf{\nt{arg}} \llvm{)} \\
+      & \alt & \nt{name} \llvm{=} \llvm{getelementptr} \nt{type} \llvm{*} \nt{exp}\llvm{,} \nt{index}\llvm{,} \nt{index} \\
+      & \alt & \nt{name} \llvm{=} \llvm{load} \nt{type} \nt{exp} \\
+      & \alt & \llvm{store} \nt{type} \nt{exp}, \nt{type} \llvm{*} \nt{exp} \\
+      & \alt & \llvm{br} \llvm{i1} \nt{exp} \llvm{,} \llvm{label} \nt{lbl} \llvm{,} \llvm{label} \nt{lbl} \\
+      & \alt & \llvm{br} \llvm{label} \nt{lbl} \\
+%       & \alt & \llvm{switch} \nt{type} \nt{exp} \llvm{,} \llvm{branch} \nt{lbl} \llvm{[} \ListOf{\nt{branch}} \llvm{]} \\
+      & \alt & \llvm{ret} \lalt \nt{type} \nt{exp} \alt \llvm{void} \ralt \\
+      \nt{exp} & ::= & \nt{name} \alt \nt{iliteral} \alt \llvm{getelementptr} \llvm{(} \nt{type} \nt{exp} \llvm{,} \nt{index} \llvm{,} \nt{index} \llvm{)} \\
+      \nt{index} & ::= & \nt{itype} \nt{iliteral} \\
+      \nt{branch} & ::= & \nt{iliteral} \nt{iliteral} \nt{lbl} \\
+      \nt{arg} & ::= & \nt{type} \nt{exp}
+    \end{tabular}
+  \end{center}
+  \caption{Grammar of the target LLVM subset: \nt{itype}, \nt{iliteral}, \nt{lbl}
+    and \nt{name} correspond respectively to integer types, integer literals,
+    labels and names. Choices are separated by \alt and optionally delimited by
+    \lalt and \ralt.  The \ListOf{} superscript denotes a comma-separated list of
+    elements of the annotated entity.}
+  \label{fig:llvm-grammar}
+\end{figure}
+
+
 
 \section{Translation of Array and Structures}
 
 
-Two approaches are possibles to support arrays. An approach is importing
-reusable libraries of AtelierB that are reported at official document of
+Two approaches are possible to support arrays. An approach is importing
+reusable libraries of AtelierB that are reported in the official document of
 ClearSy\footnote{\url{http://www.atelierb.eu/ressources/DOC/english/reusable-components-reference.pdf}}.
 This approach is supported, but the generated code is more complex and it needs
-more intermediate steps to manipulate the data of imported components. Not only,
-this approach allows dynamic allocation for arrays, but it is extremely not
+more intermediate steps to manipulate the data of imported components. Moreover,
+this approach allows dynamic allocation for arrays, but it is strongly not
 recommended to safety-critical systems. A second approach enjoys the direct 
-correspondence between arrays native B0 and LLVM-IR and this approach is presented here.
+correspondence between B0 native arrays and LLVM-IR and this approach is presented here.
 
-
-A concrete array is a total function, where the domain indexes the range 
-elements. The domain is composed by Cartesian product of sequence of concrete 
+A concrete array is a total function where the domain indexes the range 
+elements. The domain is composed of Cartesian product of sequence of concrete 
 sets. The node Data array in AST can represent a declaration of array or a 
-selection of element. The first element ``dec'' declares explicitly an array or does a 
-reference to a variable array. The second element ``type'' defines a sequence of 
-array types, where the last element defines the range of function and the others 
-elements defines the domain. The third element ``indexes'' is optional, and it 
-represents the selection of an element in array.
+selection of element. The first element ``dec'' declares explicitly an array or 
+references a variable array. The second element ``type'' defines a sequence of 
+array types, where the last element defines the range of function and the other 
+elements define the domain. The third element ``indexes'' is optional, and it 
+represents the selection of an element in array, or the same type structure 
+when it is a structure.
 
 Some examples of array are:
 \begin{itemize}
@@ -295,9 +339,15 @@ Some examples of array are:
 	\item $array3 \in BOOL \times (0..10) \to INT$ (a domain with two index types)
 \end{itemize} 
 
+\paragraph{Attributions between array and structure}
 
-The B0 language supports attributions between arrays, even though the attribution
-must have the same domain type and range type. 
+
+The B0 language supports attribution directly between arrays or structure, even though the attribution
+must have the same domain type and range type. \VGM{Project Decision: How translate a direct 
+attribution between advanced types, for example, arrayA := arrayB ? The Commenc 
+uses a function called ``memmove''. } 
+
+
 %TODO to add this restriction in become equals.
 
 
@@ -305,8 +355,8 @@ must have the same domain type and range type.
 \subsection{Relation arrays B0 and LLVM-IR}
 \VGM{It must be extended to support structure.}
 
-The arrays in B0 are represented by functions where an index pointer to an 
-element. By default, the element of index not initialized has the zero value. 
+The arrays in B0 are represented by functions where an index points to an 
+element. By default, the element of index not initialized has a zero value. 
 
 This section shows the relation between arrays B0 and LLVM-IR. The sequence of
 steps are: defining  an array, getting an element and setting an
@@ -347,11 +397,11 @@ the array or structure. A simple example is:
 \end{footnotesize}
 
 
-The first parameter defines the type and name of variable, and the others are
+The first parameter defines the type and name of the variable, and the others are
 indexes to select the element in the data type. The second parameter (i64 0)
 selects the first element in the pointer (* @Array\_\_arr). The last element,
 (i64 \%3) selects the value in position obtained from \%3 of the array of 32-bit
-integer values. When the array is multidimensional, news index must be added
+integer values. When the array is multidimensional, the news index must be added
 separated by comma to get the specific element.
 
 \iffalse
