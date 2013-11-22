@@ -7,13 +7,13 @@
 # appropriate.
 #
 # Error handling: When an error is detected, the code generator emits a
-# message to stdout, inserts an error in the generated LLVM code and 
+# message to stdout, inserts an error in the generated LLVM code and
 # tries to proceed processing the input.
 #
 ###
 
 import b2llvm.ast as ast
-import b2llvm.loadbxml as loadbxml 
+import b2llvm.loadbxml as loadbxml
 import b2llvm.names as names
 import b2llvm.printer as printer
 from b2llvm.strutils import commas, nconc, sp, nl, tb, tb2
@@ -195,10 +195,10 @@ def translate_mode_proj(text, m, emit_printer):
         text.extend(tb+"call void "+print_name(m)+"("+args[0]+")"+nl)
         text.extend(tb+"ret void"+nl)
         text.extend("}"+nl)
-        
+
 #
 # SECTION-LEVEL CODE GENERATION FUNCTIONS
-# 
+#
 
 def section_interface(text, m, emit_printer):
     '''
@@ -210,7 +210,7 @@ def section_interface(text, m, emit_printer):
       - n: AST root node of a machine
       - emit_printer: flag indicating if printing functions shall be produced
 
-    Extends res with text of LLVM declarations (see section interface in translation 
+    Extends res with text of LLVM declarations (see section interface in translation
     definition).
     '''
     check_kind(m, {"Machine"})
@@ -583,7 +583,7 @@ def x_alloc_inst_list(text, il):
 def x_alloc_inst(text, n):
     '''
     Generation of frame stack allocation for individual instructions.
-    
+
     Input:
       - text: a byterray where LLVM code is stored
       - n: AST node for a B instruction
@@ -598,23 +598,23 @@ def x_alloc_inst(text, n):
     elif n["kind"] in {"Case", "If"}:
         for br in n["branches"]:
             x_alloc_inst(text, br["body"])
-    elif n["kind"] in {"Blk", "While"}: 
+    elif n["kind"] in {"Blk", "While"}:
         x_alloc_inst_list(text, n["body"])
     elif n["kind"] == "VarD":
         x_alloc_var_decl(text, n)
     else:
         print("error: unknown instruction kind")
         res.extend("<error inserted by b2llvm>")
-    
+
 def x_alloc_var_decl(text, n):
     '''
     Generation of frame stack allocation for variable declarations.
-    
+
     Input:
       - text: a byterray where LLVM code is stored
       - n: AST node for a B variable declaration
 
-    Emits one LLVM alloca instruction for each declared variable and 
+    Emits one LLVM alloca instruction for each declared variable and
     processes the variable declaration body of instructions.
     '''
     global tb, nl, sp
@@ -750,7 +750,7 @@ def x_case_label_list(bl):
     return [ names.new_label() for branch in bl]
 
 def x_case_jump_table(text, bl, labels):
-    ''' 
+    '''
     Generates a LLVM jump table for a switch instruction implementing the case
     branches.
 
@@ -780,7 +780,7 @@ def x_case_val_list(text, vl, lbl):
         text.extend(tb2 + t + sp + v + ", label %" + lbl + nl)
 
 def x_case_block_list(text, bl, labels, lble, default, lbld):
-    ''' 
+    '''
     Generates LLVM code blocks of a switch implementing the instructions in the
     branches of a case instruction.
 
@@ -790,7 +790,7 @@ def x_case_block_list(text, bl, labels, lble, default, lbld):
       - labels: a list block labels
       - lble: label of block where control flow must go after executing a branch
       - default: flag indicating if the last branch is a default branch
-      - lbld: label of block for default block 
+      - lbld: label of block for default block
     '''
     for i in range(len(bl)):
         branch = bl[i]
@@ -927,7 +927,7 @@ def x_lvalue(text, n):
         trace.OUT(text, "Variable \""+n["id"]+"\" is stored at position "+str(pos)+" of \"%self$\".")
         trace.OUTU(text, "Let temporary " + v + " be the corresponding address:")
         trace.UNTAB()
-        text.extend(tb + v + " = getelementptr " + state_r_name(n["root"])+ 
+        text.extend(tb + v + " = getelementptr " + state_r_name(n["root"])+
                     " %self$, i32 0, i32 " + str(state_position(n)) + nl)
         return (v, t)
     elif n["scope"] in {"Oper", "Local"}:
@@ -1226,7 +1226,7 @@ def x_name(text, n):
         text.extend("<error inserted by b2llvm>")
         lvar, type = "", ""
     return (lvar, ltype)
-        
+
 def x_term(text, n):
     '''
     Generates LLVM code to evaluate a B term.
@@ -1333,9 +1333,9 @@ def llvm_op(str):
     Note: An error message is printed and the empty string
     is returned if the translation has not been defined.
     '''
-    lex = dict({"=":"eq", "!=": "ne", 
+    lex = dict({"=":"eq", "!=": "ne",
                 "<":"slt", "<=":"sle", ">":"sgt", ">=":"sge",
-                "+":"add", "-": "sub", 
+                "+":"add", "-": "sub",
                 "succ":"add", "pred":"sub",
                 "*":"mul", "/":"sdiv", "mod":"srem"})
     if str not in lex.keys():
@@ -1343,7 +1343,7 @@ def llvm_op(str):
         return ""
     else:
         return lex[str]
-        
+
 ### MISC ###
 
 #
@@ -1413,20 +1413,20 @@ def state_ref_typedef(res, m):
 def is_developed(m):
     check_kind(m, {"Machine"})
     return m["implementation"] != None
-    
+
 def is_base(m):
     check_kind(m, {"Machine"})
     return m["implementation"] == None
-    
+
 def implementation(m):
     check_kind(m, {"Machine"})
     assert(is_developed(m))
     return m["implementation"]
-    
+
 def machine(m):
     check_kind(m, {"Impl"})
     return m["machine"]
-    
+
 ### TRANSLATION OF IMPLEMENTATION
 
 def x_type_expr_impo(n):
@@ -1463,7 +1463,7 @@ class Comp:
         check_kind(m, {"Machine"})
         self.path = p
         self.mach = m
-        self.id = "@"+"$".join(p)+"$"+m["id"] 
+        self.id = "@"+"$".join(p)+"$"+m["id"]
         self.b_id = m["id"] if p == [""] else ".".join(p+[m["id"]])
     def __str__(self):
         return self.id
@@ -1473,9 +1473,9 @@ class Comp:
         return self.b_id
 
 def comp_direct(m):
-    ''' 
+    '''
     List of direct components.
-    
+
     Inputs:
       - n: root AST node for a B machine
    Output:
@@ -1496,16 +1496,16 @@ def comp_direct(m):
     return m["comp_direct"]
 
 def comp_indirect(m):
-    ''' 
+    '''
     List of all (direct and indirect) components.
-    
+
     Inputs:
       - m: root AST node for a B machine
    Output:
      Sequence of components ordered by
      increasing level in the import tree: imported components, followed by
-     components imported from imported components, etc. 
-     The imports of a machine are those of the corresponding implementation in 
+     components imported from imported components, etc.
+     The imports of a machine are those of the corresponding implementation in
      the given project.
    '''
     check_kind(m, {"Machine"})
@@ -1522,16 +1522,16 @@ def comp_indirect(m):
     return m["comp_indirect"]
 
 def comp_stateful(m):
-    ''' 
+    '''
     List of (direct and indirect) stateful components.
-    
+
     Inputs:
       - m: root AST node for a B machine
    Output:
      Sequence of stateful components ordered by
      increasing level in the import tree: imported components, followed by
-     components imported from imported components, etc. 
-     The imports of a machine are those of the corresponding implementation in 
+     components imported from imported components, etc.
+     The imports of a machine are those of the corresponding implementation in
      the given project.
    '''
     return [ x  for x in comp_indirect(m) if is_stateful(x.mach) ]
@@ -1578,4 +1578,3 @@ def ellipse(str):
         return str2[:21]+"..."
     else:
         return str2
-

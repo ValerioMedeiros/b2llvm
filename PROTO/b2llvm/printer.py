@@ -280,4 +280,3 @@ def implementation(n):
         result += (tb+";"+nl).join([oper(e) for e in ops]) + nl
     result += "END" + nl
     return result
-

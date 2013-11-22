@@ -9,7 +9,7 @@
 #
 # 2. Shortcomings
 #
-# - The full B language is not yet represented. You need to read the code 
+# - The full B language is not yet represented. You need to read the code
 # to know what is supported.
 # - The AST nodes are somehow incomplete in some cases. Their design is
 # oriented towards the implementation of the translation to LLVM.
@@ -43,7 +43,7 @@ def make_intlit(value):
     - Input: an integer value
     Creates an integer literal.
     '''
-    return { "kind": "IntegerLit", 
+    return { "kind": "IntegerLit",
              "value": str(value)}
 
 def make_boollit(value):
@@ -168,7 +168,7 @@ def make_call(op, inp, out, inst=None):
     - Output:
     an operation call
     '''
-    return { "kind": "Call", "op": op, "inp": inp, "out": out, 
+    return { "kind": "Call", "op": op, "inp": inp, "out": out,
              "inst": inst }
 
 ### COMPONENT ###
@@ -181,7 +181,7 @@ def make_oper(id, inp, out, body):
 
 def make_import(mach, prefix = None):
     '''
-    - Input: 
+    - Input:
     mach: a machine or a library machine
     prefix: a string prefix (optional).
     - Output:
@@ -196,12 +196,12 @@ def make_implementation(id, imports, consts, vars, init, ops):
     assert type(vars) is list
     assert type(init) is list
     assert type(ops) is list
-    root = { "kind": "Impl", 
+    root = { "kind": "Impl",
              "id": id,
              "machine": None,
              "imports": imports,
              "concrete_constants": consts,
-             "variables": vars, 
+             "variables": vars,
              "initialisation": init, "operations": ops,
              "stateful": None}
     for node in imports + vars + ops:
@@ -217,7 +217,7 @@ def make_base_machine(id, consts, vars, ops):
     assert type(consts) is list
     assert type(vars) is list
     assert type(ops) is list
-    root = { "kind": "Machine", 
+    root = { "kind": "Machine",
              "id": id,
              "base": True,
              "concrete_constants": consts,
@@ -237,7 +237,7 @@ def make_developed_machine(id, impl):
 
     For now we are just interested in the implementation of that machine.
     '''
-    return { "kind": "Machine", 
+    return { "kind": "Machine",
              "id": id,
              "base": False,
              "concrete_constants": [],
@@ -247,4 +247,3 @@ def make_developed_machine(id, impl):
              "comp_direct": None,
              "comp_indirect": None
              }
-

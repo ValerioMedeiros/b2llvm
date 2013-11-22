@@ -52,7 +52,7 @@
 # - For imports with prefix, the entry in symimp has as key the prefix and
 # as value the import clause.
 # - For imports without prefix, there is one entry in symimp for each visible
-# symbol of the imported machine, and the key is the identifier of the 
+# symbol of the imported machine, and the key is the identifier of the
 # symbol and the value is the import clause.
 # In both cases, the key is a string and the value an AST node.
 #
@@ -85,9 +85,9 @@ def load_project(dirname='bxml', filename='project.xml'):
       - dirname: path to directory where bxml files are stored;
       default value is 'bxml'.
       - filename: the name of a bproject.bxml file. The default
-      value is 'bproject.bxml'. 
+      value is 'bproject.bxml'.
     Loads the contents of the given file, if it exists, into global variable
-    project_db. If the file does not exist, then project_db is left empty, 
+    project_db. If the file does not exist, then project_db is left empty,
     i.e. a pair formed by an empty dictionary and an empty set.
     '''
     return BProject(dirname+os.sep+filename)
@@ -110,7 +110,7 @@ def load_module(d, p, m):
     else:
         assert p.is_developed(m)
         return load_developed_machine(d, p, c, m)
-    
+
 ###
 #
 # modules
@@ -155,7 +155,7 @@ def load_base_machine(dir, project, c, id):
 def load_developed_machine(dir, p, c, m):
     '''
     Loads BXML a developed machine from file to Python AST. All dependent
-    components are loaded, including implementations of developed 
+    components are loaded, including implementations of developed
     machines.
 
     Parameters:
@@ -261,10 +261,10 @@ def load_imports(root, symast, symimp, dir, project, c):
     imports = root.find("./Imports")
     if imports == None:
         return []
-    imports = [load_import(i, symast, dir, project, c) 
+    imports = [load_import(i, symast, dir, project, c)
                for i in imports.findall("./Referenced_Machine")]
     # Add visible symbols from imported machines ([LRM, Appendix C.10])
-    acc = [] # store machines that have already been processed 
+    acc = [] # store machines that have already been processed
     for i in imports:
         m = i["mach"]
         if m not in acc:
@@ -287,7 +287,7 @@ def load_import(n, symast, dir, project, c):
       - symast: symbol table.
       - c: cache from identifiers to root AST machine.
     Result:
-      A Python AST node representing the import clause. 
+      A Python AST node representing the import clause.
     Side effects:
       If the import clause has a prefix, then it is added to the
       symbol table, together with the result node.
@@ -543,12 +543,12 @@ def load_operation_call(n, symast, symimp):
     xmlinp = n.findall("./Input_Parameters/*")
     astout = [ load_identifier(x, symast) for x in xmlout ]
     astinp = [ load_identifier(x, symast) for x in xmlinp ]
-    instance = xmlname.get('instance') 
+    instance = xmlname.get('instance')
     if instance == None:
         name = value(xmlname)
     else:
         name = xmlname.get('component')
-    
+
     op = sym_table_get(symast, name)
     # operation is from a directly imported module
     if name in symimp.keys():
@@ -848,10 +848,9 @@ def visible_symbols(p, m):
       - m: Python AST node for a machine.
     Result:
       List of Python AST nodes representing the entities defined in m
-      and accessible from other modules. If m is a developed machine, 
+      and accessible from other modules. If m is a developed machine,
       the list is taken from its corresponding implementation.
     '''
     assert m["kind"] in { "Machine" }
     n = m["implementation"]
     return n["concrete_constants"]+n["variables"]+n["operations"]
-

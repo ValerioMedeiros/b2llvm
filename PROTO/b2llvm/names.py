@@ -1,6 +1,6 @@
 ###
 #
-# b2llvm.names 
+# b2llvm.names
 #
 # Module for generating LLVM identifiers.
 #
@@ -42,4 +42,3 @@ def reset():
     global llvm_local_var_counter, llvm_label_counter
     llvm_local_var_counter = 0
     llvm_label_counter = 0
-
