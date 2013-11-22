@@ -1,25 +1,26 @@
-###
-#
-# b2llvm.strutils
-#
-# Module for string utilities
-#
-###
+"""This module provides string-manipulating utilities.
 
+- commas: function concatenating string separated with comas
+- nconc: concatenates a list of strings
+- NL: newline character
+- SP: space character
+- TB: represents a tabulation
+- TB2: represents two tabulations
+"""
 
-def commas(li):
+def commas(string_list):
     '''
     Returns a comma-separated string of the given strings.
     '''
-    return ", ".join(li)
+    return ", ".join(string_list)
 
-def nconc(li):
+def nconc(string_list):
     '''
-    Returns a comma-separated string of the given strings.
+    Concateantes the given strings.
     '''
-    return "".join(li)
+    return "".join(string_list)
 
-nl = "\n"
-sp = " "
-tb = "  "
-tb2 = tb*2
+NL = "\n"
+SP = " "
+TB = "  "
+TB2 = TB*2

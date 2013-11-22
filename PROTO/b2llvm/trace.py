@@ -1,42 +1,71 @@
+"""This module is responsible for providing support for traceability.
+
+Traceability is obtained by insering comments in the generated LLVM code.
+For readability purposes, these comments are numbered. The numbered are
+tiered, e.g. ... 2.3, 2.3.1, 2.3.2, 2.3.3, 2.4, 2.4.1 ...
+The comments are produced line-by-line.
+
+- INI initializes the module, indicating if traceability is active or not
+- TAB adds a tier to the numbering scheme
+- UNTAB removes a tier to the numbering scheme
+- OUT adds a newly-numbered comment line
+- OUTU adds a non-numbered comment line
+
+"""
 import math
-from strutils import nl, sp, tb
+from b2llvm.strutils import NL, SP
 
-INDENT = 0
-ACTIVE = False
-INDEX = [0]
+class Tracer(object):
+    '''
+    Class offering traceability support
+    '''
+    def __init__(self, activate):
+        '''
+        Constructor.
 
-def nb_digits(n):
-    if n == 0:
+        Inputs:
+        activate: a flag setting traceability generation.
+        '''
+        self._tiers = [0]
+        self._active = activate
+
+    def _spacing(self):
+        """Whitespace string the width of the current index"""
+        global SP
+        return " ".join([nb_digits(i)*SP for i in self._tiers])
+
+    def _numbering(self):
+        """String corresponding to the current index."""
+        return ".".join([str(i) for i in self._tiers])
+
+    def outu(self, out, msg):
+        """Outputs a non-numbered one-line traceability message"""
+        global NL
+        if self._active:
+            out.extend(bytearray(";;"+SP+self._spacing()+SP+msg+NL))
+
+    def out(self, out, msg):
+        """Outputs a numbered one-line traceability message."""
+        global NL
+        if self._active:
+            last = self._tiers.pop()
+            self._tiers.append(last+1)
+            out.extend(bytearray(";;"+self._numbering()+SP+msg+NL))
+
+    def tab(self):
+        """Adds a tier to the traceability index."""
+        if self._active:
+            self._tiers.append(0)
+
+    def untab(self):
+        """Removes a tier from the traceability index."""
+        if self._active:
+            self._tiers.pop()
+
+def nb_digits(number):
+    """Yields the number of digits in given non-negative integer."""
+    if number == 0:
         return 1
     else:
-        return int(math.floor(math.log(n, 10))+1)
+        return int(math.floor(math.log(number, 10))+1)
 
-def INI(activate):
-    global ACTIVE
-    ACTIVE = activate
-
-def OUTU(out, msg):
-    global tb, nl, INDENT, ACTIVE
-    if ACTIVE:
-        out.extend(bytearray(";;"+sp+" ".join([nb_digits(i)*sp for i in INDEX])+sp+msg+nl))
-        # out.extend(bytearray(";;"+INDENT*tb+sp+msg+nl))
-
-def OUT(out, msg):
-    global tb, nl, INDENT, ACTIVE
-    if ACTIVE:
-        last = INDEX.pop()
-        INDEX.append(last+1)
-        out.extend(bytearray(";;"+sp+".".join([str(i) for i in INDEX])+sp+msg+nl))
-        # out.extend(bytearray(";;"+INDENT*tb+sp+msg+nl))
-
-def TAB():
-    global INDENT, ACTIVE
-    if ACTIVE:
-        INDEX.append(0)
-        # INDENT += 1
-
-def UNTAB():
-    global INDENT, ACTIVE
-    if ACTIVE:
-        # INDENT -= 1
-        INDEX.pop()

@@ -22,7 +22,7 @@ parser.add_argument('-p', '--emit-printer', action='store_true',
 parser.add_argument('-v', '--verbose', action='store_true',
                     help= 'outputs some information while running')
 args = parser.parse_args()
-trace.INI(args.trace)
+trace = trace.Tracer(args.trace)
 if (args.verbose):
     print("b2llvm code generation completed")
     print("- BXML directory: " + args.directory)

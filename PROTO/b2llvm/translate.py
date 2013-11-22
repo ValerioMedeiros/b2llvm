@@ -16,16 +16,14 @@ import b2llvm.ast as ast
 import b2llvm.loadbxml as loadbxml
 import b2llvm.names as names
 import b2llvm.printer as printer
-from b2llvm.strutils import commas, nconc, sp, nl, tb, tb2
+from b2llvm.strutils import commas, nconc, SP, NL, TB, TB2
 from b2llvm.bproject import BProject
-
-import b2llvm.trace as trace
 
 #
 # Main entry point for this module
 #
 
-def translate_bxml(bmodule, outfile, mode='comp', dir='bxml', settings='project.xml', emit_printer=False):
+def translate_bxml(bmodule, outfile, trace, mode='comp', dir='bxml', settings='project.xml', emit_printer=False):
     '''
     Main function for applying the code generator to a B module
 
@@ -42,17 +40,17 @@ def translate_bxml(bmodule, outfile, mode='comp', dir='bxml', settings='project.
     project = loadbxml.load_project(dirname=dir, filename=settings)
     ast = loadbxml.load_module(dir, project, bmodule)
     res = bytearray()
-    res.extend(";; -*- mode: asm -*-"+nl) # emacs syntax highlight on
-    trace.OUTU(res, "file generated with b2llvm")
-    trace.OUTU(res, "B module: "+bmodule)
-    trace.OUTU(res, "B project directory: "+dir)
-    trace.OUTU(res, "B project settings: "+settings)
-    trace.OUTU(res, "code generation mode: " + ("component" if mode == "comp" else "project"))
-    trace.OUTU(res, "output file: "+outfile)
+    res.extend(";; -*- mode: asm -*-"+NL) # emacs syntax highlight on
+    trace.outu(res, "file generated with b2llvm")
+    trace.outu(res, "B module: "+bmodule)
+    trace.outu(res, "B project directory: "+dir)
+    trace.outu(res, "B project settings: "+settings)
+    trace.outu(res, "code generation mode: " + ("component" if mode == "comp" else "project"))
+    trace.outu(res, "output file: "+outfile)
     if mode == 'comp':
-        translate_mode_comp(res, ast, emit_printer)
+        translate_mode_comp(res, ast, trace, emit_printer)
     else:
-        translate_mode_proj(res, ast, emit_printer)
+        translate_mode_proj(res, ast, trace, emit_printer)
     llvm = open(outfile, 'w')
     llvm.write(res)
     llvm.close()
@@ -61,75 +59,77 @@ def translate_bxml(bmodule, outfile, mode='comp', dir='bxml', settings='project.
 # TOP-LEVEL FUNCTION FOR EACH TRANSLATION MODE
 #
 
-def translate_mode_comp(text, m, emit_printer):
+def translate_mode_comp(text, m, trace, emit_printer):
     '''
     Translation in component mode.
 
     Inputs:
       - res: a bytearray to store LLVM code
       - m: root AST node for a B machine in proj
+      - trace: a Tracer object
       - emit_printer: flag indicating if printing functions shall be produced
 
     LLVM text corresponding to the implementation of n is stored into res
     '''
     check_kind(m, {"Machine"})
-    trace.OUTU(text, "")
-    trace.OUTU(text, "This file contains LLVM code that implements B machine \"" + m["id"]+"\".")
+    trace.outu(text, "")
+    trace.outu(text, "This file contains LLVM code that implements B machine \"" + m["id"]+"\".")
     if is_base(m):
-        trace.OUTU(text, "This machine is registered as a base machine.")
-        section_typedef(text, m)
+        trace.outu(text, "This machine is registered as a base machine.")
+        section_typedef(text, m, trace)
     else:
         assert is_developed(m)
         i = implementation(m)
-        trace.OUTU(text, "It is registered as a developed machine.")
-        trace.OUTU(text, "The produced LLVM code is based on B implementation \""+i["id"]+"\".")
-        trace.OUTU(text, "")
+        trace.outu(text, "It is registered as a developed machine.")
+        trace.outu(text, "The produced LLVM code is based on B implementation \""+i["id"]+"\".")
+        trace.outu(text, "")
         tmp = comp_indirect(m)
         if tmp != []:
-            trace.OUT(text, "The type declarations for state encodings of all imported modules are:")
-            trace.TAB()
+            trace.out(text, "The type declarations for state encodings of all imported modules are:")
+            trace.tab()
             acc = set()
             # TODO see if one should not filter out types for stateless modules
             for q in comp_indirect(m):
                 if q.mach["id"] not in acc:
-                    state_opaque_typedef(text, q.mach)
+                    state_opaque_typedef(text, q.mach, trace)
                     acc.add(q.mach["id"])
             acc.clear()
-            trace.UNTAB()
-            trace.OUT(text, "The type definitions for references to these state encodings are:")
-            trace.TAB()
+            trace.untab()
+            trace.out(text, "The type definitions for references to these state encodings are:")
+            trace.tab()
             # TODO see if one should not filter out types for stateless modules
             for q in comp_indirect(m):
                 if q.mach["id"] not in acc:
-                    state_ref_typedef(text, q.mach)
+                    state_ref_typedef(text, q.mach, trace)
                     acc.add(q.mach["id"])
             acc.clear()
-            trace.UNTAB()
+            trace.untab()
         tmp = comp_direct(m)
         if tmp != []:
-            trace.OUT(text, "The interfaces of the directly imported modules are:")
-            trace.TAB()
+            trace.out(text, "The interfaces of the directly imported modules are:")
+            trace.tab()
             for q in tmp:
                 if q.mach["id"] not in acc:
-                    trace.OUT(text, "The interface of \""+q.mach["id"]+"\" is composed of:")
-                    trace.TAB()
-                    section_interface(text, q.mach, emit_printer)
-                    trace.UNTAB()
+                    trace.out(text, "The interface of \""+q.mach["id"]+"\" is composed of:")
+                    trace.tab()
+                    section_interface(text, q.mach, trace, emit_printer)
+                    trace.untab()
                     acc.add(q.mach["id"])
             acc.clear()
-            trace.UNTAB()
+            trace.untab()
         if is_stateful(m):
-            section_typedef_impl(text, i, m)
-            state_ref_typedef(text, m)
-        section_implementation(text, m, emit_printer)
+            section_typedef_impl(text, i, m, trace)
+            state_ref_typedef(text, m, trace)
+        section_implementation(text, m, trace, emit_printer)
 
-def translate_mode_proj(text, m, emit_printer):
+def translate_mode_proj(text, m, trace, emit_printer):
     '''
     Translation in project mode.
 
     Inputs:
       - text: a bytearray where LLVM code is stored
       - m: root AST node for a B machine
+      - trace: a Tracer object
       - emit_printer: flag indicating if printing functions shall be produced
 
     Appends to text the LLVM code corresponding to the LLVM code generation for m
@@ -137,11 +137,11 @@ def translate_mode_proj(text, m, emit_printer):
     '''
     check_kind(m, "Machine")
     assert is_developed(m)
-    trace.OUTU(text, "Preamble")
-    trace.OUTU(text, "")
-    trace.OUTU(text, "This file instantiates B machine \"" + m["id"]+"\", and all its components,")
-    trace.OUTU(text, "and a function to initialise this instantiation.")
-    trace.OUTU(text, "")
+    trace.outu(text, "Preamble")
+    trace.outu(text, "")
+    trace.outu(text, "This file instantiates B machine \"" + m["id"]+"\", and all its components,")
+    trace.outu(text, "and a function to initialise this instantiation.")
+    trace.outu(text, "")
     # identify all the module instances that need to be created
     root = Comp([], m)
     comps = [root] + comp_indirect(m)
@@ -149,58 +149,58 @@ def translate_mode_proj(text, m, emit_printer):
     # forward references are disallowed: enumerate definitions bottom-up
     comps.reverse()
     acc = set()
-    trace.OUT(text, "These are the types encoding the state of each module,")
-    trace.OUT(text, "and the corresponding pointer types.")
-    trace.TAB()
+    trace.out(text, "These are the types encoding the state of each module,")
+    trace.out(text, "and the corresponding pointer types.")
+    trace.tab()
     for q in comps:
         if q.mach["id"] not in acc:
             if is_stateful(q.mach):
-                section_typedef(text, q.mach)
-                state_ref_typedef(text, q.mach)
+                section_typedef(text, q.mach, trace)
+                state_ref_typedef(text, q.mach, trace)
             else:
-                trace.OUTU(text, "Module "+q.mach["id"]+ " is stateless and has no associated encoding type.")
+                trace.outu(text, "Module "+q.mach["id"]+ " is stateless and has no associated encoding type.")
             acc.add(q.mach["id"])
     acc.clear()
-    trace.UNTAB()
+    trace.untab()
     # the instances are now declared, top down
-    trace.OUT(text, "Variables representing instances of components forming \""+m["id"]+ "\".")
-    trace.TAB()
+    trace.out(text, "Variables representing instances of components forming \""+m["id"]+ "\".")
+    trace.tab()
     comps.reverse()
     for q in comps:
         if is_stateful(q.mach):
-            trace.OUT(text, "Variable representing to "+q.bstr())
-            text.extend(str(q)+" = common global "+state_t_name(q.mach)+" zeroinitializer"+nl)
-    trace.UNTAB()
+            trace.out(text, "Variable representing to "+q.bstr())
+            text.extend(str(q)+" = common global "+state_t_name(q.mach)+" zeroinitializer"+NL)
+    trace.untab()
     # emit the declarations for the operations offered by root module
     # only the initialisation is necessary actually
-    section_interface(text, m, emit_printer)
+    section_interface(text, m, trace, emit_printer)
     # generate the code of the routine that initializes the system
     # by calling the initialization function for the root module.
-    args = [state_r_name(root.mach) + sp + str(root)]
-    args += [state_r_name(q.mach)+sp+str(q) for q in comp_stateful(m)]
-    trace.OUT(text, "Definition of the function to initialise instance \""+str(comps[0])+"\" of \""+m["id"]+ "\".")
-    trace.TAB()
-    text.extend("define void @$init$() {"+nl+
-                "entry:"+nl)
-    trace.OUT(text, "Call to initialisation function of \""+m["id"]+"\".")
-    text.extend(tb+"call void "+init_name(m)+"("+commas(args)+")"+nl+
-                tb+"ret void"+nl+
-                "}"+nl)
-    trace.UNTAB()
+    args = [state_r_name(root.mach) + SP + str(root)]
+    args += [state_r_name(q.mach)+SP+str(q) for q in comp_stateful(m)]
+    trace.out(text, "Definition of the function to initialise instance \""+str(comps[0])+"\" of \""+m["id"]+ "\".")
+    trace.tab()
+    text.extend("define void @$init$() {"+NL+
+                "entry:"+NL)
+    trace.out(text, "Call to initialisation function of \""+m["id"]+"\".")
+    text.extend(TB+"call void "+init_name(m)+"("+commas(args)+")"+NL+
+                TB+"ret void"+NL+
+                "}"+NL)
+    trace.untab()
     if emit_printer:
-        trace.OUT(text, "Definition of a function to print the state of the system")
-        text.extend("define void @$print$() {"+nl)
-        text.extend("entry:"+nl)
-        trace.OUT(text, "Call to printing function of \""+m["id"]+"\".")
-        text.extend(tb+"call void "+print_name(m)+"("+args[0]+")"+nl)
-        text.extend(tb+"ret void"+nl)
-        text.extend("}"+nl)
+        trace.out(text, "Definition of a function to print the state of the system")
+        text.extend("define void @$print$() {"+NL)
+        text.extend("entry:"+NL)
+        trace.out(text, "Call to printing function of \""+m["id"]+"\".")
+        text.extend(TB+"call void "+print_name(m)+"("+args[0]+")"+NL)
+        text.extend(TB+"ret void"+NL)
+        text.extend("}"+NL)
 
 #
 # SECTION-LEVEL CODE GENERATION FUNCTIONS
 #
 
-def section_interface(text, m, emit_printer):
+def section_interface(text, m, trace, emit_printer):
     '''
     Generates the declaration of all externally visible elements of machine n:
     reference type, initialisation function, operation function.
@@ -208,18 +208,19 @@ def section_interface(text, m, emit_printer):
     Input:
       - text: bytearray where output shall be stored
       - n: AST root node of a machine
+      - trace: a Tracer object
       - emit_printer: flag indicating if printing functions shall be produced
 
     Extends res with text of LLVM declarations (see section interface in translation
     definition).
     '''
     check_kind(m, {"Machine"})
-    section_interface_init(text, m)
+    section_interface_init(text, m, trace)
     for op in operations(m):
-        section_interface_op(text, m, op)
+        section_interface_op(text, m, op, trace)
     if emit_printer:
-        trace.OUT(text, "Declaration of function responsible for printing the state")
-        text.extend("declare void "+print_name(m)+"("+state_r_name(m)+")"+nl)
+        trace.out(text, "Declaration of function responsible for printing the state")
+        text.extend("declare void "+print_name(m)+"("+state_r_name(m)+")"+NL)
 
 def operations(m):
     '''
@@ -235,28 +236,29 @@ def operations(m):
     else:
         return m["operations"]
 
-def section_interface_init(text, m):
+def section_interface_init(text, m, trace):
     '''
     Generates the declaration of the initialisation function for n
 
     Inputs:
       - res: bytearray to store output
       - m: a machine AST root node
+      - trace: a Tracer object
     Output:
       res is extended with the text of a LLVM function declaration for
       the initalisation
     '''
-    global nl
+    global NL
     check_kind(m, {"Machine"})
     comp = list()
-    trace.OUT(text, "The declaration of the function implementing initialisation is:")
+    trace.out(text, "The declaration of the function implementing initialisation is:")
     if is_stateful(m):
         comp.append(m)
     comp.extend([x.mach for x in comp_indirect(m)])
-    text.extend("declare void"+sp+init_name(m))
-    text.extend("("+commas([state_r_name(m) for m in comp if is_stateful(m)])+")"+nl)
+    text.extend("declare void"+SP+init_name(m))
+    text.extend("("+commas([state_r_name(m) for m in comp if is_stateful(m)])+")"+NL)
 
-def section_interface_op(text, m, op):
+def section_interface_op(text, m, op, trace):
     '''
     Declaration of the function implementing operation op in m.
 
@@ -268,23 +270,24 @@ def section_interface_op(text, m, op):
     The declaration of A LLVM function implementing operation op from m is
     appended to text.
     '''
-    global nl
+    global NL
     # compute in tl the list of arguments types
-    trace.OUT(text, "The declaration of the function implementing operation \""+op["id"]+"\" is:")
+    trace.out(text, "The declaration of the function implementing operation \""+op["id"]+"\" is:")
     tl = list()
     if is_stateful(m):
         tl.append(state_r_name(m))
     tl.extend([ x_type(i["type"]) for i in op["inp"] ])
     tl.extend([ x_type(o["type"])+"*" for o in op["out"] ])
-    text.extend("declare void"+sp+op_name(op)+"("+commas(tl)+")"+nl)
+    text.extend("declare void"+SP+op_name(op)+"("+commas(tl)+")"+NL)
 
-def section_typedef(text, m):
+def section_typedef(text, m, trace):
     '''
     Generates the definition of the state type machine m.
 
     Inputs:
       - text: bytearray to store output
       - m: AST root node of a machine
+      - trace: a Tracer object
 
     Text of LLVM definitions for the types associated with the state of machine
     m is appended to text. If the machine is stateful, two types are created: an
@@ -292,26 +295,26 @@ def section_typedef(text, m):
     developed machine), and one reference type, pointer to the previous type.
     Otherwise, nothing is generated.
     '''
-    global nl
+    global NL
     check_kind(m, {"Machine"})
     if is_developed(m):
-        section_typedef_impl(text, implementation(m), m)
+        section_typedef_impl(text, implementation(m), m, trace)
     else:
         assert is_base(m)
         if is_stateful(m):
-            trace.OUT(text, m["id"] + ": definition of type coding the state")
-            text.extend(state_t_name(m)+" = type {"+nl)
+            trace.out(text, m["id"] + ": definition of type coding the state")
+            text.extend(state_t_name(m)+" = type {"+NL)
             vars = m["variables"]
             for i in range(len(vars)-1):
                 v = vars[i]
-                text.extend(tb+x_type(v["type"])+",")
-                trace.OUT(text, "represents "+v["id"])
+                text.extend(TB+x_type(v["type"])+",")
+                trace.out(text, "represents "+v["id"])
             v = vars[len(vars)-1]
             text.extend(x_type(v["type"])+",")
-            trace.OUT(text, "represents "+v["id"])
-            text.extend("}"+nl)
+            trace.out(text, "represents "+v["id"])
+            text.extend("}"+NL)
 
-def section_typedef_impl(text, i, m):
+def section_typedef_impl(text, i, m, trace):
     '''
     Generates the section implementation of the translation to LLVM.
 
@@ -319,6 +322,7 @@ def section_typedef_impl(text, i, m):
       - text: bytearray to store output
       - i: AST node for a B implementation
       - m: AST node for the B machine corresponding to i
+      - trace: a Tracer object
 
     Definition of the type representing the states of implementation i
     of machine m is appended to text.
@@ -326,33 +330,34 @@ def section_typedef_impl(text, i, m):
     check_kind(i, {"Impl"})
     check_kind(m, {"Machine"})
     if is_stateful(i):
-        trace.OUT(text, "The type encoding the state of \""+m["id"] + "\" is an aggregate and is defined as")
-        trace.OUTU(text, "(using implementation \""+i["id"]+"\"):")
-        text.extend(state_t_name(m)+" = type {"+nl)
+        trace.out(text, "The type encoding the state of \""+m["id"] + "\" is an aggregate and is defined as")
+        trace.outu(text, "(using implementation \""+i["id"]+"\"):")
+        text.extend(state_t_name(m)+" = type {"+NL)
         imports = [imp for imp in i["imports"] if is_stateful(imp["mach"])]
         variables = i["variables"]
         left = len(imports)+len(variables)
         pos = 0
         for imp in imports:
-            trace.OUTU(text, "The state of \""+printer.imports(imp)+ "\" is at position "+str(pos)+" and has type:")
-            text.extend(tb+state_r_name(imp["mach"])+("" if left == 1 else ",")+nl)
+            trace.outu(text, "The state of \""+printer.imports(imp)+ "\" is at position "+str(pos)+" and has type:")
+            text.extend(TB+state_r_name(imp["mach"])+("" if left == 1 else ",")+NL)
             left = left - 1
             pos = pos + 1
         for var in variables:
-            trace.OUTU(text, "The representation of variable \""+var["id"]+ "\" is at position "+str(pos)+" and has type:")
-            text.extend(tb+x_type(var["type"])+("" if left == 1 else ",")+nl)
+            trace.outu(text, "The representation of variable \""+var["id"]+ "\" is at position "+str(pos)+" and has type:")
+            text.extend(TB+x_type(var["type"])+("" if left == 1 else ",")+NL)
             left = left - 1
             pos = pos + 1
         assert left == 0
-        text.extend("}"+nl)
+        text.extend("}"+NL)
 
-def section_implementation(text, m, emit_printer):
+def section_implementation(text, m, trace, emit_printer):
     '''
     Generates the section implementation of the translation to LLVM.
 
     Inputs:
       - text: a bytearray where text is appended
       - m: AST node for a B machine
+      - trace: a Tracer object
       - emit_printer: flag indicating if printing functions shall be produced
 
     The definitions of the LLVM functions implementing the initialisation and
@@ -361,11 +366,11 @@ def section_implementation(text, m, emit_printer):
     check_kind(m, {"Machine"})
     if is_developed(m):
         i = implementation(m)
-        x_init(text, m, i)
+        x_init(text, m, i, trace)
         for op in i["operations"]:
-            x_operation(text, op)
+            x_operation(text, op, trace)
         if emit_printer:
-            x_printer(text, m, i)
+            x_printer(text, m, i, trace)
 
 #
 # TRANSLATION FUNCTIONS OF INDIVIDUAL ELEMENTS OF THE B AST
@@ -386,7 +391,7 @@ def x_type(t):
 
 ### TRANSLATION FOR INITIALISATION
 
-def x_init(text, m, i):
+def x_init(text, m, i, trace):
     '''
     Input:
       - text: a bytearray to store output
@@ -396,7 +401,7 @@ def x_init(text, m, i):
     LLVM implementation of the initialisation clause of i (a LLVM function) is
     appended to text.
     '''
-    global tb, nl, sp
+    global TB, NL, SP
     check_kind(m, {"Machine"})
     check_kind(i, {"Impl"})
     tm = state_r_name(m) # LLVM type name: pointer to structure storing m data
@@ -411,182 +416,186 @@ def x_init(text, m, i):
             lexicon[q] = "%arg"+str(count)+"$"
             count += 1
     # 1.2 generate parameter type, name list
-    arg_list = [ tm+sp+"%self$" ]
+    arg_list = [ tm+SP+"%self$" ]
     for q in comp_indirect(m):
         if is_stateful(q.mach):
-            arg_list.append(state_r_name(q.mach)+sp+lexicon[q])
+            arg_list.append(state_r_name(q.mach)+SP+lexicon[q])
     # 1.3 the signature
-    trace.OUT(text, "The function implementing initialisation for \""+m["id"]+"\" is \""+init_name(i)+"\"")
-    trace.OUTU(text, "and has the following parameters:")
-    trace.TAB()
-    trace.OUT(text, "\"%self$\": address of LLVM aggregate storing state of \""+m["id"]+"\";")
+    trace.out(text, "The function implementing initialisation for \""+m["id"]+"\" is \""+init_name(i)+"\"")
+    trace.outu(text, "and has the following parameters:")
+    trace.tab()
+    trace.out(text, "\"%self$\": address of LLVM aggregate storing state of \""+m["id"]+"\";")
     for q in comp_indirect(m):
         if is_stateful(q.mach):
-            trace.OUT(text, "\""+lexicon[q]+"\": address of LLVM aggregate storing state of \""+q.bstr()+"\";")
-    text.extend("define void"+sp+init_name(i)+"("+commas(arg_list)+") {"+nl)
+            trace.out(text, "\""+lexicon[q]+"\": address of LLVM aggregate storing state of \""+q.bstr()+"\";")
+    text.extend("define void"+SP+init_name(i)+"("+commas(arg_list)+") {"+NL)
     # 2. generate function body
-    trace.OUT(text, "The entry point of the initialisation is:")
-    text.extend("entry:"+nl)
+    trace.out(text, "The entry point of the initialisation is:")
+    text.extend("entry:"+NL)
     # 2.1 reserve stack space for local variables
-    x_alloc_inst_list(text, i["initialisation"])
+    x_alloc_inst_list(text, i["initialisation"], trace)
     # 2.2 bind direct imports to elements of state structure
     direct = [ q for q in comp_direct(m) if is_stateful(q.mach) ]
     if direct != []:
-        trace.OUT(text, "The addresses of aggregates representing components of \""+i["id"]+"\"")
-        trace.OUTU(text, "are bound to elements of aggregate representing \""+m["id"]+"\".")
-        trace.TAB()
+        trace.out(text, "The addresses of aggregates representing components of \""+i["id"]+"\"")
+        trace.outu(text, "are bound to elements of aggregate representing \""+m["id"]+"\".")
+        trace.tab()
         for j in range(len(direct)):
             lbl = names.new_local()
             q = direct[j]
-            trace.OUT(text, "This binds component \"" + q.bstr() + "\" to aggregate element " + str(j)+":")
+            trace.out(text, "This binds component \"" + q.bstr() + "\" to aggregate element " + str(j)+":")
             tm2 = state_r_name(q.mach)
-            text.extend(tb+lbl+" = getelementptr "+tm+" %self$, i32 0, i32 "+str(j)+nl)
-            text.extend(tb+"store "+tm2+sp+lexicon[q]+", "+tm2+"* "+lbl+nl)
-        trace.UNTAB()
+            text.extend(TB+lbl+" = getelementptr "+tm+" %self$, i32 0, i32 "+str(j)+NL)
+            text.extend(TB+"store "+tm2+SP+lexicon[q]+", "+tm2+"* "+lbl+NL)
+        trace.untab()
     # 2.3 initialise direct imports
     offset = len(direct)+1
     if comp_direct(m) != []:
-        trace.OUT(text, "Each component is initialised:")
-        trace.TAB()
+        trace.out(text, "Each component is initialised:")
+        trace.tab()
         for q in comp_direct(m):
             mq = q.mach     # the imported machine
             arg_list2 = []  # to store parameters needed to initialise mq
             if is_stateful(mq):
-                arg_list2.append(state_r_name(mq)+sp+lexicon[q])
+                arg_list2.append(state_r_name(mq)+SP+lexicon[q])
                 n = len([x for x in comp_indirect(mq) if is_stateful(x.mach)])
                 arg_list2.extend(arg_list[offset:offset+n])
-                trace.OUT(text, "Call initialisation function for component \""+q.bstr()+"\".")
-                text.extend(tb+"call void "+init_name(mq)+"("+commas(arg_list2)+")"+nl)
-        trace.UNTAB()
+                trace.out(text, "Call initialisation function for component \""+q.bstr()+"\".")
+                text.extend(TB+"call void "+init_name(mq)+"("+commas(arg_list2)+")"+NL)
+        trace.untab()
     # 2.4 translate initialisation instructions
-    trace.OUT(text, "Execute substitutions in initialisation of \""+i["id"]+"\" then exits:")
-    trace.TAB()
-    x_inst_list_label(text, i["initialisation"], "exit")
-    trace.UNTAB()
-    trace.OUT(text, "The exit point of the initialisation is:")
-    text.extend("exit:"+nl)
-    text.extend(tb+"ret void"+nl)
-    text.extend("}"+nl)
-    trace.UNTAB()
+    trace.out(text, "Execute substitutions in initialisation of \""+i["id"]+"\" then exits:")
+    trace.tab()
+    x_inst_list_label(text, i["initialisation"], "exit", trace)
+    trace.untab()
+    trace.out(text, "The exit point of the initialisation is:")
+    text.extend("exit:"+NL)
+    text.extend(TB+"ret void"+NL)
+    text.extend("}"+NL)
+    trace.untab()
 
 ### TRANSLATION FOR PRINTER
 
-def x_printer(text, m, i):
+def x_printer(text, m, i, trace):
     '''
     Input:
       - text: a bytearray to store output
       - m: root AST node of a B machine
       - i: root AST node of the implementation of m
+      - trace: a Tracer object
 
     Definition of a LLVM function that prints the value of the elements
     composing the state of m m to the standard output stream.
     '''
-    global tb, nl, sp
+    global TB, NL, SP
     check_kind(m, {"Machine"})
     check_kind(i, {"Impl"})
     tm = state_r_name(m) # LLVM type name: pointer to structure storing m data
     names.reset()
 
-    trace.OUT(text, "Definition of function responsible for printing the state,")
-    trace.OUTU(text, "its generation was activated by option --emit-printer.")
+    trace.out(text, "Definition of function responsible for printing the state,")
+    trace.outu(text, "its generation was activated by option --emit-printer.")
     emit_print_i1 = False
     emit_print_i32 = False
-    text.extend("define void "+print_name(m)+"("+state_r_name(m)+"%self$) {"+nl)
+    text.extend("define void "+print_name(m)+"("+state_r_name(m)+"%self$) {"+NL)
     j, nb = 0, len(comp_direct(m))+len(i["variables"])
-    text.extend("entry:"+nl)
-    text.extend(tb+"call void @$b2llvm.print.ldelim()"+nl)
+    text.extend("entry:"+NL)
+    text.extend(TB+"call void @$b2llvm.print.ldelim()"+NL)
     for q in comp_direct(m):
         m2 = q.mach
         t2 = state_r_name(m2)
         lbl1 = names.new_local()
         lbl2 = names.new_local()
-        text.extend(tb+lbl1+" = getelementptr "+tm+" %self$, i32 0, i32 "+str(j)+nl)
-        text.extend(tb+lbl2+" = load "+t2+"* "+lbl1+nl)
-        text.extend(tb+"call void "+print_name(m2)+"("+state_r_name(m2)+sp+lbl2+")"+nl)
+        text.extend(TB+lbl1+" = getelementptr "+tm+" %self$, i32 0, i32 "+str(j)+NL)
+        text.extend(TB+lbl2+" = load "+t2+"* "+lbl1+NL)
+        text.extend(TB+"call void "+print_name(m2)+"("+state_r_name(m2)+SP+lbl2+")"+NL)
         j += 1
         if j < nb:
-            text.extend(tb+"call void @$b2llvm.print.space()"+nl)
+            text.extend(TB+"call void @$b2llvm.print.space()"+NL)
     for var in i["variables"]:
         lbl1 = names.new_local()
         lbl2 = names.new_local()
         t2 = x_type(var["type"])
-        text.extend(tb+lbl1+" = getelementptr "+tm+" %self$, i32 0, i32 "+str(j)+nl)
-        text.extend(tb+lbl2+" = load "+t2+"* "+lbl1+nl)
+        text.extend(TB+lbl1+" = getelementptr "+tm+" %self$, i32 0, i32 "+str(j)+NL)
+        text.extend(TB+lbl2+" = load "+t2+"* "+lbl1+NL)
         if t2 == "i1":
-            text.extend(tb+"call void @$b2llvm.print.i1("+t2+sp+lbl2+")"+nl)
+            text.extend(TB+"call void @$b2llvm.print.i1("+t2+SP+lbl2+")"+NL)
             emit_print_i1 = True
         else:
             assert t2 == "i32"
-            text.extend(tb+"call void @$b2llvm.print.i32("+t2+sp+lbl2+")"+nl)
+            text.extend(TB+"call void @$b2llvm.print.i32("+t2+SP+lbl2+")"+NL)
             emit_print_i32 = True
         j += 1
         if j < nb:
-            text.extend(tb+"call void @$b2llvm.print.space()"+nl)
-    text.extend(tb+"call void @$b2llvm.print.rdelim()"+nl)
-    text.extend(tb+"ret void"+nl)
-    text.extend("}"+nl)
-    text.extend("declare void @$b2llvm.print.ldelim()"+nl)
-    text.extend("declare void @$b2llvm.print.rdelim()"+nl)
+            text.extend(TB+"call void @$b2llvm.print.space()"+NL)
+    text.extend(TB+"call void @$b2llvm.print.rdelim()"+NL)
+    text.extend(TB+"ret void"+NL)
+    text.extend("}"+NL)
+    text.extend("declare void @$b2llvm.print.ldelim()"+NL)
+    text.extend("declare void @$b2llvm.print.rdelim()"+NL)
     if nb > 1:
-        text.extend("declare void @$b2llvm.print.space()"+nl)
+        text.extend("declare void @$b2llvm.print.space()"+NL)
     if emit_print_i1:
-        text.extend("declare void @$b2llvm.print.i1(i1)"+nl)
+        text.extend("declare void @$b2llvm.print.i1(i1)"+NL)
     if emit_print_i32:
-        text.extend("declare void @$b2llvm.print.i32(i32)"+nl)
+        text.extend("declare void @$b2llvm.print.i32(i32)"+NL)
 
 
 ### TRANSLATION OF OPERATIONS
 
-def x_operation(text, n):
+def x_operation(text, n, trace):
     '''
     Code generation for B operations.
 
     Input:
       - text: a byte array where LLVM code is stored
       - n: an AST node for a B operation
+      - trace: a Tracer object
     '''
-    global tb, nl
+    global TB, NL
     check_kind(n, {"Oper"})
     names.reset()
-    trace.OUT(text, "The LLVM function implementing B operation \""+n["id"]+"\" in \""+n["root"]["id"]+"\" follows.")
+    trace.out(text, "The LLVM function implementing B operation \""+n["id"]+"\" in \""+n["root"]["id"]+"\" follows.")
     text.extend("define void "+op_name(n))
-    text.extend("("+commas([state_r_name(n["root"])+sp+"%self$"]+
-                          [x_type(i["type"])+sp+"%"+i["id"] for i in n["inp"]]+
-                          [x_type(o["type"])+"*"+sp+"%"+o["id"] for o in n["out"]])+")")
-    text.extend("{"+nl)
-    trace.TAB()
-    text.extend("entry:"+nl)
-    x_alloc_inst(text, n["body"])
-    x_inst_label(text, n["body"], "exit")
-    text.extend("exit:"+nl)
-    text.extend(tb+"ret void"+nl)
-    text.extend("}"+nl)
-    trace.UNTAB()
+    text.extend("("+commas([state_r_name(n["root"])+SP+"%self$"]+
+                          [x_type(i["type"])+SP+"%"+i["id"] for i in n["inp"]]+
+                          [x_type(o["type"])+"*"+SP+"%"+o["id"] for o in n["out"]])+")")
+    text.extend("{"+NL)
+    trace.tab()
+    text.extend("entry:"+NL)
+    x_alloc_inst(text, n["body"], trace)
+    x_inst_label(text, n["body"], "exit", trace)
+    text.extend("exit:"+NL)
+    text.extend(TB+"ret void"+NL)
+    text.extend("}"+NL)
+    trace.untab()
 
 ### TRANSLATION OF STACK VARIABLE ALLOCATION
 
-def x_alloc_inst_list(text, il):
+def x_alloc_inst_list(text, il, trace):
     '''
     Generation of frame stack allocation for instruction lists.
 
     Input:
       - text: a bytearray where LLVM code is stored
       - il: a list of B instructions AST nodes
+      - trace: a Tracer object
 
     This function is part of a recursive traversal of the syntax tree so that
     all variable declarations are visisted and handled by function
     x_alloc_var_decl.
     '''
     for inst in il:
-        x_alloc_inst(text, inst)
+        x_alloc_inst(text, inst, trace)
 
-def x_alloc_inst(text, n):
+def x_alloc_inst(text, n, trace):
     '''
     Generation of frame stack allocation for individual instructions.
 
     Input:
       - text: a byterray where LLVM code is stored
       - n: AST node for a B instruction
+      - trace: a Tracer object
 
     This function is part of a recursive traversal of the syntax tree so that
     all variable declarations are visisted and handled by function
@@ -597,35 +606,36 @@ def x_alloc_inst(text, n):
         return
     elif n["kind"] in {"Case", "If"}:
         for br in n["branches"]:
-            x_alloc_inst(text, br["body"])
+            x_alloc_inst(text, br["body"], trace)
     elif n["kind"] in {"Blk", "While"}:
-        x_alloc_inst_list(text, n["body"])
+        x_alloc_inst_list(text, n["body"], trace)
     elif n["kind"] == "VarD":
-        x_alloc_var_decl(text, n)
+        x_alloc_var_decl(text, n, trace)
     else:
         print("error: unknown instruction kind")
-        res.extend("<error inserted by b2llvm>")
+        text.extend("<error inserted by b2llvm>")
 
-def x_alloc_var_decl(text, n):
+def x_alloc_var_decl(text, n, trace):
     '''
     Generation of frame stack allocation for variable declarations.
 
     Input:
       - text: a byterray where LLVM code is stored
       - n: AST node for a B variable declaration
+      - trace: a Tracer object
 
     Emits one LLVM alloca instruction for each declared variable and
     processes the variable declaration body of instructions.
     '''
-    global tb, nl, sp
+    global TB, NL, SP
     check_kind(n, {"VarD"})
-    trace.OUT(text, "local variable declarations implemented as frame stack allocations")
-    trace.TAB()
+    trace.out(text, "local variable declarations implemented as frame stack allocations")
+    trace.tab()
     for v in n["vars"]:
-        trace.OUT(text, "frame stack allocation for variable "+v["id"])
-        text.extend(tb+"%"+v["id"]+" = alloca "+x_type(v["type"])+nl)
-    x_alloc_inst_list(text, n["body"])
-    trace.UNTAB()
+        trace.out(text, "frame stack allocation for variable "+v["id"])
+        text.extend(TB+"%"+v["id"]+" = alloca "+x_type(v["type"])+NL)
+    x_alloc_inst_list(text, n["body"], trace)
+    trace.untab()
 
 ### TRANSLATION OF INSTRUCTIONS ###
 
@@ -640,24 +650,24 @@ def x_alloc_var_decl(text, n):
 # WARNING:
 #
 
-def x_inst_list_label(text, l, lbl):
-    global tb, nl
+def x_inst_list_label(text, l, lbl, trace):
+    global TB, NL
     if len(l) == 0:
-        text.extend(tb + "br label %" + lbl + nl)
+        text.extend(TB + "br label %" + lbl + NL)
     else:
         i = l[0]
         l2 = l[1:]
         if i["kind"] in {"Case", "If", "While"}:
             lbl2 = names.new_label()
-            x_inst_label(res, i, lbl2)
+            x_inst_label(text, i, lbl2, trace)
             text.extend(lbl2 + ":\n")
         elif i["kind"] in {"Blk"}:
-            x_inst_list(text, i["body"])
+            x_inst_list(text, i["body"], trace)
         else:
-            x_inst(text, i)
-        x_inst_list_label(text, l2, lbl)
+            x_inst(text, i, trace)
+        x_inst_list_label(text, l2, lbl, trace)
 
-def x_inst_list(text, il):
+def x_inst_list(text, il, trace):
     '''
     Input:
       - text: bytearray to store LLVM code
@@ -666,51 +676,51 @@ def x_inst_list(text, il):
     for inst in il:
         if inst["kind"] in {"If", "While"}:
             label = names.new_label()
-            x_inst_label(text, inst, label)
+            x_inst_label(text, inst, label, trace)
             text.extend(label + ":\n")
         elif inst["kind"] in {"Blk"}:
-            x_inst_list(text, inst["body"])
+            x_inst_list(text, inst["body"], trace)
         else:
-            x_inst(text, inst)
+            x_inst(text, inst, trace)
 
-def x_inst_label(text, n, lbl):
+def x_inst_label(text, n, lbl, trace):
     check_kind(n, {"Beq", "Blk", "Call", "Case", "If", "VarD", "While"})
     if n["kind"] == "Blk":
-        x_inst_list_label(text, n["body"], lbl)
+        x_inst_list_label(text, n["body"], lbl, trace)
     elif n["kind"] == "Case":
-        x_case(text, n, lbl)
+        x_case(text, n, lbl, trace)
     elif n["kind"] == "If":
-        x_if(text, n, lbl)
+        x_if(text, n, lbl, trace)
     elif n["kind"] == "While":
-        x_while(text, n, lbl)
+        x_while(text, n, lbl, trace)
     elif n["kind"] in {"Beq", "Call"}:
-        x_inst(text, n)
-        text.extend(tb + "br label %" + lbl + nl)
+        x_inst(text, n, trace)
+        text.extend(TB + "br label %" + lbl + NL)
     elif n["kind"] == "VarD":
-        x_inst_list_label(text, n["body"], lbl)
+        x_inst_list_label(text, n["body"], lbl, trace)
     else:
         print("error: instruction type unknown")
         text.extend("<error inserted by b2llvm>")
 
-def x_inst(text, n):
+def x_inst(text, n, trace):
     check_kind(n, {"Beq", "Call", "VarD"})
     if n["kind"] == "Beq":
-        x_beq(text, n)
+        x_beq(text, n, trace)
     elif n["kind"] == "Call":
-        x_call(text, n)
+        x_call(text, n, trace)
     elif n["kind"] == "VarD":
-        x_inst_list(text, n["body"])
+        x_inst_list(text, n["body"], trace)
     elif n["kind"] == "Skip":
-        x_skip(text, n)
+        x_skip(text, n, trace)
 
 ### TRANSLATION OF SKIP ###
 
-def x_skip(text, n):
+def x_skip(text, n, trace):
     check_kind(n, {"Skip"})
 
 ### TRANSLATION OF CASE INSTRUCTIONS
 
-def x_case(text, n, lbl):
+def x_case(text, n, lbl, trace):
     '''
     Generates LLVM code for a B case instruction.
 
@@ -720,25 +730,25 @@ def x_case(text, n, lbl):
       - lbl: a LLVM label for the block where control flow must go after
       executing n.
     '''
-    global nl, tb, sp
+    global NL, TB, SP
     check_kind(n, {"Case"})
-    v,t = x_expression(text, n["expr"])
-    branches = n["branches"]
+    v, t = x_expression(text, n["expr"], trace)
+    br = n["branches"]
     # generate one block label for each branch
-    labels = x_case_label_list(branches)
+    labels = x_case_label_list(br)
     # there is a special treatment for in case there is no explicit
     # default branch (the last branch in the AST is not a default branch)
-    last = branches(len(branches)-1)
+    last = br(len(br)-1)
     default = "val" not in br.keys() or br["val"] == [] or br["val"] == None
     # generate block label for default branch
     if default:
-        lblo = labels[len(branches)-1]
+        lblo = labels[len(br)-1]
     else:
         lblo = names.new_label()
-    text.extend(tb + "switch " + t + sp + v + ", label %" + lblo + " [" + nl)
-    x_case_jump_table(text, branches, labels)
-    text.extend(tb + "]" + nl)
-    text.extend(x_case_block_list(branches, labels, default, lblo))
+    text.extend(TB + "switch " + t + SP + v + ", label %" + lblo + " [" + NL)
+    x_case_jump_table(text, br, labels, trace)
+    text.extend(TB + "]" + NL)
+    text.extend(x_case_block_list(text, br, labels, lbl, default, lblo, trace))
 
 def x_case_label_list(bl):
     '''
@@ -749,7 +759,7 @@ def x_case_label_list(bl):
     '''
     return [ names.new_label() for branch in bl]
 
-def x_case_jump_table(text, bl, labels):
+def x_case_jump_table(text, bl, labels, trace):
     '''
     Generates a LLVM jump table for a switch instruction implementing the case
     branches.
@@ -758,11 +768,12 @@ def x_case_jump_table(text, bl, labels):
       - text: a bytearray where LLVM output is stored
       - bl: a list of case branches
       - labels: a list block labels
+      - trace: a Tracer object
     '''
     for i in range(len(bl)):
-        x_case_val_list(text, bl[i]["val"], labels[i])
+        x_case_val_list(text, bl[i]["val"], labels[i], trace)
 
-def x_case_val_list(text, vl, lbl):
+def x_case_val_list(text, vl, lbl, trace):
     '''
     Generates entries in the LLVM jump table from values to a block label.
 
@@ -771,15 +782,15 @@ def x_case_val_list(text, vl, lbl):
       - vl: a list of AST nodes representing B values
       - lbl: a LLVM block label
     '''
-    global tb2, sp, nl
+    global TB2, SP, NL
     text2 = bytearray()
     for v in vl:
         # the evaluation of the values should not emit LLVM code
-        v, t = x_expression(text2, v)
+        v, t = x_expression(text2, v, trace)
         assert(len(text2) == 0)
-        text.extend(tb2 + t + sp + v + ", label %" + lbl + nl)
+        text.extend(TB2 + t + SP + v + ", label %" + lbl + NL)
 
-def x_case_block_list(text, bl, labels, lble, default, lbld):
+def x_case_block_list(text, bl, labels, lble, default, lbld, trace):
     '''
     Generates LLVM code blocks of a switch implementing the instructions in the
     branches of a case instruction.
@@ -791,19 +802,20 @@ def x_case_block_list(text, bl, labels, lble, default, lbld):
       - lble: label of block where control flow must go after executing a branch
       - default: flag indicating if the last branch is a default branch
       - lbld: label of block for default block
+      - trace: a Tracer object
     '''
     for i in range(len(bl)):
         branch = bl[i]
         lbl = labels[i]
-        text.extend(tb+lbl+":"+nl)
-        text.extend(x_inst_label(branch["body"], lble))
+        text.extend(TB+lbl+":"+NL)
+        text.extend(x_inst_label(text, branch["body"], lble, trace))
     if not default:
-        text.extend(tb+lbld+":"+nl)
-        text.extend(tb+"branch label %"+lble)
+        text.extend(TB+lbld+":"+NL)
+        text.extend(TB+"branch label %"+lble)
 
 ### TRANSLATION OF IF INSTRUCTIONS
 
-def x_if(text, n, lbl):
+def x_if(text, n, lbl, trace):
     '''
     Generates LLVM code for a B if instruction.
 
@@ -812,14 +824,15 @@ def x_if(text, n, lbl):
       - n: an AST node representing a B if instruction
       - lbl: a LLVM label for the block where control flow must go after
       executing n.
+      - trace: a Tracer object.
     '''
     check_kind(n, {"If"})
-    trace.OUT(text, "Execute \""+ellipse(printer.subst_if(0, n))+"\" and branch to \""+lbl+"\".")
-    trace.TAB()
-    x_if_br(text, n["branches"], lbl)
-    trace.UNTAB()
+    trace.out(text, "Execute \""+ellipse(printer.subst_if(0, n))+"\" and branch to \""+lbl+"\".")
+    trace.tab()
+    x_if_br(text, n["branches"], lbl, trace)
+    trace.untab()
 
-def x_if_br(text, lbr, lbl):
+def x_if_br(text, lbr, lbl, trace):
     '''
     Generates LLVM code for a list of B if instruction branches.
 
@@ -828,34 +841,35 @@ def x_if_br(text, lbr, lbl):
       - lbr: a list of AST nodes representing B if instruction branches
       - lbl: a LLVM label for the block where control flow must go after
       executing n.
+      - trace: a Tracer object
     '''
     nbr = len(lbr)
     assert(nbr>=1)
     for i in range(nbr):
         br = lbr[i]
         check_kind(br, {"IfBr"})
-        trace.OUT(text, "execute if branch \""+ellipse(printer.if_br(0, 0, br))+"\"")
+        trace.out(text, "execute if branch \""+ellipse(printer.if_br(0, 0, br))+"\"")
         if i == nbr-1:
             # br is an else branch
             if "cond" not in br.keys() or br["cond"] == None:
-                x_inst_label(text, br["body"], lbl)
+                x_inst_label(text, br["body"], lbl, trace)
             # br is an elsif branch
             else:
                 lbl_1 = names.new_label()
-                x_formula(text, br["cond"], lbl_1, lbl)
-                text.extend(lbl_1 + ":" + nl)
-                x_inst_label(text, br["body"], lbl)
+                x_formula(text, br["cond"], lbl_1, lbl, trace)
+                text.extend(lbl_1 + ":" + NL)
+                x_inst_label(text, br["body"], lbl, trace)
         else:
             lbl_1 = names.new_label()
             lbl_2 = names.new_label()
-            x_formula(text, br["cond"], lbl_1, lbl_2)
-            text.extend(lbl_1 + ":" + nl)
-            x_inst_label(text, br["body"], lbl)
-            text.extend(lbl_2 + ":" + nl)
+            x_formula(text, br["cond"], lbl_1, lbl_2, trace)
+            text.extend(lbl_1 + ":" + NL)
+            x_inst_label(text, br["body"], lbl, trace)
+            text.extend(lbl_2 + ":" + NL, trace)
 
 ### TRANSLATION OF WHILE INSTRUCTIONS
 
-def x_while(text, n, lbl):
+def x_while(text, n, lbl, trace):
     '''
     Generates LLVM code for a B while instruction.
 
@@ -865,25 +879,25 @@ def x_while(text, n, lbl):
       - lbl: a LLVM label for the block where control flow must go after
       executing n.
     '''
-    global nl, tb, sp
+    global NL, TB, SP
     check_kind(n, {"While"})
-    trace.OUT(text, "Execute \""+ellipse(printer.subst_while(0, n))+"\" and branch to \""+lbl+"\".")
-    trace.TAB()
-    trace.OUT(text, "Evaluate loop guard \""+ellipse(printer.condition(n["cond"]))+"\".")
+    trace.out(text, "Execute \""+ellipse(printer.subst_while(0, n))+"\" and branch to \""+lbl+"\".")
+    trace.tab()
+    trace.out(text, "Evaluate loop guard \""+ellipse(printer.condition(n["cond"]))+"\".")
     lbl1 = names.new_label()
-    text.extend(tb+"br label %"+lbl1+nl)
-    text.extend(lbl1 + ":" + nl)
-    v = x_pred(text, n["cond"])
+    text.extend(TB+"br label %"+lbl1+NL)
+    text.extend(lbl1 + ":" + NL)
+    v = x_pred(text, n["cond"], trace)
     lbl2 = names.new_label()
-    text.extend(tb + "br i1 " + v + ", label %" + lbl2 + ", label %" + lbl + nl)
-    trace.OUT(text, "Execute loop body \""+ellipse(printer.subst_l(0, n["body"]))+"\".")
-    text.extend(lbl2 + ":" +nl)
-    x_inst_list_label(text, n["body"], lbl1)
-    trace.UNTAB()
+    text.extend(TB + "br i1 " + v + ", label %" + lbl2 + ", label %" + lbl + NL)
+    trace.out(text, "Execute loop body \""+ellipse(printer.subst_l(0, n["body"]))+"\".")
+    text.extend(lbl2 + ":" +NL)
+    x_inst_list_label(text, n["body"], lbl1, trace)
+    trace.untab()
 
 ### TRANSLATION OF BECOMES EQUAL INSTRUCTIONS
 
-def x_beq(text, n):
+def x_beq(text, n, trace):
     '''
     Generates LLVM code for a B assignment (becomes equal) instruction.
 
@@ -891,22 +905,23 @@ def x_beq(text, n):
       - text: a byterray where LLVM code is stored
       - n: an AST node representing a B assignment instruction
     '''
-    global tb, sp, nl
+    global TB, SP, NL
     check_kind(n, {"Beq"})
-    trace.OUT(text, "Execute assignment \""+printer.beq(0, n)+"\":")
-    trace.TAB()
-    v,t = x_expression(text, n["rhs"])
-    p,_ = x_lvalue(text, n["lhs"])
-    trace.OUT(text, "Store value at address to achieve assignment.")
-    text.extend(tb + "store " + t + sp + v + ", " + t + "* " + p + nl)
-    trace.UNTAB()
+    trace.out(text, "Execute assignment \""+printer.beq(0, n)+"\":")
+    trace.tab()
+    v,t = x_expression(text, n["rhs"], trace)
+    p,_ = x_lvalue(text, n["lhs"], trace)
+    trace.out(text, "Store value at address to achieve assignment.")
+    text.extend(TB + "store " + t + SP + v + ", " + t + "* " + p + NL)
+    trace.untab()
 
-def x_lvalue(text, n):
+def x_lvalue(text, n, trace):
     '''
     Translate of "lvalues" (elements to the left of an assignment).
 
     Input:
       - n: AST node for lvalue
+      - trace: a Tracer object
     Output:
       A triple composed of a sequence of LLVM instructions computing
       the lvalue, the name of the local storing the lvalue, and the
@@ -916,24 +931,24 @@ def x_lvalue(text, n):
     Caveat:
       Currently limited to simple identifiers.
     '''
-    global tb, nl
+    global TB, NL
     check_kind(n, {"Vari"})
-    trace.OUT(text, "Evaluate address for \""+printer.term(n)+"\".")
+    trace.out(text, "Evaluate address for \""+printer.term(n)+"\".")
     t = x_type(n["type"]) + "*"
     if n["scope"] == "Impl":
         pos=state_position(n)
         v = names.new_local()
-        trace.TAB()
-        trace.OUT(text, "Variable \""+n["id"]+"\" is stored at position "+str(pos)+" of \"%self$\".")
-        trace.OUTU(text, "Let temporary " + v + " be the corresponding address:")
-        trace.UNTAB()
-        text.extend(tb + v + " = getelementptr " + state_r_name(n["root"])+
-                    " %self$, i32 0, i32 " + str(state_position(n)) + nl)
+        trace.tab()
+        trace.out(text, "Variable \""+n["id"]+"\" is stored at position "+str(pos)+" of \"%self$\".")
+        trace.outu(text, "Let temporary " + v + " be the corresponding address:")
+        trace.untab()
+        text.extend(TB + v + " = getelementptr " + state_r_name(n["root"])+
+                    " %self$, i32 0, i32 " + str(state_position(n)) + NL)
         return (v, t)
     elif n["scope"] in {"Oper", "Local"}:
-        trace.TAB()
-        trace.OUT(text, "\""+n["id"]+"\" is stored in the frame stack and represented by \"%"+n["id"]+"\".")
-        trace.UNTAB()
+        trace.tab()
+        trace.out(text, "\""+n["id"]+"\" is stored in the frame stack and represented by \"%"+n["id"]+"\".")
+        trace.untab()
         return ("%"+n["id"],t)
     else:
         text.extend("<error inserted by b2llvm>")
@@ -942,7 +957,7 @@ def x_lvalue(text, n):
 
 ### TRANSLATION OF CALL INSTRUCTIONS
 
-def x_call(text, n):
+def x_call(text, n, trace):
     '''
     Generates LLVM code for a B call operation instruction.
 
@@ -950,19 +965,19 @@ def x_call(text, n):
       - text: a byterray where LLVM code is stored
       - n: an AST node representing a B call operation
     '''
-    global sp
+    global SP
     check_kind(n, {"Call"})
-    trace.OUT(text, "Execute operation call \""+printer.call(0, n)+"\".")
+    trace.out(text, "Execute operation call \""+printer.call(0, n)+"\".")
     operation = n["op"]
     local = (n["inst"] == None) # is a local operation?
     impl = operation["root"]
     # evaluate arguments
-    trace.TAB()
-    trace.OUT(text, "Evaluate operation arguments.")
+    trace.tab()
+    trace.out(text, "Evaluate operation arguments.")
     args = list()
-    trace.TAB()
+    trace.tab()
     if is_stateful(impl):
-        trace.OUT(text, "(implicit) address of structure representing operation component")
+        trace.out(text, "(implicit) address of structure representing operation component")
         # get the LLVM type of the machine offering the operation
         if local:
             mach = operation["root"]
@@ -970,44 +985,44 @@ def x_call(text, n):
             mach = n["inst"]["root"]
         mach_t = state_r_name(mach)
         if local:
-            t = selftype
+            t = mach_t
             v = "%self$"
-            trace.OUT(text, "is %self$")
+            trace.out(text, "is %self$")
         else:
             pos = state_position(n["inst"])
-            trace.OUT(text, "is element "+str(pos)+" of %self$")
+            trace.out(text, "is element "+str(pos)+" of %self$")
             t = state_r_name(n["inst"]["mach"])
             v1 = names.new_local()
             v2 = names.new_local()
-            text.extend(tb+v1+" = getelementptr "+mach_t+
-                        " %self$, i32 0, i32 "+str(pos)+nl)
-            text.extend(tb + v2 + " = load " + t +"*" + sp + v1 + nl)
-        args.append(t + sp + v2)
-    x_inputs(text, args, n["inp"])
-    x_outputs(text, args, n["out"])
-    trace.UNTAB()
+            text.extend(TB+v1+" = getelementptr "+mach_t+
+                        " %self$, i32 0, i32 "+str(pos)+NL)
+            text.extend(TB + v2 + " = load " + t +"*" + SP + v1 + NL)
+        args.append(t + SP + v2)
+    x_inputs(text, args, n["inp"], trace)
+    x_outputs(text, args, n["out"], trace)
+    trace.untab()
     id = op_name(operation)
-    trace.OUT(text, "Call LLVM function \""+id+"\" implementing B operation \""+n["op"]["id"]+"\".")
-    text.extend(tb + "call void" + sp + id + "(" + commas(args) + ")" + nl)
-    trace.UNTAB()
+    trace.out(text, "Call LLVM function \""+id+"\" implementing B operation \""+n["op"]["id"]+"\".")
+    text.extend(TB + "call void" + SP + id + "(" + commas(args) + ")" + NL)
+    trace.untab()
 
-def x_inputs(text, args, n):
-    global sp
+def x_inputs(text, args, n, trace):
+    global SP
     for elem in n:
-        trace.OUT(text, "Evaluate input parameter \""+printer.term(elem)+"\".")
-        v,t = translate_expression(text, elem)
-        args.append(t + sp + v)
+        trace.out(text, "Evaluate input parameter \""+printer.term(elem)+"\".")
+        v, t = x_expression(text, elem, trace)
+        args.append(t + SP + v)
 
-def x_outputs(text, args, n):
-    global sp
+def x_outputs(text, args, n, trace):
+    global SP
     for elem in n:
-        trace.OUT(text, "Evaluate output parameter \""+printer.term(elem)+"\".")
-        v,t = x_lvalue(text, elem)
-        args.append(t + sp + v)
+        trace.out(text, "Evaluate output parameter \""+printer.term(elem)+"\".")
+        v,t = x_lvalue(text, elem, trace)
+        args.append(t + SP + v)
 
 ### TRANSLATION OF CONDITIONS ###
 
-def x_formula(text, n, lbl1, lbl2):
+def x_formula(text, n, lbl1, lbl2, trace):
     '''
     Generates LLVM code to evaluate a B formula and branch to either labels.
 
@@ -1016,27 +1031,28 @@ def x_formula(text, n, lbl1, lbl2):
       - n: an AST node representing a B formula.
       - lbl1: a LLVM label string
       - lbl2: a LLVM label string
+      - trace: a Tracer object
     '''
     check_kind(n, {"Comp", "Form"})
-    trace.OUT(text, "Evaluate formula \""+ellipse(printer.condition(n))+"\", branch to \""+lbl1+"\" if true, to \""+lbl2+"\" otherwise.")
-    trace.TAB()
+    trace.out(text, "Evaluate formula \""+ellipse(printer.condition(n))+"\", branch to \""+lbl1+"\" if true, to \""+lbl2+"\" otherwise.")
+    trace.tab()
     if n["kind"] == "Comp":
-        v = x_comp(text, n)
-        text.extend(tb+"br i1 "+v+" , label %"+lbl1+", label %"+lbl2+nl)
+        v = x_comp(text, n, trace)
+        text.extend(TB+"br i1 "+v+" , label %"+lbl1+", label %"+lbl2+NL)
     elif n["kind"] == "Form":
         if n["op"] == "and":
-            x_and(text, n, lbl1, lbl2)
+            x_and(text, n, lbl1, lbl2, trace)
         elif n["op"] == "or":
-            x_or(text, n, lbl1, lbl2)
+            x_or(text, n, lbl1, lbl2, trace)
         elif n["op"] == "not":
-            x_not(text, n, lbl1, lbl2)
+            x_not(text, n, lbl1, lbl2, trace)
         else:
             text.extend("<error inserted by b2llvm>")
     else:
         text.extend("<error inserted by b2llvm>")
-    trace.UNTAB()
+    trace.untab()
 
-def x_comp(text, n):
+def x_comp(text, n, trace):
     '''
     Generates LLVM code to evaluate a B comparison.
 
@@ -1047,16 +1063,16 @@ def x_comp(text, n):
       The identifier of the LLVM temporary variable storing the result of
       the comparison. This variable has type "i1".
     '''
-    global tb, sp, nl
+    global TB, SP, NL
     check_kind(n, {"Comp"})
-    v1,t1 = x_expression(text, n["arg1"])
-    v2,t2 = x_expression(text, n["arg2"])
+    v1,t1 = x_expression(text, n["arg1"], trace)
+    v2,t2 = x_expression(text, n["arg2"], trace)
     v = names.new_local()
-    trace.OUT(text, "Temporary \""+v+"\" gets the value of \""+ellipse(printer.comp(n))+"\".")
-    text.extend(tb+v+" = icmp "+llvm_op(n["op"])+sp+t1+sp+v1+", "+v2+nl)
+    trace.out(text, "Temporary \""+v+"\" gets the value of \""+ellipse(printer.comp(n))+"\".")
+    text.extend(TB+v+" = icmp "+llvm_op(n["op"])+SP+t1+SP+v1+", "+v2+NL)
     return v
 
-def x_and(text, n, lbl1, lbl2):
+def x_and(text, n, lbl1, lbl2, trace):
     '''
     Generates LLVM code to evaluate a B conjunction and branch to either label.
 
@@ -1073,15 +1089,15 @@ def x_and(text, n, lbl1, lbl2):
     arg1 = n["args"][0]
     arg2 = n["args"][1]
     lbl = names.new_label()
-    trace.OUT(text, "Evaluate conjunction \""+ellipse(printer.condition(n))+"\", branch to \""+lbl1+"\" if true, to \""+lbl2+"\" otherwise.")
-    trace.TAB()
-    trace.OUT(text, "Create a fresh label \""+lbl+"\".")
-    x_formula(text, arg1, lbl, lbl2)
-    text.extend(lbl + ":" + nl)
-    x_formula(text, arg2, lbl1, lbl2)
-    trace.UNTAB()
+    trace.out(text, "Evaluate conjunction \""+ellipse(printer.condition(n))+"\", branch to \""+lbl1+"\" if true, to \""+lbl2+"\" otherwise.")
+    trace.tab()
+    trace.out(text, "Create a fresh label \""+lbl+"\".")
+    x_formula(text, arg1, lbl, lbl2, trace)
+    text.extend(lbl + ":" + NL)
+    x_formula(text, arg2, lbl1, lbl2, trace)
+    trace.untab()
 
-def x_or(text, n, lbl1, lbl2):
+def x_or(text, n, lbl1, lbl2, trace):
     '''
     Generates LLVM code to evaluate a B disjunction and branch to either label.
 
@@ -1097,15 +1113,15 @@ def x_or(text, n, lbl1, lbl2):
     arg1 = n["args"][0]
     arg2 = n["args"][1]
     lbl = names.new_label()
-    trace.OUT(text, "Evaluate disjunction \""+ellipse(printer.condition(n))+"\", branch to \""+lbl1+"\" if true, to \""+lbl2+"\" otherwise.")
-    trace.TAB()
-    trace.OUT(text, "Create a fresh label \""+lbl+"\".")
-    x_formula(text, arg1, lbl1, lbl)
-    text.extend(lbl + ":" + nl)
-    x_formula(text, arg2, lbl1, lbl2)
-    trace.UNTAB()
+    trace.out(text, "Evaluate disjunction \""+ellipse(printer.condition(n))+"\", branch to \""+lbl1+"\" if true, to \""+lbl2+"\" otherwise.")
+    trace.tab()
+    trace.out(text, "Create a fresh label \""+lbl+"\".")
+    x_formula(text, arg1, lbl1, lbl, trace)
+    text.extend(lbl + ":" + NL)
+    x_formula(text, arg2, lbl1, lbl2, trace)
+    trace.untab()
 
-def x_not(text, n, lbl1, lbl2):
+def x_not(text, n, lbl1, lbl2, trace):
     '''
     Generates LLVM code to evaluate a B negation and branch to either label.
 
@@ -1117,22 +1133,21 @@ def x_not(text, n, lbl1, lbl2):
     '''
     check_kind(n, {"Form"})
     assert(n["op"] == "not")
-    trace.OUT(text, "Evaluate negation \""+ellipse(printer.condition(n))+"\", branch to \""+lbl1+"\" if true, to \""+lbl2+"\" otherwise.")
-    trace.TAB()
-    trace.OUT(text, "Create a fresh label \""+lbl+"\".")
-    x_formula(text, n["args"][0], lbl2, lbl1)
-    trace.UNTAB()
+    trace.out(text, "Evaluate negation \""+ellipse(printer.condition(n))+"\", branch to \""+lbl1+"\" if true, to \""+lbl2+"\" otherwise.")
+    trace.tab()
+    x_formula(text, n["args"][0], lbl2, lbl1, trace)
+    trace.untab()
 
-def x_pred(text, n):
+def x_pred(text, n, trace):
     if n["kind"] == "Comp":
-        return x_comp(text, n)
+        return x_comp(text, n, trace)
     else:
         text.extend("<error inserted by b2llvm>")
         return ""
 
 ### TRANSLATION OF EXPRESSIONS ###
 
-def x_expression(text, n):
+def x_expression(text, n, trace):
     '''
     Generates LLVM code to evaluate a B expression.
 
@@ -1144,25 +1159,25 @@ def x_expression(text, n):
       of the expression, and the LLVM type of this temporary variable.
     '''
     check_kind(n, {"IntegerLit", "BooleanLit", "Vari", "Term", "Cons"})
-    trace.OUT(text, "Evaluate expression \""+ellipse(printer.term(n))+"\".")
-    trace.TAB()
+    trace.out(text, "Evaluate expression \""+ellipse(printer.term(n))+"\".")
+    trace.tab()
     if n["kind"] == "IntegerLit":
-        res = x_integerlit(text, n), "i32"
+        res = x_integerlit(text, n, trace), "i32"
     elif n["kind"] == "BooleanLit":
-        res = x_booleanlit(text, n), "i1"
+        res = x_booleanlit(text, n, trace), "i1"
     elif n["kind"] == "Vari":
-        res = x_name(text, n)
+        res = x_name(text, n, trace)
     elif n["kind"] == "Term":
-        res = x_term(text, n)
+        res = x_term(text, n, trace)
     elif n["kind"] == "Cons":
-        res = x_expression(text, n["value"])
+        res = x_expression(text, n["value"], trace)
     else:
         res = ("","")
-    trace.UNTAB()
-    trace.OUTU(text, "The evaluation of \""+ellipse(printer.term(n))+"\" is \""+res[0]+"\".")
+    trace.untab()
+    trace.outu(text, "The evaluation of \""+ellipse(printer.term(n))+"\" is \""+res[0]+"\".")
     return res
 
-def x_integerlit(text, n):
+def x_integerlit(text, n, trace):
     '''
     Generates LLVM code to evaluate a B integer literal.
 
@@ -1173,10 +1188,10 @@ def x_integerlit(text, n):
       A string of the integer literal value.
     '''
     check_kind(n, {"IntegerLit"})
-    trace.OUT(text, "An integer literal is represented as such in LLVM.")
+    trace.out(text, "An integer literal is represented as such in LLVM.")
     return n["value"]
 
-def x_booleanlit(text, n):
+def x_booleanlit(text, n, trace):
     '''
     Generates LLVM code to evaluate a B boolean literal.
 
@@ -1187,10 +1202,10 @@ def x_booleanlit(text, n):
       A string of the LLVM boolean literal value, i.e. "1" or "0".
     '''
     check_kind(n, {"BooleanLit"})
-    trace.OUT(text, "A Boolean literal is represented as a one-bit integer in LLVM.")
+    trace.out(text, "A Boolean literal is represented as a one-bit integer in LLVM.")
     return "1" if n["value"] == "TRUE" else "0"
 
-def x_name(text, n):
+def x_name(text, n, trace):
     '''
     Generates LLVM code to evaluate a B identifier in an expression.
 
@@ -1207,27 +1222,27 @@ def x_name(text, n):
     if n["scope"] == "Local":
         lvar = "%"+bvar
         v2 = names.new_local()
-        trace.OUT(text, "B local variable \""+bvar+"\" is on the LLVM stack at address \""+lvar+"\".")
-        trace.OUT(text, "Temporary \""+v2+"\" gets the contents from this position.")
-        text.extend(tb + v2 + " = load" + sp + ltype + "*" + sp + lvar + nl)
+        trace.out(text, "B local variable \""+bvar+"\" is on the LLVM stack at address \""+lvar+"\".")
+        trace.out(text, "Temporary \""+v2+"\" gets the contents from this position.")
+        text.extend(TB + v2 + " = load" + SP + ltype + "*" + SP + lvar + NL)
         lvar = v2
     elif n["scope"] == "Oper":
-        trace.OUT(text, "Operation parameter \""+n["id"]+"\" is LLVM parameter \"%"+n["id"]+"\".")
+        trace.out(text, "Operation parameter \""+n["id"]+"\" is LLVM parameter \"%"+n["id"]+"\".")
         lvar = "%"+bvar
     elif n["scope"] == "Impl":
         lptr = names.new_local()
         lvar = names.new_local()
         pos = str(state_position(n))
-        trace.OUT(text, "State variable \""+bvar+"\" is stored at position \""+pos+"\" of \"%self$\".")
-        trace.OUT(text, "Let temporary \""+lptr+"\" be the corresponding address.")
-        text.extend(tb+lptr+" = getelementptr "+state_t_name(n["root"])+" %self$, i32 0, i32 "+pos+nl)
-        text.extend(tb+lvar+" = load "+ltype+"* "+lptr+nl)
+        trace.out(text, "State variable \""+bvar+"\" is stored at position \""+pos+"\" of \"%self$\".")
+        trace.out(text, "Let temporary \""+lptr+"\" be the corresponding address.")
+        text.extend(TB+lptr+" = getelementptr "+state_t_name(n["root"])+" %self$, i32 0, i32 "+pos+NL)
+        text.extend(TB+lvar+" = load "+ltype+"* "+lptr+NL)
     else:
         text.extend("<error inserted by b2llvm>")
         lvar, type = "", ""
     return (lvar, ltype)
 
-def x_term(text, n):
+def x_term(text, n, trace):
     '''
     Generates LLVM code to evaluate a B term.
 
@@ -1238,17 +1253,17 @@ def x_term(text, n):
       A pair containing, the identifier of the LLVM variable storing the value
       of the B term, and the LLVM type of this value.
     '''
-    global tb, sp, nl
+    global TB, SP, NL
     check_kind(n, {"Term"})
-    v1,t = x_expression(text, n["args"][0])
+    v1, t = x_expression(text, n["args"][0], trace)
     if n["op"] == "succ" or n["op"] == "pred":
         v2 = "1"
     else:
         assert(len(n["args"]) == 2)
-        v2,_ = x_expression(text, n["args"][1])
+        v2, _ = x_expression(text, n["args"][1], trace)
     v = names.new_local()
-    trace.OUT(text, "Let temporary \""+v+"\" get the value of \""+ellipse(printer.term(n))+"\".")
-    text.extend(tb + v + " = " + llvm_op(n["op"]) + sp + t + sp + v1 + ", " + v2 + nl)
+    trace.out(text, "Let temporary \""+v+"\" get the value of \""+ellipse(printer.term(n))+"\".")
+    text.extend(TB + v + " = " + llvm_op(n["op"]) + SP + t + SP + v1 + ", " + v2 + NL)
     return (v, t)
 
 ### LLVM IDENTIFIER GENERATION ###
@@ -1380,7 +1395,7 @@ def state_position(n):
     print("error: position of imported machine or variable not found in implementation")
     return 0
 
-def state_opaque_typedef(res, m):
+def state_opaque_typedef(res, m, trace):
     '''
     Input:
       - res: bytearray to store output
@@ -1390,11 +1405,11 @@ def state_opaque_typedef(res, m):
       state of n.
       This only makes sense if n is stateful.
     '''
-    global nl
-    trace.OUT(res, "The state encoding type for module \""+m["id"]+"\" is defined elsewhere:")
-    res.extend(state_t_name(m) + " = type opaque" + nl)
+    global NL
+    trace.out(res, "The state encoding type for module \""+m["id"]+"\" is defined elsewhere:")
+    res.extend(state_t_name(m) + " = type opaque" + NL)
 
-def state_ref_typedef(res, m):
+def state_ref_typedef(res, m, trace):
     '''
     Input:
       - res: bytearray to store output
@@ -1404,9 +1419,9 @@ def state_ref_typedef(res, m):
       state of n.
       This only makes sense if n is stateful.
     '''
-    global nl
-    trace.OUT(res, "The type for references to state encodings of \""+m["id"]+"\" is:")
-    res.extend(state_r_name(m) + " = type " + state_t_name(m) + "*" + nl)
+    global NL
+    trace.out(res, "The type for references to state encodings of \""+m["id"]+"\" is:")
+    res.extend(state_r_name(m) + " = type " + state_t_name(m) + "*" + NL)
 
 ###
 
