@@ -10,7 +10,6 @@
 \usepackage{minted}   %Used to syntax highlight
 
 
-
 \newcommand{\trad}[2]{\ensuremath{\lVert \textsf{#1} \rVert^{\textit{#2}}}}
 \newcommand{\nl}[0]{\ensuremath{\downarrow}}
 \newcommand{\mty}[0]{\texttt{""}}
@@ -132,28 +131,26 @@ or the structure.
         \hline
         \multicolumn{3}{c}{\B{Blk} \alt \B{VarD} \alt \B{If} \alt \B{BEq} \alt } \\
         \multicolumn{3}{c}{\B{Call} \alt \B{While} \alt \B{Case} \alt \B{Skip}} \\
-      
-       \end{tabular}
-      
-       \begin{tabular}[t]{rcl}
-
         \hline
         \multicolumn{3}{|c|}{Block: \B{Blk}} \\
         \hline
-        \B{body} & : & seq \B{Inst} \\   
+        \B{body} & : & seq \B{Inst} \\
+	\end{tabular}
+      
+       \begin{tabular}[t]{rcl}   
         \hline
         \multicolumn{3}{|c|}{Variable declaration: \B{VarD}} \\
         \hline
         \B{vars} & : & seq \B{Name} \\
         \B{body} & : & seq \B{Inst} \\
-	\hline
+  	\hline
         \multicolumn{3}{|c|}{If: \B{If}} \\
         \hline
         \B{branches} & : & seq \B{IfBr} \\
         \hline
         \multicolumn{3}{|c|}{Becomes equal: \B{Beq}} \\
         \hline
-        \B{lhs} & : & \B{Vari} \\
+        \B{lhs} & : & \B{Vari} \alt \B{AArray} \\
         \B{rhs} & : & \B{Expr} \\
         \hline
         \multicolumn{3}{|c|}{Operation call: \B{Call}} \\
@@ -186,17 +183,13 @@ or the structure.
         \hline
         \multicolumn{3}{|c|}{Expression: \B{Expr}} \\
         \hline
-        \multicolumn{3}{c} {\B{Lit} \alt \B{Term} \alt \B{Pred} \alt \B{Vari}} \\
+        \multicolumn{3}{c} {\B{Lit} \alt \B{Term} \alt \B{Pred} \alt}\\
+	\multicolumn{3}{c} {\B{Vari} \alt \B{ArrayExp} \alt \B{AArray} } \\
         \hline
         \multicolumn{3}{|c|}{Term expression: \B{Term}} \\
         \hline
         \B{op} & : & \B{ArithOp} \\
         \B{args} & : & seq \B{Exp} \\
-
-      \end{tabular}
-       
-      \begin{tabular}[t]{rcl}
-
         \hline
         \multicolumn{3}{|c|}{Predicate: \B{Pred}} \\
         \hline
@@ -206,6 +199,9 @@ or the structure.
         \hline
         \B{op} & : & \B{BoolOp} \\
         \B{args} & : & seq \B{Pred} \\
+   \end{tabular} 
+       
+  \begin{tabular}[t]{rcl}
         \hline
         \multicolumn{3}{|c|}{Comparison: \B{Comp}} \\
         \hline
@@ -215,38 +211,52 @@ or the structure.
         \multicolumn{3}{|c|}{Data type: \B{Type}} \\
         \hline
         \multicolumn{3}{c}{\B{INT} \alt \B{BOOL}\alt}\\
-	\multicolumn{3}{c}{\B{Struct} \alt \B{Array}}\\
+	\multicolumn{3}{c}{\B{Struct} \alt \B{ArrayT}}\\
+%	\hline
+%  	\multicolumn{3}{|c|}{Data structure : \B{Struct}} \\
+%        \hline
+%	\B{id} & : &  \B{Name}\\
+%        \B{elements} & : & seq \B{Name} \\
+%	\B{type} & : & seq \B{Type}\\
+	\hline	
+        \multicolumn{3}{|c|}{Array type : \B{ArrayT}} \\
+        \hline 
+	\B{dom} & : & seq \B{SSet}\\
+	\B{ran} & : & \B{SSet}\\
+        \hline
+        \multicolumn{3}{|c|}{Array expression : \B{ArrayExp}} \\
+        \hline
+	\multicolumn{3}{c}{ \B{Name} \alt seq \B{Pair} \alt}\\
+	\multicolumn{3}{c}{ \B{Product} }\\
 	\hline
-  	\multicolumn{3}{|c|}{Data structure : \B{Struct}} \\
+  	\multicolumn{3}{|c|}{Ordered pair : \B{Pair}} \\
         \hline
-	\B{id} & : &  \B{Name}\\
-        \B{elements} & : & seq \B{Name} \\
-	\B{type} & : & seq \B{Type}\\	
+	\B{lhs} & : & seq \B{STerm}\\ 
+	\B{rhs} & : & \B{Term}\\ 
+	\hline
+  	\multicolumn{3}{|c|}{Cartesian product : \B{Product}} \\
         \hline
-        \multicolumn{3}{|c|}{Data array : \B{Array}} \\
+	\B{lhs} & : & seq \B{STerm}\\ 
+	\B{rhs} & : & \B{Term}\\ 	
+	\hline
+	\multicolumn{3}{|c|}{Access array : \B{AArray}} \\
         \hline
-	\B{dec} & : &  seq \B{Vector} \\
-	\B{type} & : & seq \B{CSet}\\
+	\B{exp} & : &  \B{ArrayExp} \\
+	\B{type} & : &  \B{ArrayT}\\
 	\B{indexes} & : & seq \B{STerm}\\
 	\hline
-  	\multicolumn{3}{|c|}{Vector : \B{Vector}} \\
-        \hline
-	\B{elements} & : & seq \B{Expr}\\ 
+	\multicolumn{3}{|c|}{Simple set : \B{SSet}} \\
 	\hline
-	\multicolumn{3}{|c|}{Concrete set : \B{CSet}} \\
+	\multicolumn{3}{c}{\B{BOOL} \alt \B{NAT} \alt \B{NAT$_{1}$}\alt } \\
+	\multicolumn{3}{c}{\B{INT} \alt \B{B0\_Interval}} \\
 	\hline
-	\multicolumn{3}{c}{BOOL \alt NAT \alt NAT$_{1}$\alt } \\
-	\multicolumn{3}{c}{INT \alt B0\_INTERVAL} \\
+	\multicolumn{3}{|c|}{B0 interval : \B{B0\_Interval}} \\
 	\hline
-	\multicolumn{3}{|c|}{B0 interval : \B{B0\_INTERVAL}} \\
-	\hline
-	\B{start} & : & \B{Exp} \\
-	\B{end} & : & \B{Exp} \\
+	\B{start}, \B{end} & : & \B{Exp} \\
 	\hline
 	\multicolumn{3}{|c|}{Simple term : \B{STerm}} \\
 	\hline
-	\B{index} & : &  \B{BOOL} \alt \B{INT}\alt \\ 
-	& &  \B{Vari} \alt \B{Cons} \\
+	\multicolumn{3}{c}{ \B{Bool\_lit} \alt \B{Int\_lit}\alt \B{Name} } \\ 
       \end{tabular}
     \end{tabular}
   }
@@ -262,7 +272,8 @@ or the structure.
   \end{center}
 \end{figure}
 
-
+\VGM{To add in text: The nodes \B{Int\_lit} and \B{Bool\_lit} are literals in its 
+respective set. }
 \section{The LLVM grammar with support to array multidimensional}
 
 
