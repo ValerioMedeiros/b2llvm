@@ -183,8 +183,8 @@ or the structure.
         \hline
         \multicolumn{3}{|c|}{Expression: \B{Expr}} \\
         \hline
-        \multicolumn{3}{c} {\B{Lit} \alt \B{Term} \alt \B{Pred} \alt}\\
-	\multicolumn{3}{c} {\B{Vari} \alt \B{ArrayExp} \alt \B{AArray} } \\
+        \multicolumn{3}{c} {\B{Lit} \alt \B{Term} \alt \B{Pred} \alt \B{Cons}}\\
+	\multicolumn{3}{c} {\B{Vari} \alt \B{Array} \alt \B{ArrayItem} } \\
         \hline
         \multicolumn{3}{|c|}{Term expression: \B{Term}} \\
         \hline
@@ -210,53 +210,44 @@ or the structure.
         \hline
         \multicolumn{3}{|c|}{Data type: \B{Type}} \\
         \hline
-        \multicolumn{3}{c}{\B{INT} \alt \B{BOOL}\alt}\\
-	\multicolumn{3}{c}{\B{Struct} \alt \B{ArrayT}}\\
-%	\hline
-%  	\multicolumn{3}{|c|}{Data structure : \B{Struct}} \\
-%        \hline
-%	\B{id} & : &  \B{Name}\\
-%        \B{elements} & : & seq \B{Name} \\
-%	\B{type} & : & seq \B{Type}\\
+        \multicolumn{3}{c}{\B{INT} \alt \B{BOOL}\alt \B{ArrayType}}\\
 	\hline	
-        \multicolumn{3}{|c|}{Array type : \B{ArrayT}} \\
+        \multicolumn{3}{|c|}{Array type : \B{ArrayType}} \\
         \hline 
-	\B{dom} & : & seq \B{SSet}\\
-	\B{ran} & : & \B{SSet}\\
+	\B{dom} & : & seq \B{Set}\\
+	\B{ran} & : & \B{Set}\\
         \hline
-        \multicolumn{3}{|c|}{Array expression : \B{ArrayExp}} \\
+        \multicolumn{3}{|c|}{Array expression : \B{Array}} \\
         \hline
-	\multicolumn{3}{c}{ \B{Name} \alt seq \B{Pair} \alt}\\
-	\multicolumn{3}{c}{ \B{Product} }\\
+	\multicolumn{3}{c}{ seq \B{Map} \alt \B{Product} }\\
 	\hline
-  	\multicolumn{3}{|c|}{Ordered pair : \B{Pair}} \\
+  	\multicolumn{3}{|c|}{Ordered pair : \B{Map}} \\
         \hline
-	\B{lhs} & : & seq \B{STerm}\\ 
-	\B{rhs} & : & \B{Term}\\ 
+	\B{arg1} & : & seq \B{Expr}\\ 
+	\B{arg2} & : & \B{Expr}\\ 
 	\hline
   	\multicolumn{3}{|c|}{Cartesian product : \B{Product}} \\
         \hline
-	\B{lhs} & : & seq \B{STerm}\\ 
-	\B{rhs} & : & \B{Term}\\ 	
+	\B{arg1} & : & seq \B{Expr}\\ 
+	\B{arg2} & : & \B{Expr}\\ 	
 	\hline
-	\multicolumn{3}{|c|}{Access array : \B{AArray}} \\
+	\multicolumn{3}{|c|}{Access array : \B{ArrayItem}} \\
         \hline
-	\B{exp} & : &  \B{ArrayExp} \\
-	\B{type} & : &  \B{ArrayT}\\
-	\B{indexes} & : & seq \B{STerm}\\
+	\B{base} & : &  \B{Array} \\
+	\B{indices} & : & seq \B{Expr}\\
 	\hline
-	\multicolumn{3}{|c|}{Simple set : \B{SSet}} \\
+	\multicolumn{3}{|c|}{Simple set : \B{Set}} \\
 	\hline
 	\multicolumn{3}{c}{\B{BOOL} \alt \B{NAT} \alt \B{NAT$_{1}$}\alt } \\
-	\multicolumn{3}{c}{\B{INT} \alt \B{B0\_Interval}} \\
+	\multicolumn{3}{c}{\B{INT} \alt \B{Interval}} \\
 	\hline
-	\multicolumn{3}{|c|}{B0 interval : \B{B0\_Interval}} \\
+	\multicolumn{3}{|c|}{B0 interval : \B{Interval}} \\
 	\hline
-	\B{start}, \B{end} & : & \B{Exp} \\
+	\B{start}, \B{end} & : & \B{Expr} \\
 	\hline
-	\multicolumn{3}{|c|}{Simple term : \B{STerm}} \\
+	\multicolumn{3}{|c|}{Literal : \B{Lit}} \\
 	\hline
-	\multicolumn{3}{c}{ \B{Bool\_lit} \alt \B{Int\_lit}\alt \B{Name} } \\ 
+	\multicolumn{3}{c}{ \B{Bool\_lit} \alt \B{Int\_lit}} \\ 
       \end{tabular}
     \end{tabular}
   }
