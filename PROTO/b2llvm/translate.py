@@ -42,9 +42,9 @@ def translate_bxml(bmodule, outfile, trace, mode='comp', dir='bxml', settings='p
     res = bytearray()
     res.extend(";; -*- mode: asm -*-"+NL) # emacs syntax highlight on
     trace.outu(res, "file generated with b2llvm")
+    trace.outu(res, "B project settings: "+settings)
     trace.outu(res, "B module: "+bmodule)
     trace.outu(res, "B project directory: "+dir)
-    trace.outu(res, "B project settings: "+settings)
     trace.outu(res, "code generation mode: " + ("component" if mode == "comp" else "project"))
     trace.outu(res, "output file: "+outfile)
     if mode == 'comp':
@@ -865,7 +865,7 @@ def x_if_br(text, lbr, lbl, trace):
             x_formula(text, br["cond"], lbl_1, lbl_2, trace)
             text.extend(lbl_1 + ":" + NL)
             x_inst_label(text, br["body"], lbl, trace)
-            text.extend(lbl_2 + ":" + NL, trace)
+            text.extend(lbl_2 + ":" + NL)
 
 ### TRANSLATION OF WHILE INSTRUCTIONS
 

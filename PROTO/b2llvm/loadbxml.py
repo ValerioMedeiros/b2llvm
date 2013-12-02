@@ -216,7 +216,7 @@ def load_developed_machine(dirname, project, loaded, machine):
     assert root.get("type") == "abstraction"
     assert name_attr(root) == machine
     impl_id = project.implementation(machine)
-    pyimpl = load_implementation(dir, project, loaded, impl_id)
+    pyimpl = load_implementation(dirname, project, loaded, impl_id)
     pymachine = ast.make_developed_machine(machine, pyimpl)
     pyimpl["machine"] = pymachine
     _LOADING.remove(machine)
@@ -550,9 +550,9 @@ def load_var_in(node, symast, symimp):
         pyvar = ast.make_loc_var(name, pytype)
         symast2.add(name, pyvar)
         pyvars.append(pyvar)
-        pybody = [ load_sub(xmlbody.find("./*"), symast2, symimp) ]
-        symast2.clear()
-        return ast.make_var_decl(pyvars, pybody)
+    pybody = [ load_sub(xmlbody.find("./*"), symast2, symimp) ]
+    symast2.clear()
+    return ast.make_var_decl(pyvars, pybody)
 
 def load_binary_substitution(node, symast, symimp):
     """Load an XML element for a binary substitution to an AST node."""
@@ -659,7 +659,7 @@ def load_exp(node, symast):
 
 def load_identifier(node, symast):
     """Load an XML element for an identifier to an AST node."""
-    return symast[value(node)]
+    return symast.get(value(node))
 
 def load_boolean_literal(node):
     """Load an XML element for an Boolean literal to an AST node."""
@@ -786,6 +786,9 @@ class SymbolTable(object):
         """Constructor. Prefills with MAXINT."""
         self._table = dict()
         self._table["MAXINT"] = ast.MAXINT
+    def __str__(self):
+        """Converts object to string."""
+        return "{"+",".join([key for key in self._table.keys()])+"}"
     def add(self, name, node):
         """Adds an element, checking if there is a conflict."""
         if name in self._table:
@@ -793,17 +796,25 @@ class SymbolTable(object):
         self._table[name] = node
     def rem(self, name):
         """Removes an element, checking if it is present."""
-        if name not in self._table:
+        if name not in self._table.keys():
             _LOG.error(name+"not found in table")
         self._table.pop(name)
     def get(self, name):
         """Gets an element (i.e. an AST node) from its name."""
-        if name not in self._table:
+        if name not in self._table.keys():
             _LOG.error(name+"not found in table")
         return self._table[name]
     def clear(self):
         """Empties the symbol table."""
         self._table.clear()
+    def copy(self):
+        """Creates a copy."""
+        result = SymbolTable()
+        result._table = self._table.copy()
+        return result
+    def keys(self):
+        """Returns symbol table keys."""
+        return self._table.keys()
 
 ###
 #

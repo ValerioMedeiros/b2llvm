@@ -108,7 +108,7 @@ def make_lt(term1, term2):
 
 def make_ge(term1, term2):
     """Creates an AST node for a B "greater or equal" expression."""
-    return make_comp("<=", term1, term2)
+    return make_comp(">=", term1, term2)
 
 def make_gt(term1, term2):
     """Creates an AST node for a B "greater than" expression."""
@@ -229,7 +229,7 @@ def make_implementation(name, imports, consts, variables, init, ops):
     """Creates an AST node for a B implementation module."""
     assert type(imports) is list
     assert type(consts) is list
-    assert type(vars) is list
+    assert type(variables) is list
     assert type(init) is list
     assert type(ops) is list
     root = { "kind": "Impl",
@@ -240,7 +240,7 @@ def make_implementation(name, imports, consts, variables, init, ops):
              "variables": variables,
              "initialisation": init, "operations": ops,
              "stateful": None}
-    for node in imports + vars + ops:
+    for node in imports + variables + ops:
         node["root"] = root
     return root
 
@@ -251,7 +251,7 @@ def make_base_machine(name, consts, variables, ops):
     on that machine.
     '''
     assert type(consts) is list
-    assert type(vars) is list
+    assert type(variables) is list
     assert type(ops) is list
     root = { "kind": "Machine",
              "id": name,
@@ -263,7 +263,7 @@ def make_base_machine(name, consts, variables, ops):
              "stateful": None,
              "comp_direct": None,
              "comp_indirect": None}
-    for node in vars + ops:
+    for node in variables + ops:
         node["root"] = root
     return root
 

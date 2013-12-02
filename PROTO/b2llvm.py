@@ -32,6 +32,6 @@ if (args.verbose):
     print("- code generation mode: " + args.mode)
     print("- emits traceability information: " + str(args.trace))
     print("- emits printing functions: " + str(args.emit_printer))
-translate_bxml(args.b_module, args.llvm_file, mode=args.mode,
+translate_bxml(args.b_module, args.llvm_file, trace, mode=args.mode,
                dir=args.directory, settings=args.settings,
                emit_printer=args.emit_printer)
