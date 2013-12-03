@@ -150,8 +150,12 @@ or the structure.
         \hline
         \multicolumn{3}{|c|}{Becomes equal: \B{Beq}} \\
         \hline
-        \B{lhs} & : & \B{Vari} \alt \B{AArray} \\
+        \B{lhs} & : & \B{LValue} \\
         \B{rhs} & : & \B{Expr} \\
+	\hline
+	\multicolumn{3}{|c|}{Label value: \B{LValue}} \\	
+	\hline
+	\multicolumn{3}{c}{ \B{Vari} \alt \B{ArrayItem} }\\
         \hline
         \multicolumn{3}{|c|}{Operation call: \B{Call}} \\
         \hline
@@ -190,7 +194,10 @@ or the structure.
         \hline
         \B{op} & : & \B{ArithOp} \\
         \B{args} & : & seq \B{Exp} \\
-        \hline
+  \end{tabular} 
+       
+  \begin{tabular}[t]{rcl}
+	\hline
         \multicolumn{3}{|c|}{Predicate: \B{Pred}} \\
         \hline
         \multicolumn{3}{c}{\B{Form} \alt \B{Comp}} \\
@@ -199,9 +206,6 @@ or the structure.
         \hline
         \B{op} & : & \B{BoolOp} \\
         \B{args} & : & seq \B{Pred} \\
-   \end{tabular} 
-       
-  \begin{tabular}[t]{rcl}
         \hline
         \multicolumn{3}{|c|}{Comparison: \B{Comp}} \\
         \hline
@@ -235,6 +239,7 @@ or the structure.
         \hline
 	\B{base} & : &  \B{Array} \\
 	\B{indices} & : & seq \B{Expr}\\
+	\B{type} & : & \B{ArrayType}\\
 	\hline
 	\multicolumn{3}{|c|}{Simple set : \B{Set}} \\
 	\hline
@@ -264,7 +269,7 @@ or the structure.
 \end{figure}
 
 \VGM{To add in text: The nodes \B{Int\_lit} and \B{Bool\_lit} are literals in its 
-respective set. }
+respective set.}
 \section{The LLVM grammar with support to array multidimensional}
 
 
@@ -310,9 +315,7 @@ respective set. }
   \label{fig:llvm-grammar}
 \end{figure}
 
-\VGM{To support arrays and structures, I 
-    
-added only + after index.} 
+\VGM{To support arrays and structures, I added only + after index.} 
 
 \section{Translation of Array and Structures}
 
@@ -441,6 +444,7 @@ The following blocks illustrate a B code setting and getting values with array
 
 \subsection{Draft of Rules}
 
+\iffalse 
 \paragraph{An atomic expression}
 
 \begin{align*}
@@ -451,24 +455,65 @@ The following blocks illustrate a B code setting and getting values with array
 & \ELSE (\B{n} \mbox{ is a primitive state variable }) \LET p = \variable \AND v = \variable \IN \\
 & \quad \llvm{"\PH{p} = getelementptr  \PH{\stateref(\B{n.root})} \%self\$, i32 0, i32 \PH{\idx(\B{n})} \nl} \\
 & \quad \llvm{\PH{v} = load \PH{t}* \PH{p}\nl"} \sep v \sep t\\
-& \ELSE (\B{n} \mbox{ is an array or structure state variable }) \LET p = \variable \AND v = \variable \IN \\
+& \ELSE (\B{n} \mbox{ is an array}) \LET p = \variable \AND v = \variable \IN \\
 & \quad \llvm{"\PH{p} = getelementptr \PH{\state(\B{n.root})} \%self\$,
 \PH{\stateindex(n)} \nl} \\
 & \quad \llvm{\PH{v} = load \PH{t}* \PH{p}\nl"} \sep v \sep t
-\
+\\
+\end{align*}
+\fi
+
+\paragraph{Becomes equal instructions} must evaluate the target and the source
+of the assignment, and then copy the result of the latter in the former, using
+the LLVM instruction \llvm{store}. The evaluation of the target is defined with
+$\trad{}{lvalue}$, which yields the corresponding LLVM source code $l$ and the
+variable $p$ containing the assigned location. The evaluation of the source
+yields the corresponding code $r$, the variable $v$ holding the result, and its
+type $t$. \VGM{Todo: update only the function LValue}
+\begin{align*}
+\begin{split}
+  \trad{a}{\B{Beq}} \isdef
+  & \LET l \sep p \sep t'= \trad{a.lhs}{lvalue} \AND r \sep v \sep t = \trad{a.rhs}{\B{Expr}} \IN \\
+  & \llvm{"\PH{l}} \\
+  & \llvm{\PH{r}} \\
+  & \llvm{store \PH{t} \PH{v}, \PH{t'} \PH{p} \nl"}
+%   & l \conc r \conc
+%   \llvm{"store "} \conc t \conc \texttt{" "} \conc v \conc \llvm{", "}
+%   \conc t \conc \llvm{"* "} \conc p \conc \nl
+\end{split}
 \end{align*}
 
-Definition of a new function:
 
-\begin{itemize}
-\item $\stateindex(\B{n}) \isdef$ to get a sequence of index to select the 
-element. If $\B{n} $ is integer vector ``arr'' with 100 elements selecting the 
-element 1 then the result is this text ``, i32 0, i64 1''. It means to select 
-the element in dimension zero and position one of array, where the index types are 
-respectively ``i32'' and ``i64''. More detailed examples are presented in the reference 
-manual of LLVM-IR\ref{}.
 
-\end{itemize}
+The assignment target may be either local to the operation or a state
+variable. In the former case, it can be referenced by the corresponding LLVM
+identifier. In the latter case, it is represented as an element of the state
+structure $\Sigma$, and its address must be calculated and assigned to a new temporary
+variable.
+\begin{align*}
+\lefteqn{\trad{n}{lvalue} \isdef} \\
+& \LET t = \llvm{"\PH{\trad{\B{n.type}}{Type}} *"} \IN \\
+& \quad \IF \mbox{\B{n} is a local variable} \THEN \llvm{""} \sep \local(\B{n}) \sep t \\
+& \quad \IF \mbox{\B{n} is an array} \THEN \LET v = \variable \IN \\
+& \quad \quad \llvm{"\PH{v} = getelementptr \PH{\state(\B{n.root})}* \%self\$,\stateindex(\B{n.index,n.type})  \nl"}\\
+& \quad \quad \sep v \sep t \\
+& \quad \ELSE \LET v = \variable \IN \\
+& \quad \quad \llvm{"\PH{v} = getelementptr \PH{\state(\B{n.root})}* \%self\$,} \\
+& \quad \quad \quad \llvm{i32 0, i32 \PH{\idx(\B{n})} \nl"} \sep v \sep t
+\end{align*}
+
+
+\paragraph{Definition of function:} $\stateindex(\B{index,type}) \isdef$ to get a 
+sequence of index to select the element. If $\B{n} $ is integer vector ``arr'' 
+with 100 elements selecting the element 1 then the result is this text ``, i32 
+0, i64 1''. It means to select the element in dimension zero and position one of 
+array, where the index types are respectively ``i32'' and ``i64''. More detailed 
+examples are presented in the reference manual of LLVM-IR. %TODO: put her a 
+% reference of manual
+
+
+
+
 
 \subsubsection{Issues and problems}
 \begin{itemize}
