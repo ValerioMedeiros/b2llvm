@@ -511,7 +511,13 @@ array, where the index types are respectively ``i32'' and ``i64''. More detailed
 examples are presented in the reference manual of LLVM-IR. %TODO: put her a 
 % reference of manual
 
+\paragraph{Restriction on array and structure:} It is not yet supported the 
+translation of direct attribution between array expression, for example:
 
+\begin{minted}[frame=single,bgcolor=bg,linenos=true]{pascal}
+ array := array2;
+ structure1 := structure2;
+\end{minted}
 
 
 
@@ -519,17 +525,40 @@ examples are presented in the reference manual of LLVM-IR. %TODO: put her a
 \begin{itemize}
 	\item To develop support to structures (more easy)
 	\item To integrate it in translation.tex
-	\item To develop support to copy all  of an advanced types
-	\item To identify the rules that must be updated:
-	
-
 \end{itemize}
 
 
 \section*{Attachments}
 
+\subsection{Structure examples}
+
+The following code example is defining a structure:
+
+\begin{minted}[frame=single,bgcolor=bg,linenos=true]{pascal}
+Year : struct(
+	Year_number : INT,
+	Leap_year : BOOL,
+	Number_of_days : (1..12) * (28..31),
+	Weather : struct( Average_Temperature : (1..12) *  INT,
+		Average_Rain : (1..12) * INT) )
+\end{minted}
+
+The following code declares a record example:
+
+\begin{minted}[frame=single,bgcolor=bg,linenos=true]{pascal}
+Year := rec(
+	Year_number : 2013,
+	Leap_year : TRUE,
+	Number_of_days : (12,28),
+	Weather : rec(  Average_Temperature : (5,8),
+			Average_Rain : (5,10)))
+\end{minted}
 
 
+
+
+
+\subsection{Arrays examples}
 
 %\iffalse  % This content is not visible to reader.
 A generic example available at repository ProB\footnote{
