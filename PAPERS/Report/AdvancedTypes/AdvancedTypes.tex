@@ -194,14 +194,14 @@ or the structure.
         \hline
         \B{op} & : & \B{ArithOp} \\
         \B{args} & : & seq \B{Exp} \\
-  \end{tabular} 
-       
-  \begin{tabular}[t]{rcl}
 	\hline
         \multicolumn{3}{|c|}{Predicate: \B{Pred}} \\
         \hline
         \multicolumn{3}{c}{\B{Form} \alt \B{Comp}} \\
-        \hline
+\end{tabular} 
+       
+  \begin{tabular}[t]{rcl}
+	\hline
         \multicolumn{3}{|c|}{Boolean formula: \B{Form}} \\
         \hline
         \B{op} & : & \B{BoolOp} \\
@@ -214,8 +214,21 @@ or the structure.
         \hline
         \multicolumn{3}{|c|}{Data type: \B{Type}} \\
         \hline
-        \multicolumn{3}{c}{\B{INT} \alt \B{BOOL}\alt \B{ArrayType}}\\
-	\hline	
+        \multicolumn{3}{c}{\B{INT} \alt \B{BOOL}\alt}\\
+	\multicolumn{3}{c}{\B{Struct} \alt \B{ArrayType}}\\
+	\hline
+  	\multicolumn{3}{|c|}{Data structure : \B{Struct}} \\
+        \hline
+	\B{id} & : &  \B{Name}\\
+        \B{elements} & : & seq \B{Name} \\
+	\B{type} & : & seq \B{Type}\\
+	\hline
+%  	\multicolumn{3}{|c|}{Data record : \B{Record}} \\
+%        \hline
+%	\B{id} & : &  \B{Name}\\
+%        \B{elements} & : & seq \B{Name} \\
+%	\B{type} & : & \B{Struct}\\
+%	\hline
         \multicolumn{3}{|c|}{Array type : \B{ArrayType}} \\
         \hline 
 	\B{dom} & : & seq \B{Set}\\
@@ -515,17 +528,10 @@ examples are presented in the reference manual of LLVM-IR. %TODO: put her a
 translation of direct attribution between array expression, for example:
 
 \begin{minted}[frame=single,bgcolor=bg,linenos=true]{pascal}
- array := array2;
+ array1 := array2;
  structure1 := structure2;
 \end{minted}
 
-
-
-\subsubsection{Issues and problems}
-\begin{itemize}
-	\item To develop support to structures (more easy)
-	\item To integrate it in translation.tex
-\end{itemize}
 
 
 \section*{Attachments}
@@ -554,6 +560,14 @@ Year := rec(
 			Average_Rain : (5,10)))
 \end{minted}
 
+This code stores a value in the record and get the value of element.
+%TODO example getting
+\begin{minted}[frame=single,bgcolor=bg,linenos=true]{pascal}
+
+
+\end{minted}
+
+%TODO example setting
 
 
 
