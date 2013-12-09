@@ -28,6 +28,7 @@ class Tracer(object):
         '''
         self._tiers = [0]
         self._active = activate
+        self._text = bytearray()
 
     def _spacing(self):
         """Whitespace string the width of the current index"""
@@ -38,19 +39,22 @@ class Tracer(object):
         """String corresponding to the current index."""
         return ".".join([str(i) for i in self._tiers])
 
-    def outu(self, out, msg):
+    def outu(self, msg):
         """Outputs a non-numbered one-line traceability message"""
         global NL
         if self._active:
-            out.extend(bytearray(";;"+SP+self._spacing()+SP+msg+NL))
+            self._text.extend(bytearray(";;"+SP+self._spacing()+SP+msg+NL))
 
-    def out(self, out, msg):
+    def out(self, msg):
         """Outputs a numbered one-line traceability message."""
         global NL
         if self._active:
             last = self._tiers.pop()
             self._tiers.append(last+1)
-            out.extend(bytearray(";;"+self._numbering()+SP+msg+NL))
+            self._text.extend(bytearray(";;"+self._numbering()+SP+msg+NL))
+
+    def extend(self, msg):
+        self._text.extend(msg)
 
     def tab(self):
         """Adds a tier to the traceability index."""
@@ -61,6 +65,9 @@ class Tracer(object):
         """Removes a tier from the traceability index."""
         if self._active:
             self._tiers.pop()
+
+    def text(self):
+        return str(self._text)
 
 def nb_digits(number):
     """Yields the number of digits in given non-negative integer."""

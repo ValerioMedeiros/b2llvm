@@ -1,6 +1,6 @@
 #!/usr/bin/python
 import argparse
-import b2llvm.trace as trace
+import b2llvm.codebuf as codebuf
 from b2llvm.translate import translate_bxml
 
 progdescription='Generates LLVM code for a B module. In component mode, the generator produces type and function definitions corresponding to the state and operations of a given developed machine. In project mode, the generator instantiates the given module and all the instances of imported modules, and defines a function to link these modules and initialize their execution.'
@@ -22,7 +22,7 @@ parser.add_argument('-p', '--emit-printer', action='store_true',
 parser.add_argument('-v', '--verbose', action='store_true',
                     help= 'outputs some information while running')
 args = parser.parse_args()
-trace = trace.Tracer(args.trace)
+buf = codebuf.CodeBuffer(args.trace)
 if (args.verbose):
     print("b2llvm code generation completed")
     print("- BXML directory: " + args.directory)
@@ -32,6 +32,6 @@ if (args.verbose):
     print("- code generation mode: " + args.mode)
     print("- emits traceability information: " + str(args.trace))
     print("- emits printing functions: " + str(args.emit_printer))
-translate_bxml(args.b_module, args.llvm_file, trace, mode=args.mode,
+translate_bxml(args.b_module, args.llvm_file, buf, mode=args.mode,
                dir=args.directory, settings=args.settings,
                emit_printer=args.emit_printer)
