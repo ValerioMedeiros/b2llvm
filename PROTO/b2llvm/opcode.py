@@ -27,4 +27,4 @@ STORE = _TB + "store {0} {1}, {0}* {2}" + _NL
 SWEND = _TB + "]" + _NL
 SWEXP = _TB + "switch {0} {1}, label %{2} [" + _NL
 SWVAL = 2*_TB + "{0} {1}, label %{3}" + _NL
-TYPE = "{0} = type {{{1}}}" + _NL
+TYPE = "{0} = type {1}" + _NL

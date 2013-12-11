@@ -253,7 +253,7 @@ def section_interface_init(buf, m):
     if is_stateful(m):
         comp.append(m)
     comp.extend([x.mach for x in comp_indirect(m)])
-    args = commas([state_r_name(m) for m in comp if is_stateful(m)])
+    args = commas([state_r_name(x) for x in comp if is_stateful(x)])
     buf.code(FNDEC, init_name(m), args)
 
 def section_interface_op(buf, m, op):
@@ -307,7 +307,7 @@ def section_typedef(buf, m):
                 buf.trace.out("Position \"" + str(i) + "\" represents \"" +
                               v["id"] + "\".")
             args = [x_type(v["type"]) for v in m["variables"]]
-            buf.code(TYPE, state_t_name(m), commas(args))
+            buf.code(TYPE, state_t_name(m), "{" + commas(args) + "}")
 
 def section_typedef_impl(buf, i, m):
     '''
@@ -342,7 +342,7 @@ def section_typedef_impl(buf, i, m):
         imports = [state_r_name(imp["mach"]) for imp in i["imports"] 
                    if is_stateful(imp["mach"])]
         variables = [x_type(var["type"]) for var in i["variables"]]
-        buf.code(TYPE, state_t_name(m), commas(imports + variables))
+        buf.code(TYPE, state_t_name(m), "{" + commas(imports + variables) +"}")
 
 def section_implementation(buf, m, emit_printer):
     '''
@@ -1395,7 +1395,7 @@ def state_ref_typedef(buf, m):
     '''
     global NL
     buf.trace.out("The type for references to state encodings of \""+m["id"]+"\" is:")
-    buf.code(TYPE, state_r_name(m), state_t_name(m))
+    buf.code(TYPE, state_r_name(m), state_t_name(m)+"*")
 
 ###
 
