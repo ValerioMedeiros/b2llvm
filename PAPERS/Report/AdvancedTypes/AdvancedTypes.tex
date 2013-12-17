@@ -500,34 +500,30 @@ type $t$. \VGM{Todo: update only the function LValue}
 \end{align*}
 
 TODO: This function updates the Name function ?
-TODO: Integrate with EXPArray
 % Rule to get a element in array, it can be used in become equal or Expressions
 \begin{align*}
 \lefteqn{\trad{n}{lvalue} \isdef} \\
-& \LET t = \llvm{"\PH{\trad{\B{n.type}}{Type}} *"} \IN \\
+& \LET t = \llvm{"\PH{\trad{\B{n.type}}{Type}}"} \IN \\
 & \quad \IF \mbox{\B{n} is a local variable} \THEN \llvm{""} \sep \local(\B{n}) \sep t \\
-& \quad \IF \mbox{\B{n} is an array} \THEN \LET v = \variable \IN \trad{n}{AccessArray}  \sep v \sep t \\
+& \quad \IF \mbox{\B{n} is an array} \THEN \LET v = \variable \IN \trad{n}{ArrayItem}  \sep v \sep t \\
 & \quad \ELSE \LET v = \variable \IN \\
 & \quad \quad \llvm{"\PH{v} = getelementptr \PH{\state(\B{n.root})}* \%self\$,} \\
 & \quad \quad \quad \llvm{i32 0, i32 \PH{\idx(\B{n})} \nl"} \sep v \sep t
 \end{align*}
 
-%The new rule created 
-%It can appear in LHS or RHS in become equal 
 % We cannot use the tal function, because it is not able to solve any 
 % expressions.
- - Não poderemos usar a função Tal, pois ela não resolverá expressões quaisquer!
+
+The rule ArrayItem is applied in expressions as ``$a(n1,...,n_{n})$'', where $a$ is n.base 
+and $n1,...,n_{n}$ is a sequence of indices to select an item from array.
+
 \begin{align*}
-\lefteqn{\trad{n}{AccessArray} \isdef} \\
-&  \LET p_1 \sep v_1 \sep t_1  = \trad{base}{Exp}  \IN \\
-&  \LET p_2 \sep v_2 \sep t_2  = \trad{indices}{Exp}  \IN \\
-&  \LET v =  \variable  \IN \\
-&  \llvm{"\PH{p_1} \PH{p_2} \PH{v} =  getelementptr \PH{t_1}, \PH{v_1}, i32 0, 
-i32  \PH{v_2}\nl"} \sep v\\
-&  \llvm{"\PH{v} = getelementptr \PH{\state(\B{n.root})}* \%self\$,\stateindex(\B{n.index,n.type})  \nl"}\\
+\lefteqn{\trad{n}{ArrayItem} \isdef} \\
+&  \LET p_1 \sep v_1 \sep t_1  = \trad{n.base}{Exp}  \IN \\
+&  \LET p_2 \sep v_2 \sep t_2  = \trad{n.indices}{\ListOf{Exp}}  \IN \\
+&  \LET v =  \variable \AND  t = \trad{\B{n.type}}{Type}  \IN \\
+&  \llvm{"\PH{p_1} \PH{p_2} \PH{v} =  getelementptr \PH{t_1}, \PH{v_1}, i32 0, i32  \PH{v_2}\nl"}  \sep v \sep t\\
 \end{align*}
-
-
 
 
 The assignment target may be either local to the operation or a state
