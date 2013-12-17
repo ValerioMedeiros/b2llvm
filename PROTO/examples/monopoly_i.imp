@@ -1,0 +1,121 @@
+IMPLEMENTATION
+   Monopoly_i
+REFINES
+   Monopoly
+DEFINITIONS
+    IdPlayers == 1..7;
+    Property == struct (  qt : INT, balance : NAT);
+    Player == struct (  name : Icons, property : Property)
+    
+CONCRETE_VARIABLES 
+   currentPlayer, players 
+   
+INVARIANT
+    currentPlayer : IdPlayers &
+    players : IdPlayers -->> Player 
+ 
+INITIALISATION 
+    currentPlayer := 1;
+    players := { 1 |-> rec( name : ScottishTerrier, property: rec( qt:0,balance:0)),
+                 2 |-> rec( name : Battleship, property: rec( qt:0,balance:0)),
+                 3 |-> rec( name : Automobile, property: rec( qt:0,balance:0)),
+                 4 |-> rec( name : Hat, property: rec( qt:0,balance:0)),
+                 5 |-> rec( name : Thimble, property: rec( qt:0,balance:0)),
+                 6 |-> rec( name : Boot, property: rec( qt:0,balance:0)),
+                 7 |-> rec( name : Wheelbarrow, property: rec( qt:0,balance:0)), 
+                 8 |-> rec( name : Cat, property: rec( qt:0,balance:0))} 
+
+OPERATIONS
+    // This example has operations on structure: initialization, getting, setting, direct attribution ( ? ) 
+    nextPlayer =
+    BEGIN
+        currentPlayer := ((currentPlayer+2 ) mod  7) -1
+    END;
+    
+    // TODO: transfer between accounts 
+    res <-- positive =
+    VAR player  IN
+        player := 1
+    END;
+
+
+    safe_withdraw(amt) = 
+    IF amt > 0 THEN
+        VAR player  IN 
+           
+            player := players(currentPlayer);
+                IF amt : NAT1 & (player'property'balance >= amt) THEN
+                  players(currentPlayer) := rec( name : player'name, property: rec( qt:0,balance:0))
+
+                END
+        END
+    END
+
+
+
+
+/*  ;
+    pay_taxes(amt) = 
+    LET player  BE player = players(currentPlayer) IN
+        PRE amt:NAT1 & (player'property'balance >= amt) THEN
+            player'property'balance := player'property'balance - amt
+        END
+    END;
+    
+    receive_taxes(amt) =
+    LET player  BE player = players(currentPlayer) IN
+        PRE amt:NAT1 & (player'balance + amt < MAXINT) THEN
+            player'balance := player'balance + amt
+        END
+    END;
+
+    
+    swap = 
+    BEGIN
+           tmp := yy
+    END
+    */  
+    
+    
+END
+
+
+
+
+/*IMPLEMENTATION
+    Rec_i
+REFINES
+    Rec
+CONCRETE_VARIABLES
+    xx ,
+    bank,
+    total
+
+INITIALISATION
+
+   bank := rec(name:client1) ;
+   xx := rec(name:client1, balance:2) ;
+   total :=rec(money:3)
+OPERATIONS
+  res <-- positive = 
+  IF xx'balance > 0 
+  THEN 
+     res := TRUE
+  ELSE
+      res:= FALSE
+  END;
+  
+  safe_withrdaw(amt) =  
+      IF (xx'balance >= amt) THEN
+         xx'balance := xx'balance - amt
+  END; 
+  
+  withrdaw(amt) = IF 1=1 THEN 
+     xx := rec(name:xx'name, balance:(xx'balance - amt))
+  END;
+  
+  unsafe_dec = BEGIN
+     xx := rec(name:xx'name, balance:(xx'balance - 1))
+  END
+END
+*/
