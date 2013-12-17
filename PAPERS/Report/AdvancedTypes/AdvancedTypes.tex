@@ -63,7 +63,6 @@
 
 \begin{document}
 
-%TODO Review the text before present to David
 
 \definecolor{bg}{rgb}{0.95,0.95,0.95}
 
@@ -453,9 +452,11 @@ The following blocks illustrate a B code setting and getting values with array
 \end{minted}
 \end{footnotesize}
 
+%TODO update the text showing that to get the address is needed to get a 
+%sequence of steps.
 
 
-\subsection{Draft of Rules}
+\subsection{Rules}
 
 \iffalse 
 \paragraph{An atomic expression}
@@ -475,6 +476,8 @@ The following blocks illustrate a B code setting and getting values with array
 \\
 \end{align*}
 \fi
+
+
 
 \paragraph{Becomes equal instructions} must evaluate the target and the source
 of the assignment, and then copy the result of the latter in the former, using
@@ -496,6 +499,35 @@ type $t$. \VGM{Todo: update only the function LValue}
 \end{split}
 \end{align*}
 
+TODO: This function updates the Name function ?
+TODO: Integrate with EXPArray
+% Rule to get a element in array, it can be used in become equal or Expressions
+\begin{align*}
+\lefteqn{\trad{n}{lvalue} \isdef} \\
+& \LET t = \llvm{"\PH{\trad{\B{n.type}}{Type}} *"} \IN \\
+& \quad \IF \mbox{\B{n} is a local variable} \THEN \llvm{""} \sep \local(\B{n}) \sep t \\
+& \quad \IF \mbox{\B{n} is an array} \THEN \LET v = \variable \IN \trad{n}{AccessArray}  \sep v \sep t \\
+& \quad \ELSE \LET v = \variable \IN \\
+& \quad \quad \llvm{"\PH{v} = getelementptr \PH{\state(\B{n.root})}* \%self\$,} \\
+& \quad \quad \quad \llvm{i32 0, i32 \PH{\idx(\B{n})} \nl"} \sep v \sep t
+\end{align*}
+
+%The new rule created 
+%It can appear in LHS or RHS in become equal 
+% We cannot use the tal function, because it is not able to solve any 
+% expressions.
+ - Não poderemos usar a função Tal, pois ela não resolverá expressões quaisquer!
+\begin{align*}
+\lefteqn{\trad{n}{AccessArray} \isdef} \\
+&  \LET p_1 \sep v_1 \sep t_1  = \trad{base}{Exp}  \IN \\
+&  \LET p_2 \sep v_2 \sep t_2  = \trad{indices}{Exp}  \IN \\
+&  \LET v =  \variable  \IN \\
+&  \llvm{"\PH{p_1} \PH{p_2} \PH{v} =  getelementptr \PH{t_1}, \PH{v_1}, i32 0, 
+i32  \PH{v_2}\nl"} \sep v\\
+&  \llvm{"\PH{v} = getelementptr \PH{\state(\B{n.root})}* \%self\$,\stateindex(\B{n.index,n.type})  \nl"}\\
+\end{align*}
+
+
 
 
 The assignment target may be either local to the operation or a state
@@ -503,18 +535,6 @@ variable. In the former case, it can be referenced by the corresponding LLVM
 identifier. In the latter case, it is represented as an element of the state
 structure $\Sigma$, and its address must be calculated and assigned to a new temporary
 variable.
-\begin{align*}
-\lefteqn{\trad{n}{lvalue} \isdef} \\
-& \LET t = \llvm{"\PH{\trad{\B{n.type}}{Type}} *"} \IN \\
-& \quad \IF \mbox{\B{n} is a local variable} \THEN \llvm{""} \sep \local(\B{n}) \sep t \\
-& \quad \IF \mbox{\B{n} is an array} \THEN \LET v = \variable \IN \\
-& \quad \quad \llvm{"\PH{v} = getelementptr \PH{\state(\B{n.root})}* \%self\$,\stateindex(\B{n.index,n.type})  \nl"}\\
-& \quad \quad \sep v \sep t \\
-& \quad \ELSE \LET v = \variable \IN \\
-& \quad \quad \llvm{"\PH{v} = getelementptr \PH{\state(\B{n.root})}* \%self\$,} \\
-& \quad \quad \quad \llvm{i32 0, i32 \PH{\idx(\B{n})} \nl"} \sep v \sep t
-\end{align*}
-
 
 \paragraph{Definition of function:} $\stateindex(\B{index,type}) \isdef$ to get a 
 sequence of index to select the element. If $\B{n} $ is integer vector ``arr'' 
@@ -540,6 +560,7 @@ translation of direct attribution between array expression, for example:
 
 The following code example is defining a structure:
 
+%TODO update this example
 \begin{minted}[frame=single,bgcolor=bg,linenos=true]{pascal}
 Year : struct(
 	Year_number : INT,
@@ -561,13 +582,6 @@ Year := rec(
 \end{minted}
 
 This code stores a value in the record and get the value of element.
-%TODO example getting
-\begin{minted}[frame=single,bgcolor=bg,linenos=true]{pascal}
-
-
-\end{minted}
-
-%TODO example setting
 
 
 
@@ -579,36 +593,6 @@ A generic example available at repository ProB\footnote{
 \url{https://github.com/bendisposto/probparsers/blob/develop/bparser/src/test/resources/parsable/Array.mch}}. 
 This example can be used in approach using imported components.
 
-\subsection{A very simple and generic example}
-
-
-\begin{minted}[frame=single,bgcolor=bg,linenos=true]{pascal}
-MACHINE
-   Array(maxindex, TYPE)
-CONSTRAINTS maxindex : NAT
-VARIABLES arr
-INVARIANT arr : 1..maxindex +-> TYPE
-INITIALISATION arr := {}
-OPERATIONS 
-
-set(ix,tt)=
-        PRE ix : 1..maxindex & tt : TYPE
-        THEN arr := arr <+ {ix |-> tt}
-        END ;
-
-tt <-- read(ix) =
-        PRE ix : dom (arr)
-        THEN tt := arr(ix)
-        END;
-
-swap(ix, jx)=
-        PRE ix : dom(arr) & jx : dom(arr)
-        THEN arr := arr <+ {ix |-> arr(jx), jx|-> arr(ix)}
-        END
-
-END
-\end{minted}
-%\fi
 \subsection{A  simple example and its LLVM-IR}
 \footnotesize{
 \begin{minted}[frame=single,bgcolor=bg,linenos=true]{pascal}
