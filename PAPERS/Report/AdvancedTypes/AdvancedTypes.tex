@@ -48,7 +48,6 @@
 \newcommand{\trimportedinstances}[0]{\ensuremath{\textsf{i-inst$\mathsf{\ast}$}}}
 \newcommand{\idx}[0]{\ensuremath{\sf\Pi}}
 \newcommand{\state}[0]{\ensuremath{\sf\Theta}}
-\newcommand{\stateref}[0]{\ensuremath{\sf\Phi}}
 \newcommand{\self}[0]{\ensuremath{\sf\Sigma}}
 \newcommand{\init}[0]{\ensuremath{\mathsf{I}}}
 \newcommand{\tradi}[2]{\ensuremath{\langle \textsf{#1} \rangle^{\textit{#2}}}}
@@ -438,45 +437,26 @@ The following blocks illustrate a B code setting and getting values with array
 ``arr''  and its translation to LLVM-IR. 
 \begin{footnotesize}
 
-\begin{minted}[frame=single,bgcolor=bg,linenos=true]{pascal}
+\begin{minted}[frame=single,bgcolor=bg,linenos=true,fontsize=\scriptsize]{pascal}
   arr(2):=5;
   i = arr(2);
 \end{minted}
 \end{footnotesize}
 
 \begin{footnotesize}
-\begin{minted}[frame=single,bgcolor=bg,linenos=true]{llvm}
+\begin{minted}[frame=single,bgcolor=bg,linenos=true,fontsize=\scriptsize]{llvm}
   store i32 5, i32* getelementptr  ([100 x i32]* @arr, i32 0, i64 2)
   %1 = load i32* getelementptr  ([100 x i32]* @arr, i32 0, i64 2)
   store i32 %1, i32* @i, align 4
 \end{minted}
 \end{footnotesize}
 
-%TODO update the text showing that to get the address is needed to get a 
-%sequence of steps.
+TODO: show a simple example getting or setting an element of array 
+multidimensinal using the rule $ArrayItem$. For example, show the translation of 
+this code: $ arr(2,3) :=4$.
 
 
 \subsection{Rules}
-
-\iffalse 
-\paragraph{An atomic expression}
-
-\begin{align*}
-\lefteqn{\trad{n}{\B{Name}} \isdef \LET t = \trad{n.type}{\B{Type}} \IN} \\
-& \IF \B{n} \mbox{ is a constant } \THEN \trad{n.value}{\B{Expr}} \\
-& \ELSIF \B{n} \mbox{ is a local variable } \THEN
-\llvm{""} \sep \local(\B{n}) \sep t \\
-& \ELSE (\B{n} \mbox{ is a primitive state variable }) \LET p = \variable \AND v = \variable \IN \\
-& \quad \llvm{"\PH{p} = getelementptr  \PH{\stateref(\B{n.root})} \%self\$, i32 0, i32 \PH{\idx(\B{n})} \nl} \\
-& \quad \llvm{\PH{v} = load \PH{t}* \PH{p}\nl"} \sep v \sep t\\
-& \ELSE (\B{n} \mbox{ is an array}) \LET p = \variable \AND v = \variable \IN \\
-& \quad \llvm{"\PH{p} = getelementptr \PH{\state(\B{n.root})} \%self\$,
-\PH{\stateindex(n)} \nl} \\
-& \quad \llvm{\PH{v} = load \PH{t}* \PH{p}\nl"} \sep v \sep t
-\\
-\end{align*}
-\fi
-
 
 
 \paragraph{Becomes equal instructions} must evaluate the target and the source
@@ -485,7 +465,8 @@ the LLVM instruction \llvm{store}. The evaluation of the target is defined with
 $\trad{}{lvalue}$, which yields the corresponding LLVM source code $l$ and the
 variable $p$ containing the assigned location. The evaluation of the source
 yields the corresponding code $r$, the variable $v$ holding the result, and its
-type $t$. \VGM{Todo: update only the function LValue}
+type $t$. 
+
 \begin{align*}
 \begin{split}
   \trad{a}{\B{Beq}} \isdef
@@ -493,29 +474,24 @@ type $t$. \VGM{Todo: update only the function LValue}
   & \llvm{"\PH{l}} \\
   & \llvm{\PH{r}} \\
   & \llvm{store \PH{t} \PH{v}, \PH{t'} \PH{p} \nl"}
-%   & l \conc r \conc
-%   \llvm{"store "} \conc t \conc \texttt{" "} \conc v \conc \llvm{", "}
-%   \conc t \conc \llvm{"* "} \conc p \conc \nl
 \end{split}
 \end{align*}
 
-TODO: This function updates the Name function ?
 % Rule to get a element in array, it can be used in become equal or Expressions
 \begin{align*}
 \lefteqn{\trad{n}{lvalue} \isdef} \\
 & \LET t = \llvm{"\PH{\trad{\B{n.type}}{Type}}"} \IN \\
 & \quad \IF \mbox{\B{n} is a local variable} \THEN \llvm{""} \sep \local(\B{n}) \sep t \\
-& \quad \IF \mbox{\B{n} is an array} \THEN \LET v = \variable \IN \trad{n}{ArrayItem}  \sep v \sep t \\
+& \quad \IF \mbox{\B{n} is an array} \THEN  \trad{n}{ArrayItem} \\
 & \quad \ELSE \LET v = \variable \IN \\
 & \quad \quad \llvm{"\PH{v} = getelementptr \PH{\state(\B{n.root})}* \%self\$,} \\
 & \quad \quad \quad \llvm{i32 0, i32 \PH{\idx(\B{n})} \nl"} \sep v \sep t
 \end{align*}
 
-% We cannot use the tal function, because it is not able to solve any 
-% expressions.
 
-The rule ArrayItem is applied in expressions as ``$a(n1,...,n_{n})$'', where $a$ is n.base 
-and $n1,...,n_{n}$ is a sequence of indices to select an item from array.
+\paragraph{Array item} selects an item in expressions as ``$a(n1,...,n_{n})$'', 
+where $a$ is $n.base$ and $n1,...,n_{n}$ is a sequence of indices that 
+calculates the address of element. 
 
 \begin{align*}
 \lefteqn{\trad{n}{ArrayItem} \isdef} \\
@@ -526,24 +502,10 @@ and $n1,...,n_{n}$ is a sequence of indices to select an item from array.
 \end{align*}
 
 
-The assignment target may be either local to the operation or a state
-variable. In the former case, it can be referenced by the corresponding LLVM
-identifier. In the latter case, it is represented as an element of the state
-structure $\Sigma$, and its address must be calculated and assigned to a new temporary
-variable.
-
-\paragraph{Definition of function:} $\stateindex(\B{index,type}) \isdef$ to get a 
-sequence of index to select the element. If $\B{n} $ is integer vector ``arr'' 
-with 100 elements selecting the element 1 then the result is this text ``, i32 
-0, i64 1''. It means to select the element in dimension zero and position one of 
-array, where the index types are respectively ``i32'' and ``i64''. More detailed 
-examples are presented in the reference manual of LLVM-IR. %TODO: put her a 
-% reference of manual
-
 \paragraph{Restriction on array and structure:} It is not yet supported the 
 translation of direct attribution between array expression, for example:
 
-\begin{minted}[frame=single,bgcolor=bg,linenos=true]{pascal}
+\begin{minted}[frame=single,bgcolor=bg,linenos=true,fontsize=\scriptsize]{pascal}
  array1 := array2;
  structure1 := structure2;
 \end{minted}
@@ -556,28 +518,73 @@ translation of direct attribution between array expression, for example:
 
 The following code example is defining a structure:
 
-%TODO update this example
-\begin{minted}[frame=single,bgcolor=bg,linenos=true]{pascal}
-Year : struct(
-	Year_number : INT,
-	Leap_year : BOOL,
-	Number_of_days : (1..12) * (28..31),
-	Weather : struct( Average_Temperature : (1..12) *  INT,
-		Average_Rain : (1..12) * INT) )
+
+\begin{minted}[frame=single,bgcolor=bg,linenos=true,fontsize=\scriptsize]{pascal}
+
+
+MACHINE Rec
+SETS
+ ID={aa,bb}
+VARIABLES xx, bank, total
+INVARIANT
+ xx : struct(name : ID, balance : NAT) & bank : struct(name : ID) &
+ total:struct(money:NAT)
+INITIALISATION 
+ bank := rec(name:bb) ||
+ xx:= rec(name:aa, balance:10) ||
+ total := rec(money:20)
+OPERATIONS
+
+  res<--positive = PRE xx'balance > 0 THEN res:=TRUE END;
+
+  withrdaw(amt) = PRE amt:NAT1 & (xx'balance >= amt) THEN
+     xx := rec(name:xx'name, balance:(xx'balance - amt))
+  END;
+  
+  unsafe_dec = BEGIN
+       xx'balance := xx'balance - 1
+  END
+END
+
+
 \end{minted}
 
-The following code declares a record example:
 
-\begin{minted}[frame=single,bgcolor=bg,linenos=true]{pascal}
-Year := rec(
-	Year_number : 2013,
-	Leap_year : TRUE,
-	Number_of_days : (12,28),
-	Weather : rec(  Average_Temperature : (5,8),
-			Average_Rain : (5,10)))
+\begin{minted}[frame=single,bgcolor=bg,linenos=true,fontsize=\scriptsize]{pascal}
+IMPLEMENTATION
+    Rec_i
+
+REFINES
+    Rec
+
+CONCRETE_VARIABLES
+   xx ,
+   bank ,
+   total
+
+INITIALISATION
+   
+   bank := rec(name:bb) ;
+   xx := rec(name:aa, balance:10) ;
+   total :=rec(money:20)
+OPERATIONS
+
+
+  res<--positive = 
+  IF xx'balance > 0 THEN
+       res:= TRUE 
+  ELSE res := FALSE
+  END;
+
+  withrdaw(amt) = IF   amt >=0 & amt <= MAXINT & (xx'balance >= amt) THEN 
+     xx := rec(name:xx'name, balance:(xx'balance - amt))
+  END;
+
+  unsafe_dec = BEGIN
+       xx'balance := xx'balance -1 
+  END
+END
 \end{minted}
-
-This code stores a value in the record and get the value of element.
 
 
 
@@ -589,9 +596,14 @@ A generic example available at repository ProB\footnote{
 \url{https://github.com/bendisposto/probparsers/blob/develop/bparser/src/test/resources/parsable/Array.mch}}. 
 This example can be used in approach using imported components.
 
+
+
+
 \subsection{A  simple example and its LLVM-IR}
-\footnotesize{
-\begin{minted}[frame=single,bgcolor=bg,linenos=true]{pascal}
+
+
+\begin{minted}[frame=single,bgcolor=bg,linenos=true,fontsize=\scriptsize]{pascal}
+
 MACHINE
    Array
 VARIABLES arr
@@ -621,7 +633,7 @@ swap(ix, jx)=
 END
 \end{minted}
 
-\begin{minted}[frame=single,bgcolor=bg,linenos=true]{pascal}
+\begin{minted}[frame=single,bgcolor=bg,linenos=true,fontsize=\scriptsize]{pascal}
 IMPLEMENTATION 
    Array_i
 REFINES
@@ -671,7 +683,7 @@ END
 
 
 
-\begin{minted}[frame=single,bgcolor=bg,linenos=true]{llvm}
+\begin{minted}[frame=single,bgcolor=bg,linenos=true,fontsize=\scriptsize]{llvm}
 
 @Array__arr = internal global [100 x i32] zeroinitializer, align 16
 
@@ -717,7 +729,7 @@ define void @Array__set(i32 %ix, i32 %tt) nounwind ssp {
 \end{minted}
 
 
-\begin{minted}[frame=single,bgcolor=bg,linenos=true]{llvm}
+\begin{minted}[frame=single,bgcolor=bg,linenos=true,fontsize=\scriptsize]{llvm}
 
 define void @Array__read(i32 %ix, i32* %tt) nounwind ssp {
   %1 = alloca i32, align 4
@@ -753,7 +765,7 @@ define void @Array__read(i32 %ix, i32* %tt) nounwind ssp {
 \end{minted}
 
 
-\begin{minted}[frame=single,bgcolor=bg,linenos=true]{llvm}
+\begin{minted}[frame=single,bgcolor=bg,linenos=true,fontsize=\scriptsize]{llvm}
 
 define void @Array__swap(i32 %ix, i32 %jx) nounwind ssp {
   %1 = alloca i32, align 4
@@ -807,13 +819,12 @@ define void @Array__swap(i32 %ix, i32 %jx) nounwind ssp {
 
 \end{minted}
 
-}
+
 
 
 \subsection{Real example - Bubble Sort}
 
-\begin{footnotesize}
-\begin{minted}[frame=single,bgcolor=bg,linenos=true]{pascal}
+\begin{minted}[frame=single,bgcolor=bg,linenos=true,fontsize=\scriptsize]{pascal}
 MACHINE
    Bubble
 VARIABLES
@@ -881,7 +892,6 @@ END
 
 
 \end{minted}
-\end{footnotesize}
 
 
 \end{document}
