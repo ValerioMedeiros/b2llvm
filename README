@@ -1,8 +1,7 @@
 Introduction
 ============
 
-This files describes the contents of directory PROTO. The contents include a prototype implementation in Python for the code generation from B to LLVM.
-In addition, the directory also contains verification and validation artifacts. Further details are given hereafter.
+This files describes the contents of the main directory of b2llvm. This is a prototype (yet robust) implementation in Python for the code generation from B to LLVM. In addition, the directory also contains verification and validation artifacts. Further details are given hereafter.
 
 Implementation
 ==============
@@ -45,5 +44,5 @@ The directory also contains elements for the verification and validation of the 
 Currently, the verification and validation infrastructure is functional for the following B projects: counter, wd and timer.
 
 --
-David Deharbe, November 2013.
+David Deharbe, December 2013.
 
