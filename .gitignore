@@ -14,3 +14,7 @@ translation.pdf
 *.toc
 
 *.pyc
+
+.coverage
+
+coverage_html
