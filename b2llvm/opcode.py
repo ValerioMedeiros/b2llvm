@@ -7,7 +7,7 @@ The templates are properly indented.
 _TB = "  "
 _NL = "\n"
 
-ALLOC = _TB + "{0} = alloca {1}" + _NL
+ALLOC = _TB + "%{0} = alloca {1}" + _NL
 APPLY = _TB + "{0} = {1} {2} {3}, {4}" + _NL
 CALL  = _TB + "call void {0}({1})" + _NL
 CGOTO = _TB + "br i1 {0}, label %{1}, label %{2}" + _NL
