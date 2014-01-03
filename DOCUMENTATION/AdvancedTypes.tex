@@ -7,7 +7,13 @@
 \usepackage{xspace,framed,here,keystroke}
 \usepackage{graphicx}
 \usepackage[colorlinks=false]{hyperref}
+
 \usepackage{minted}   %Used to syntax highlight
+\definecolor{bg}{rgb}{0.95,0.95,0.95}
+\newminted{llvm}{frame=single,firstnumber=1,linenos=true,fontsize=\scriptsize,bgcolor=bg}
+\newminted{pascal}{frame=single,firstnumber=1,linenos=true,fontsize=\scriptsize,bgcolor=bg}
+\newminted{c}{frame=single,firstnumber=1,linenos=true,fontsize=\scriptsize,bgcolor=bg}
+
 
 
 \newcommand{\trad}[2]{\ensuremath{\lVert \textsf{#1} \rVert^{\textit{#2}}}}
@@ -63,7 +69,6 @@
 \begin{document}
 
 
-\definecolor{bg}{rgb}{0.95,0.95,0.95}
 
 \usemintedstyle{friendly}
 
@@ -72,7 +77,6 @@
 The supported advanced types are array and structures. The nodes Array and 
 Structure can be used to declare a variable or to select an element in the array 
 or the structure. 
-
 
 \begin{figure}[H]
   \begin{center}
@@ -361,17 +365,12 @@ Some examples of array are:
 
 
 The B0 language supports attribution directly between arrays or structure, even though the attribution
-must have the same domain type and range type. \VGM{Project Decision: How translate a direct 
-attribution between advanced types, for example, arrayA := arrayB ? The Commenc 
-uses a function called ``memmove''.  %TODO to add this restriction in become equals.
- } 
-
+must have the same domain type and range type.
 
 
 
 
 \subsection{Relation arrays B0 and LLVM-IR}
-\VGM{It must be extended to support structure.}
 
 The arrays in B0 are represented by functions where an index points to an 
 element. By default, the element of index not initialized has a zero value. 
@@ -384,15 +383,12 @@ element.
 
 
 The essential elements of array are its name, size and type. The
-following code declares an array global called ``arr'' with 100 integer
-numbers with 32 bits and initialized with zero.
+following code declares an array global called ``Array3'' with 6000 (10*20*30)
+integer numbers with 32 bits and initialized with zero.
 
-\begin{footnotesize}
-\begin{minted}[frame=single,linenos=true,bgcolor=bg]{llvm}
-@arr = internal global [100 x i32] zeroinitializer
-\end{minted}
-\end{footnotesize}
- 
+\begin{llvmcode}
+@Array3 = internal global [10 x [20 x [30 x i32]]] zeroinitializer, align 16
+\end{llvmcode}
 
 Some type examples are:
 \begin{itemize}
@@ -408,19 +404,17 @@ x 6) elements of 16-bit integer values.
 The LLVM-IR instruction \textit{getelementptr} is used to select an element in
 the array or structure. A simple example is: 
 
-\begin{footnotesize}
-\begin{minted}[frame=single,linenos=true,bgcolor=bg]{llvm}
-%4 = getelementptr  ([100 x i32]* @Array__arr, i64 0, i64 %3)
-\end{minted}
-\end{footnotesize}
+\begin{llvmcode}
+  %7 = getelementptr [10 x [20 x [30 x i32]]]* @Array3, i32 0, i64 2, i64 3, i64 4
+\end{llvmcode}
 
 
 The first parameter defines the type and name of the variable, and the others are
-indexes to select the element in the data type. The second parameter (i64 0)
-selects the first element in the pointer (* @Array\_\_arr). The last element,
-(i64 \%3) selects the value in position obtained from \%3 of the array of 32-bit
-integer values. When the array is multidimensional, the news index must be added
-separated by comma to get the specific element.
+indexes to select the element in the data type. The second parameter (i32 0)
+selects the first element in the pointer (* @Array3). The last elements 
+(i64 2, i64 3, i64 4) selects the value from position (2,3,4) storing it in \%7.
+This array is multidimensional then several index must be declared separated
+by comma to get the specific element.
 
 \iffalse
 \begin{verbatim}
@@ -431,29 +425,38 @@ separated by comma to get the specific element.
 \end{verbatim}
 \fi
 
-\subsubsection{Setting an element to array}
+\subsubsection{Setting and getting array}
 
-The following blocks illustrate a B code setting and getting values with array
-``arr''  and its translation to LLVM-IR. 
-\begin{footnotesize}
+The following blocks illustrate a C code setting a value to array
+and its translation to LLVM-IR. 
 
-\begin{minted}[frame=single,bgcolor=bg,linenos=true,fontsize=\scriptsize]{pascal}
-  arr(2):=5;
-  i = arr(2);
-\end{minted}
-\end{footnotesize}
+\begin{ccode} 
+  int x=2; int y=3 ; int z=4 ;
+  Array3[x][y][z]=7;
+\end{ccode}
 
-\begin{footnotesize}
-\begin{minted}[frame=single,bgcolor=bg,linenos=true,fontsize=\scriptsize]{llvm}
-  store i32 5, i32* getelementptr  ([100 x i32]* @arr, i32 0, i64 2)
-  %1 = load i32* getelementptr  ([100 x i32]* @arr, i32 0, i64 2)
-  store i32 %1, i32* @i, align 4
-\end{minted}
-\end{footnotesize}
+This example is translated in four steps. First, the variables \%x, \%y, \%z 
+are allocated. Second, the respective values 2, 3, 4 are stored in variables. 
+Third, the variables are loaded to local variables and converted to 64 bits. 
+Finally, the address of array is calculated in local variable \%7 and the value 
+7 is stored in it.  
 
-TODO: show a simple example getting or setting an element of array 
-multidimensinal using the rule $ArrayItem$. For example, show the translation of 
-this code: $ arr(2,3) :=4$.
+\begin{llvmcode}
+%x = alloca i32, align 4
+%y = alloca i32, align 4
+%z = alloca i32, align 4
+store i32 2, i32* %x, align 4
+store i32 3, i32* %y, align 4
+store i32 4, i32* %z, align 4
+%1 = load i32* %z, align 4
+%2 = sext i32 %1 to i64
+%3 = load i32* %y, align 4
+%4 = sext i32 %3 to i64
+%5 = load i32* %x, align 4
+%6 = sext i32 %5 to i64
+%7 = getelementptr[10x[20x[30xi32]]]*@Array3,i32 0,i64 %6,i64 %4,i64 %2;getting an element
+store i32 7, i32* %7, align 4;setting an element
+\end{llvmcode}
 
 
 \subsection{Rules}
@@ -491,24 +494,25 @@ type $t$.
 
 \paragraph{Array item} selects an item in expressions as ``$a(n1,...,n_{n})$'', 
 where $a$ is $n.base$ and $n1,...,n_{n}$ is a sequence of indices that 
-calculates the address of element. 
+calculates the address of element. This rule also supports to translate 
+expressions of arrays.
 
 \begin{align*}
 \lefteqn{\trad{n}{ArrayItem} \isdef} \\
 &  \LET p_1 \sep v_1 \sep t_1  = \trad{n.base}{Exp}  \IN \\
 &  \LET p_2 \sep v_2 \sep t_2  = \trad{n.indices}{\ListOf{Exp}}  \IN \\
 &  \LET v =  \variable \AND  t = \trad{\B{n.type}}{Type}  \IN \\
-&  \llvm{"\PH{p_1} \PH{p_2} \PH{v} =  getelementptr \PH{t_1}, \PH{v_1}, i32 0, i32  \PH{v_2}\nl"}  \sep v \sep t\\
+&  \llvm{"\PH{p_1} \PH{p_2} \PH{v} =  getelementptr \PH{t_1}, \PH{v_1}, i32 0 \ListOf{(,\PH{t_2} \PH{v_2})}\nl"}  \sep v \sep t\\
 \end{align*}
 
 
 \paragraph{Restriction on array and structure:} It is not yet supported the 
 translation of direct attribution between array expression, for example:
 
-\begin{minted}[frame=single,bgcolor=bg,linenos=true,fontsize=\scriptsize]{pascal}
+\begin{pascalcode}
  array1 := array2;
  structure1 := structure2;
-\end{minted}
+\end{pascalcode}
 
 
 
