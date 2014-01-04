@@ -285,7 +285,7 @@ or the structure.
 
 \VGM{To add in text: The nodes \B{Int\_lit} and \B{Bool\_lit} are literals in its 
 respective set.}
-\section{The LLVM grammar with support to array multidimensional}
+\VGM{The LLVM grammar with support to array multidimensional.}
 
 
 \begin{figure}
@@ -356,9 +356,10 @@ when it is a structure.
 
 Some examples of array are:
 \begin{itemize}
-	\item $array1 \in (0..10) \to INT $
-	\item $array2 \in (0..10) \times (0..10) \to INT $   (a multidimensional example)
-	\item $array3 \in BOOL \times (0..10) \to INT$ (a domain with two index types)
+	\item $array1 \in (0..10) \to INT $	(a simple array)
+	\item $array2 \in (0..10) \times (0..10) \to INT $   (a multidimensional array)
+	\item $array3 \in BOOL \times (0..10) \to INT$ (an array with two index types)
+	\item $\{1\vdash2\vdash3, 2\vdash3\vdash4\}  \in (INT \times INT) \times INT$ (an explicit array)
 \end{itemize} 
 
 \paragraph{Attributions between array and structure}
@@ -366,9 +367,6 @@ Some examples of array are:
 
 The B0 language supports attribution directly between arrays or structure, even though the attribution
 must have the same domain type and range type.
-
-
-
 
 \subsection{Relation arrays B0 and LLVM-IR}
 
@@ -396,6 +394,11 @@ Some type examples are:
 	\item \verb|[4 x [5 x [6 x i16]]] | - Multidimensional array with (4 x 5
 x 6) elements of 16-bit integer values.
 \end{itemize}
+
+%TODO: Explain the other rules of Array 
+%- Declaring the type of array  a : (INT X INT) --> INT
+%- Declaring a array dynamically {1|->2|->3, 2|->3|->4}
+
 
 
 \subsubsection{Getting a element from array}
@@ -431,7 +434,7 @@ The following blocks illustrate a C code setting a value to array
 and its translation to LLVM-IR. 
 
 \begin{ccode} 
-  int x=2; int y=3 ; int z=4 ;
+  int x=2; int y=3; int z=4;
   Array3[x][y][z]=7;
 \end{ccode}
 
@@ -506,8 +509,8 @@ expressions of arrays.
 \end{align*}
 
 
-\paragraph{Restriction on array and structure:} It is not yet supported the 
-translation of direct attribution between array expression, for example:
+\paragraph{Restriction on array and structure:} The translation of direct attribution
+ between array expression is not yet supported, for example:
 
 \begin{pascalcode}
  array1 := array2;
@@ -523,9 +526,7 @@ translation of direct attribution between array expression, for example:
 The following code example is defining a structure:
 
 
-\begin{minted}[frame=single,bgcolor=bg,linenos=true,fontsize=\scriptsize]{pascal}
-
-
+\begin{minted}[frame=single,bgcolor=bg,linenos=true,fontsize=\scriptsize]{c}
 MACHINE Rec
 SETS
  ID={aa,bb}
@@ -539,22 +540,25 @@ INITIALISATION
  total := rec(money:20)
 OPERATIONS
 
-  res<--positive = PRE xx'balance > 0 THEN res:=TRUE END;
+  res<--positive = 
+  PRE xx'balance > 0 THEN
+  res:=TRUE
+  END;
 
-  withrdaw(amt) = PRE amt:NAT1 & (xx'balance >= amt) THEN
+  withrdaw(amt) = 
+  PRE amt:NAT1 & (xx'balance >= amt) THEN
      xx := rec(name:xx'name, balance:(xx'balance - amt))
   END;
   
-  unsafe_dec = BEGIN
+  unsafe_dec = 
+  BEGIN
        xx'balance := xx'balance - 1
   END
 END
-
-
 \end{minted}
 
 
-\begin{minted}[frame=single,bgcolor=bg,linenos=true,fontsize=\scriptsize]{pascal}
+\begin{minted}[frame=single,bgcolor=bg,linenos=true,fontsize=\scriptsize]{c}
 IMPLEMENTATION
     Rec_i
 
@@ -572,8 +576,6 @@ INITIALISATION
    xx := rec(name:aa, balance:10) ;
    total :=rec(money:20)
 OPERATIONS
-
-
   res<--positive = 
   IF xx'balance > 0 THEN
        res:= TRUE 
@@ -606,7 +608,7 @@ This example can be used in approach using imported components.
 \subsection{A  simple example and its LLVM-IR}
 
 
-\begin{minted}[frame=single,bgcolor=bg,linenos=true,fontsize=\scriptsize]{pascal}
+\begin{minted}[frame=single,bgcolor=bg,linenos=true,fontsize=\scriptsize]{c}
 
 MACHINE
    Array
@@ -637,7 +639,7 @@ swap(ix, jx)=
 END
 \end{minted}
 
-\begin{minted}[frame=single,bgcolor=bg,linenos=true,fontsize=\scriptsize]{pascal}
+\begin{minted}[frame=single,bgcolor=bg,linenos=true,fontsize=\scriptsize]{c}
 IMPLEMENTATION 
    Array_i
 REFINES
@@ -828,7 +830,7 @@ define void @Array__swap(i32 %ix, i32 %jx) nounwind ssp {
 
 \subsection{Real example - Bubble Sort}
 
-\begin{minted}[frame=single,bgcolor=bg,linenos=true,fontsize=\scriptsize]{pascal}
+\begin{minted}[frame=single,bgcolor=bg,linenos=true,fontsize=\scriptsize]{c}
 MACHINE
    Bubble
 VARIABLES
