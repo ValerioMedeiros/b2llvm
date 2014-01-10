@@ -1,5 +1,5 @@
 /* counter
-* Author: 
+* Author: David Deharbe
 * Creation date: 6/6/13
 */
 MACHINE

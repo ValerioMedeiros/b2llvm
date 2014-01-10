@@ -1,5 +1,5 @@
 /* storemax
-* Author: 
+* Author:  David
 * Creation date: 10/30/13
 */
 MACHINE

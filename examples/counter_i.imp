@@ -1,3 +1,4 @@
+/* Author: David Deharbe. */
 IMPLEMENTATION
     timer_i
 REFINES
