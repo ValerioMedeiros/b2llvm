@@ -1,9 +1,13 @@
 <project>
   <developed>
+    <machine>array</machine>
+    <implementation>array_i</implementation>
+  </developed>
+  <developed>
     <machine>counter</machine>
     <implementation>counter_i</implementation>
   </developed>
-  <developed>
+ <developed>
     <machine>swap</machine>
     <implementation>swap_i</implementation>
   </developed>
