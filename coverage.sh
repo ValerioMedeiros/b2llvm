@@ -29,6 +29,7 @@ $COV_RUN ./b2llvm.py -p -t -m comp counter counter.llvm bxml project.xml
 $COV_RUN ./b2llvm.py -p -t -m comp timer timer.llvm bxml project.xml
 $COV_RUN ./b2llvm.py -p -t -m comp wd wd.llvm bxml project.xml
 $COV_RUN ./b2llvm.py -p -t -m proj wd wd.llvm bxml project.xml
+#$COV_RUN ./b2llvm.py -p -t -m proj array array.llvm bxml project.xml
 echo "Combining coverage data."
 coverage combine
 echo "Generating coverage report."
