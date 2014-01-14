@@ -362,9 +362,16 @@ def load_concrete_variables(elem, symast):
     representation for the concrete variables in the B implementation.
     '''
     xmlvars = elem.findall("./Concrete_Variables/Identifier")
+    #TODO: it suppose the data type search in INVARIANT, but the invariant defines the data type using a expressions 
+    #TODO: So the data type must be inferred
+    
+    xmlinv = elem.findall(elem.findall(".//Invariant//Expression_Comparison[@operator=':']"))
+    #mount_arrayType(xmlinv)
+    
     result = []
     for xmlvar in xmlvars:
         name = value(xmlvar)
+        #TODO: Change the get_identifier_type
         asttype = get_identifier_type(xmlvar)
         astvar = ast.make_imp_var(name, asttype)
         symast.add(name, astvar)
@@ -891,7 +898,9 @@ def get_identifier_type(xmlid):
     - "INTEGER" or "BOOL": the string representing the name of the type of id
     '''
     assert xmlid.tag == "Identifier"
-    res = value(xmlid.find("./Attributes/TypeInfo/Identifier"))
+    tmp = xmlid.find("./Attributes/TypeInfo/Identifier")
+    res = value(tmp)
+    
     assert res != None
     return res
 
