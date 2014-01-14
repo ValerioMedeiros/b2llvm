@@ -68,6 +68,33 @@ ZERO = make_intlit(0)
 ONE = make_intlit(1)
 MAXINT = make_intlit(2147483647)
 
+#VGM - TODO: move this functions ?
+
+def make_sset_interval():
+    """Creates an AST node for a B interval."""
+    return { "kind" : "set" }
+
+def make_sset_bool():
+    """Creates an AST node for a B simple bool set."""
+    return { "kind" : "set_BOOL" }
+
+def make_sset_nat():
+    """Creates an AST node for a B simple natural set."""
+    return { "kind" : "set_NAT" }
+
+def make_sset_int():
+    """Creates an AST node for a B simple integer set."""
+    return { "kind" : "set_INT" }
+
+def make_interval(start,end):
+    """Creates an AST node for a B simple interval set."""
+    return { "kind" : "set_interval" , "start" : start, "end" : end }
+
+def make_arrayType(dom, ran):
+    """Creates an AST node for a B arrayType."""
+    return { "dom": dom, "ran" : ran}
+
+
 ### COMPOSED EXPRESSIONS ###
 
 def make_term(operator, args):
