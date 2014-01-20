@@ -357,6 +357,7 @@ def load_concrete_variables(elem, symast):
     '''
     Input:
     - elem: the BXML tree root node of a B implementation
+    - symat: the symbol table used in abstract syntax tree
     Output:
     A Python dict mapping variable identifier (strings) to the Python
     representation for the concrete variables in the B implementation.
@@ -365,17 +366,20 @@ def load_concrete_variables(elem, symast):
     #TODO: it suppose the data type search in INVARIANT, but the invariant defines the data type using a expressions 
     #TODO: So the data type must be inferred
     
-    xmlinv = elem.findall(elem.findall(".//Invariant//Expression_Comparison[@operator=':']"))
+    xmlinv = elem.findall(".//Invariant//Expression_Comparison[@operator=':']")
     #mount_arrayType(xmlinv)
     
     result = []
     for xmlvar in xmlvars:
-        name = value(xmlvar)
-        #TODO: Change the get_identifier_type
         asttype = get_identifier_type(xmlvar)
+        if asttype == None :
+            asttype =  get_inv_type(xmlvar,xmlinv)
+        assert asttype != None
+        name = value(xmlvar)
         astvar = ast.make_imp_var(name, asttype)
         symast.add(name, astvar)
         result.append(astvar)
+    
     return result
 
 def load_initialisation(elem, symast, symimp):
@@ -732,7 +736,7 @@ def load_binary_expression(node, symast):
     """Load an XML element for a binary expression to an AST node."""
     return load_binary(node, symast, "Binary_Expression",
                        {"+":ast.make_sum, "-":ast.make_diff,
-                        "*":ast.make_prod})
+                        "*":ast.make_prod,"(":ast.make_arrayItem})
 
 def load_nary_expression(node, symast):
     """Load an XML element for a nary expression to an AST node."""
@@ -890,6 +894,33 @@ def list_combine_ltr(some_list, some_fun):
 #
 ###
 
+def get_inv_type(xmlid, xmlinv):
+    '''
+    Input:
+    - xmlid: a XML node representing an identifier
+    - xmlinv: a XML node
+    Output:
+    - The right node that define the variable type 
+    '''
+    for xmlinvElem in xmlinv:
+        varName = xmlinvElem[0].get("value")
+        if (varName != xmlid.get("value")):
+            elem = xmlinvElem
+            break
+    assert elem != None
+    function = elem[1]
+    domxml = function[0] 
+    ranxml = function[1]
+    #TODO: create support to INT type and NAT
+    #TODO: support a list of indices in domain
+    assert elem != None
+    
+    dom = ast.make_interval(domxml[0].get("value"),domxml[1].get("value"))
+    ran = ast.make_interval(ranxml[0].get("value"),ranxml[1].get("value"))
+    res = ast.make_arrayType([dom],ran)
+    return res   
+  
+    
 def get_identifier_type(xmlid):
     '''
     Input:
@@ -897,12 +928,13 @@ def get_identifier_type(xmlid):
     Output:
     - "INTEGER" or "BOOL": the string representing the name of the type of id
     '''
-    assert xmlid.tag == "Identifier"
+    # This follow code cause a problem when the variable has not the TypeInfo 
+    ##assert xmlid.tag == "Identifier"
     tmp = xmlid.find("./Attributes/TypeInfo/Identifier")
-    res = value(tmp)
+    if tmp == None:
+        return None
     
-    assert res != None
-    return res
+    return value(tmp)
 
 def get_type(xmlid):
     '''

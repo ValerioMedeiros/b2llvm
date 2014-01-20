@@ -70,10 +70,6 @@ MAXINT = make_intlit(2147483647)
 
 #VGM - TODO: move this functions ?
 
-def make_sset_interval():
-    """Creates an AST node for a B interval."""
-    return { "kind" : "set" }
-
 def make_sset_bool():
     """Creates an AST node for a B simple bool set."""
     return { "kind" : "set_BOOL" }
@@ -94,6 +90,9 @@ def make_arrayType(dom, ran):
     """Creates an AST node for a B arrayType."""
     return { "dom": dom, "ran" : ran}
 
+def make_arrayItem(base,index):
+    """Creates an AST node for a B arrayType."""
+    return { "base": base, "index": index, "type":None}
 
 ### COMPOSED EXPRESSIONS ###
 

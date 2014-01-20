@@ -97,7 +97,7 @@ def translate_mode_comp(buf, m, emit_printer):
             buf.trace.untab()
             buf.trace.out("The type definitions for references to these state encodings are:")
             buf.trace.tab()
-            # TODO see if one should not filter out types for stateless modules
+            #TODO: see if one should not filter out types for stateless modules
             for q in comp_indirect(m):
                 if q.mach["id"] not in acc:
                     state_ref_typedef(buf, q.mach)
@@ -379,8 +379,16 @@ def section_implementation(buf, m, emit_printer):
 # This function is responsible for translation B0 type names to LLVM types
 #
 def x_type(t):
-    assert(t == ast.INTEGER or t == ast.BOOL)
-    return "i32" if t == ast.INTEGER else "i1"
+    assert(t == ast.INTEGER or t == ast.BOOL or (t.get("dom")!= None and t.get("ran")!=None) )
+    if (t == ast.INTEGER):
+        return "i32" 
+    if (t == ast.BOOL):
+        return "i1"
+    else:
+        return x_derivedType(t)
+
+def x_derivedType(t):
+    return "[ "+t.get("dom")[0].get("end")+" x i32]"   #TODO: Change it to support array multidimensional
 
 ### TRANSLATION FOR INITIALISATION
 
