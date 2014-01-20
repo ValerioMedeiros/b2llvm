@@ -922,10 +922,23 @@ def x_lvalue(buf, n):
       Currently limited to simple identifiers.
     '''
     global TB, NL
-    check_kind(n, {"Vari"})
+    check_kind(n, {"Vari","arrayItem"}) 
     buf.trace.out("Evaluate address for \""+printer.term(n)+"\".")
     t = x_type(n["type"]) + "*"
-    if n["scope"] == "Impl":
+    if n["kind"] == "arrayItem": #TODO: we are supposing that array are declared only in INVARIANT. It mus be changed
+        pos=state_position(n["base"])
+        v = names.new_local()
+        buf.trace.tab()
+        buf.trace.out("Variable \""+n["base"]["id"]+"\" is stored at position "+str(pos)+" of \"%self$\". (arrayItem)")
+        buf.trace.outu("Let temporary " + v + " be the corresponding address:")
+        buf.trace.untab()
+        buf.code(LOADI, v, state_r_name(n["base"]["root"]), "%self$", str(pos))
+        #TODO: Add the index to be loaded
+        #v,t = x_expression(buf, n["index"])
+        #buf.code(LOADI, v, t, "%self$", str(pos))
+        return (v, t)
+
+    elif n["scope"] == "Impl":
         pos=state_position(n)
         v = names.new_local()
         buf.trace.tab()

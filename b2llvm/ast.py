@@ -92,7 +92,8 @@ def make_arrayType(dom, ran):
 
 def make_arrayItem(base,index):
     """Creates an AST node for a B arrayType."""
-    return { "base": base, "index": index, "type":None}
+    return { "base": base, "index": index, 
+            "kind":"arrayItem", "type": INTEGER} #TODO: change it support other typer different of INTEGER 
 
 ### COMPOSED EXPRESSIONS ###
 

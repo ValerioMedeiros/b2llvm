@@ -26,6 +26,8 @@ def term(n):
         return n["value"]
     elif kind == "Cons":
         return n["id"]
+    elif kind == "arrayItem": #TODO: Support array
+        return (SP + term(n["base"])+"("+ term(n["index"])+ ")")
     elif kind == "Vari":
         return n["id"]
     elif n["op"] in { "succ", "pred" }:
