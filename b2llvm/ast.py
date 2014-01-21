@@ -88,7 +88,7 @@ def make_interval(start,end):
 
 def make_arrayType(dom, ran):
     """Creates an AST node for a B arrayType."""
-    return { "dom": dom, "ran" : ran}
+    return { "kind" : "arrayType", "dom": dom, "ran" : ran}
 
 def make_arrayItem(base,index):
     """Creates an AST node for a B arrayType."""
