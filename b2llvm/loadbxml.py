@@ -904,20 +904,17 @@ def get_inv_type(xmlid, xmlinv):
     '''
     for xmlinvElem in xmlinv:
         varName = xmlinvElem[0].get("value")
-        if (varName != xmlid.get("value")):
+        if (varName == xmlid.get("value")):
             elem = xmlinvElem
             break
     assert elem != None
     function = elem[1]
-    domxml = function[0] 
-    ranxml = function[1]
-    #TODO: create support to INT type and NAT
-    #TODO: support a list of indices in domain
-    assert elem != None
     
-    dom = ast.make_interval(domxml[0].get("value"),domxml[1].get("value"))
-    ran = ast.make_interval(ranxml[0].get("value"),ranxml[1].get("value"))
-    res = ast.make_arrayType([dom],ran)
+    if (function.get("operator")=="-->"):
+        domxml = function[0] 
+        ranxml = function[1]
+        res = ast.make_arrayType(domxml,ranxml)
+    assert res != None
     return res   
   
     

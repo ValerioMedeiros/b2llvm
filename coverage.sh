@@ -10,6 +10,7 @@ echo "Cleaning up existing coverage data."
 coverage erase
 echo "Generating new coverage data."
 $COV_RUN ./b2llvm.py -v -m comp counter counter.llvm bxml project.xml > /dev/null
+$COV_RUN ./b2llvm.py -m comp array array.llvm bxml project.xml
 $COV_RUN ./b2llvm.py -m comp ioint ioint.llvm bxml project.xml
 $COV_RUN ./b2llvm.py -m comp counter counter.llvm bxml project.xml
 $COV_RUN ./b2llvm.py -m comp wd wd.llvm bxml project.xml

@@ -379,16 +379,28 @@ def section_implementation(buf, m, emit_printer):
 # This function is responsible for translation B0 type names to LLVM types
 #
 def x_type(t):
+    """Returns the type for declaration."""
     assert(t == ast.INTEGER or t == ast.BOOL or (t.get("dom")!= None and t.get("ran")!=None) )
     if (t == ast.INTEGER):
         return "i32" 
     if (t == ast.BOOL):
         return "i1"
-    else:
-        return x_derivedType(t)
+    if (t.get("kind")== "arrayType"):
+        return x_arrayType(t)
 
-def x_derivedType(t):
-    return "[ "+t.get("dom")[0].get("end")+" x i32]"   #TODO: Change it to support array multidimensional
+def x_arrayType(t):
+    """Returns the type for declaration of Array."""
+    if (True) :
+        ranType = "i32" #TODO: needs support new types of ran
+    tl =""
+    tr =""
+    domain = t.get("dom")
+    for elem in domain:
+        size =int(elem.get("end")) - int(elem.get("start"))
+        tl += "[ "+str(size)+ " x "
+        tr += "]"
+    return tl + ranType + tr
+    
 
 ### TRANSLATION FOR INITIALISATION
 
@@ -932,18 +944,22 @@ def x_lvalue(buf, n):
         #buf.trace.out("Variable \""+n["base"]["id"]+"\" is stored at position "+str(pos)+" of \"%self$\". (arrayItem)")
         #buf.trace.outu("Let temporary " + v + " be the corresponding address:")
         buf.trace.untab()
+        
         v1,t1 = x_expression(buf, n["base"])
-          
+        
         #buf.code(LOADI, v, state_r_name(n["base"]["root"]), "%self$", str(pos))
         #TODO: Add the index to be loaded
         #TODO: Create the function LRExp to getting a sequence of selected elements.
+        #commas([ term(x) for x in n["lhs"]])
+        
         vi,ti = x_expression(buf, n["index"])
         v = names.new_local()
         buf.code(LOADI,v,t1,v1,vi)
+        t  = "i32"
         #TODO: Considering the interval (a..b):
         #TODO: Adjust the size o vector to size=(b-a+1)
         #TODO: Add suport to interval position(p) = (p-a)
-        return (v, "i32")  #remove it 
+        return (v, t)  #remove it 
 
     elif n["scope"] == "Impl":
         pos=state_position(n)

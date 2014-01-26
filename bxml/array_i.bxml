@@ -87,14 +87,14 @@
   <Binary_Expression operator="--&gt;">
     <Binary_Expression operator="*">
       <Binary_Expression operator="..">
-	<Integer_Litteral value="0">
+	<Integer_Litteral value="7">
 	  <Attributes>
 	    <TypeInfo>
 	      <Identifier value="INTEGER"/>
 	    </TypeInfo>
 	  </Attributes>
 	</Integer_Litteral>
-	<Integer_Litteral value="99">
+	<Integer_Litteral value="77">
 	  <Attributes>
 	    <TypeInfo>
 	      <Identifier value="INTEGER"/>
@@ -197,12 +197,12 @@
 </Values>
 </Affectation_Substitution>
 <Affectation_Substitution>
-  <Variables>
-    <Identifier value="tmp"/>
-  </Variables>
-  <Values>
-    <Identifier value="arr"/>
-  </Values>
+<Variables>
+<Identifier value="tmp"/>
+</Variables>
+<Values>
+<Identifier value="arr"/>
+</Values>
 </Affectation_Substitution>-->
 </Nary_Substitution>
 </Initialisation>
@@ -403,30 +403,30 @@
 </Variables>
 <Values>
 <Binary_Expression operator="(">
-  <Identifier value="arr"/>
-  <Identifier value="jx"/>
+<Identifier value="arr"/>
+<Identifier value="jx"/>
 </Binary_Expression>
 </Values>
 </Affectation_Substitution>
 <Affectation_Substitution>
 <Variables>
 <Binary_Expression operator="(">
-  <Identifier value="arr"/>
-  <Identifier value="jx"/>
+<Identifier value="arr"/>
+<Identifier value="jx"/>
 </Binary_Expression>
 </Variables>
 <Values>
 <Binary_Expression operator="(">
-  <Identifier value="arr"/>
-  <Identifier value="ix"/>
+<Identifier value="arr"/>
+<Identifier value="ix"/>
 </Binary_Expression>
 </Values>
 </Affectation_Substitution>
 <Affectation_Substitution>
 <Variables>
 <Binary_Expression operator="(">
-  <Identifier value="arr"/>
-  <Identifier value="ix"/>
+<Identifier value="arr"/>
+<Identifier value="ix"/>
 </Binary_Expression>
 </Variables>
 <Values>
