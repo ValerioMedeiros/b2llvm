@@ -69,6 +69,21 @@ ONE = make_intlit(1)
 MAXINT = make_intlit(2147483647)
 
 #VGM - TODO: move this functions ?
+def make_sset(node):
+    """Creates an AST node for a B simple set."""
+    if (node.get("operator") == ".."):
+        res = make_interval(node[0].get("value"),node[1].get("value"))
+    elif (node.get("operator") == "*"):
+        res = become_list(make_sset(node[0]))
+        res += become_list(make_sset(node[1]))
+    assert res != None
+    return res
+
+def become_list(elem):
+    """Creates a list and avoid to create sublist in list."""
+    if (type( elem ) == list ): 
+        return elem
+    else: return  [elem]
 
 def make_sset_bool():
     """Creates an AST node for a B simple bool set."""
@@ -86,8 +101,13 @@ def make_interval(start,end):
     """Creates an AST node for a B simple interval set."""
     return { "kind" : "set_interval" , "start" : start, "end" : end }
 
-def make_arrayType(dom, ran):
+def make_arrayType(domxml, ranxml):
     """Creates an AST node for a B arrayType."""
+    #TODO: create support to INT type and NAT
+    #TODO: support a list of indices in domain
+    dom = become_list(make_sset(domxml))
+    ran = make_sset(ranxml)
+    assert dom != None and ran != None
     return { "kind" : "arrayType", "dom": dom, "ran" : ran}
 
 def make_arrayItem(base,index):
