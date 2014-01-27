@@ -937,29 +937,29 @@ def x_lvalue(buf, n):
     check_kind(n, {"Vari","arrayItem"}) 
     buf.trace.out("Evaluate address for \""+printer.term(n)+"\".")
     t = x_type(n["type"]) + "*"
-    if n["kind"] == "arrayItem": #TODO: we are supposing that array are declared only in INVARIANT. It mus be changed
-        #pos=state_position(n["base"])
-        
+    if n["kind"] == "arrayItem": 
         buf.trace.tab()
-        #buf.trace.out("Variable \""+n["base"]["id"]+"\" is stored at position "+str(pos)+" of \"%self$\". (arrayItem)")
-        #buf.trace.outu("Let temporary " + v + " be the corresponding address:")
+        v1,t1 = x_expression(buf, n["base"])
+         
+        buf.trace.out("Variable array (base) \""+n["base"]["id"]+"\" is stored at position "+v1+" of \"%self$\". (arrayItem)")
         buf.trace.untab()
         
-        v1,t1 = x_expression(buf, n["base"])
-        
-        #buf.code(LOADI, v, state_r_name(n["base"]["root"]), "%self$", str(pos))
         #TODO: Add the index to be loaded
         #TODO: Create the function LRExp to getting a sequence of selected elements.
         #commas([ term(x) for x in n["lhs"]])
         
+        buf.trace.tab()
         vi,ti = x_expression(buf, n["index"])
         v = names.new_local()
-        buf.code(LOADI,v,t1,v1,vi)
+        buf.code(LOADI,v,t1+"*",v1,vi)
         t  = "i32"
+        buf.trace.out("Variable array (index) \""+printer.term(n["index"])+"\" is stored at position "+vi+" of \"%self$\". (arrayItem)")
+        buf.trace.untab()
+        
         #TODO: Considering the interval (a..b):
         #TODO: Adjust the size o vector to size=(b-a+1)
         #TODO: Add suport to interval position(p) = (p-a)
-        return (v, t)  #remove it 
+        return (v, t)  
 
     elif n["scope"] == "Impl":
         pos=state_position(n)
@@ -1257,7 +1257,10 @@ def x_name(buf, n):
         buf.trace.out("State variable \""+bvar+"\" is stored at position \""+pos+"\" of \"%self$\".")
         buf.trace.out("Let temporary \""+lptr+"\" be the corresponding address.")
         buf.code(LOADI, lptr, state_t_name(n["root"]), "%self$", pos)
-        buf.code(LOADD, lvar, ltype, lptr)
+        if (n["type"] ==ast.INTEGER or n["type"] ==ast.BOOL):
+            buf.code(LOADD, lvar, ltype, lptr)
+        else: # Derived data types (Arrays)
+            buf.code(GETPT, lvar, ltype, lptr)
     else:
         lvar, type = "", ""
     return (lvar, ltype)

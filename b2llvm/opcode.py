@@ -21,6 +21,7 @@ ICOMP = _TB + "{0} = icmp {1} {2}, {3}" + _NL
 LABEL = "{0}:" + _NL
 LOADD = _TB + "{0} = load {1}* {2}" + _NL
 LOADI = _TB + "{0} = getelementptr {1} {2}, i32 0, i32 {3}" + _NL
+GETPT = _TB + "{0} = getelementptr {1}* {2}, i32 0" + _NL
 OTYPE = "{0} = type opaque" + _NL
 RET   = _TB + "ret void" + _NL
 STORE = _TB + "store {0} {1}, {0}* {2}" + _NL
