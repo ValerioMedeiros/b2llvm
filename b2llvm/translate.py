@@ -380,7 +380,7 @@ def section_implementation(buf, m, emit_printer):
 #
 def x_type(t):
     """Returns the type for declaration."""
-    assert(t == ast.INTEGER or t == ast.BOOL or (t.get("dom")!= None and t.get("ran")!=None) )
+    assert(t == ast.INTEGER or t == ast.BOOL or (t.get("kind")== "arrayType") )
     if (t == ast.INTEGER):
         return "i32" 
     if (t == ast.BOOL):
