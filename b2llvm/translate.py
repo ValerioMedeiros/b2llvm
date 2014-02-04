@@ -288,10 +288,9 @@ def section_typedef(buf, m):
       - trace: a Tracer object
 
     Text of LLVM definitions for the types associated with the state of machine
-    m is appended to text. If the machine is stateful, two types are created: an
+    m is appended to text. If the machine is stateful, one type is created: an
     aggregate type encoding the state of n (or its implementation if it is a
-    developed machine), and one reference type, pointer to the previous type.
-    Otherwise, nothing is generated.
+    developed machine). Otherwise, nothing is generated.
     '''
     global NL
     check_kind(m, {"Machine"})
