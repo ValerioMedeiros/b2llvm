@@ -396,7 +396,7 @@ def x_arrayType(t):
     tr =""
     domain = t.get("dom")
     for elem in domain:
-        size =int(elem.get("end")) - int(elem.get("start"))
+        size =int(elem.get("end")) - int(elem.get("start"))+1
         tl += "[ "+str(size)+ " x "
         tr += "]"
     return tl + ranType + tr
@@ -940,7 +940,6 @@ def x_lvalue(buf, n):
     if n["kind"] == "arrayItem": 
         buf.trace.tab()
         v1,t1 = x_expression(buf, n["base"])
-         
         buf.trace.out("Variable array (base) \""+n["base"]["id"]+"\" is stored at position "+v1+" of \"%self$\". (arrayItem)")
         buf.trace.untab()
         
@@ -948,7 +947,8 @@ def x_lvalue(buf, n):
         #TODO: Create the function LRExp to getting a sequence of selected elements.
         #commas([ term(x) for x in n["lhs"]])
         
-        buf.trace.tab()
+        buf.trace.tab() 
+        #for elem in n["index"]:
         vi,ti = x_expression(buf, n["index"])
         v = names.new_local()
         buf.code(LOADI,v,t1+"*",v1,vi)
@@ -956,7 +956,6 @@ def x_lvalue(buf, n):
         buf.trace.out("Variable array (index) \""+printer.term(n["index"])+"\" is stored at position "+vi+" of \"%self$\". (arrayItem)")
         buf.trace.untab()
         
-        #TODO: Considering the interval (a..b):
         #TODO: Adjust the size o vector to size=(b-a+1)
         #TODO: Add suport to interval position(p) = (p-a)
         return (v, t)  
