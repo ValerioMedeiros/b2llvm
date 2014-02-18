@@ -253,7 +253,7 @@ or the structure.
 	\multicolumn{3}{|c|}{Access array : \B{ArrayItem}} \\
         \hline
 	\B{base} & : &  \B{Array} \\
-	\B{indices} & : & seq \B{Expr}\\
+	\B{indexes} & : & seq \B{Expr}\\
 	\B{type} & : & \B{ArrayType}\\
 	\hline
 	\multicolumn{3}{|c|}{Simple set : \B{Set}} \\
@@ -357,16 +357,10 @@ when it is a structure.
 Some examples of array are:
 \begin{itemize}
 	\item $array1 \in (0..10) \to INT $	(a simple array)
-	\item $array2 \in (0..10) \times (0..10) \to INT $   (a multidimensional array)
-	\item $array3 \in BOOL \times (0..10) \to INT$ (an array with two index types)
-	\item $\{1\vdash2\vdash3, 2\vdash3\vdash4\}  \in (INT \times INT) \times INT$ (an explicit array)
+	\item $array2 \in (1..10) \times (1..20) \times (1..30) \to INT $   (a multidimensional array)
+	\item $\{1\vdash1\vdash4, 1\vdash2\vdash5\}  \in (INT \times INT) \times INT$ (an initialised array)
 \end{itemize} 
 
-\paragraph{Attributions between array and structure}
-
-
-The B0 language supports attribution directly between arrays or structure, even though the attribution
-must have the same domain type and range type.
 
 \subsection{Relation arrays B0 and LLVM-IR}
 
@@ -377,56 +371,53 @@ This section shows the relation between arrays B0 and LLVM-IR. The sequence of
 steps are: defining  an array, getting an element and setting an
 element.
 
-\subsubsection{Defining an array}
+\subsubsection{Declaring an array}
 
 
-The essential elements of array are its name, size and type. The
-following code declares an array global called ``Array3'' with 6000 (10*20*30)
-integer numbers with 32 bits and initialized with zero.
+The essential elements of the array are its name, size and type. 
+The size of ``e'' array with the indexes (i1, ... , in) are defined according 
+to the formula: $size(e) = (e.i1\_end - e.i1\_star+1) * ... * (e.in\_end - 
+e.in\_start+1)$.
+
+The following code declares a multidimensional global array called ``Array2'' 
+with 6000 (10*20*30) integer numbers with 32 bits and initialized with zero.
 
 \begin{llvmcode}
-@Array3 = internal global [10 x [20 x [30 x i32]]] zeroinitializer, align 16
+@Array2 = internal global [10 x [20 x [30 x i32]]] zeroinitializer, align 16
 \end{llvmcode}
 
-Some type examples are:
-\begin{itemize}
-	\item \verb|[25 x i32]| - Array with 25 elements of 32-bit integer values.
-	\item \verb|[4 x [5 x [6 x i16]]] | - Multidimensional array with (4 x 5
-x 6) elements of 16-bit integer values.
-\end{itemize}
+\VGM{It is not implemented yet, because it requires generating an XML example.}
+The following example initialises a new array in C:
 
-%TODO: Explain the other rules of Array 
-%- Declaring the type of array  a : (INT X INT) --> INT
-%- Declaring a array dynamically {1|->2|->3, 2|->3|->4}
+\begin{ccode}
+int32_t arr[1][2][1]= {{{4},{5}}};
+\end{ccode}
 
+The syntax rule used to initialize an array in LLVM is:\\
+$@<var\_name> = constant [<size> x <type>] [<type> <value>]$.\\
+The translation of the last example is:
+
+\begin{llvmcode}
+@arr=constant[1 x [2 x [1 x i32]]] [[2 x [1 x i32]] [[1 x i32] [i32 4],[1 x i32] [i32 5]]]
+\end{llvmcode}
 
 
 \subsubsection{Getting a element from array}
-\VGM{Maybe it can be summarized with text of section 3}
 
 The LLVM-IR instruction \textit{getelementptr} is used to select an element in
 the array or structure. A simple example is: 
 
 \begin{llvmcode}
-  %7 = getelementptr [10 x [20 x [30 x i32]]]* @Array3, i32 0, i64 2, i64 3, i64 4
+%7 = getelementptr [10 x [20 x [30 x i32]]]* @Array2, i32 0, i64 2, i64 3, i64 4
 \end{llvmcode}
 
 
 The first parameter defines the type and name of the variable, and the others are
 indexes to select the element in the data type. The second parameter (i32 0)
-selects the first element in the pointer (* @Array3). The last elements 
-(i64 2, i64 3, i64 4) selects the value from position (2,3,4) storing it in \%7.
-This array is multidimensional then several index must be declared separated
+selects the first element in the pointer (* @Array2). The last elements 
+(i64 2, i64 3, i64 4) select the value from position (2,3,4) storing it in \%7.
+This array is multidimensional, so several indexes must be declared separated
 by comma to get the specific element.
-
-\iffalse
-\begin{verbatim}
-<temporary variable> = getelementptr  
-  [<number of elements> x <element type>]   * @<variable_name>, 
-  <type and index of pointer> <index_value>,
-  <type and index. ex:i64>  <index_value>
-\end{verbatim}
-\fi
 
 \subsubsection{Setting and getting array}
 
@@ -434,8 +425,8 @@ The following blocks illustrate a C code setting a value to array
 and its translation to LLVM-IR. 
 
 \begin{ccode} 
-  int x=2; int y=3; int z=4;
-  Array3[x][y][z]=7;
+int x=2; int y=3; int z=4;
+Array2[x][y][z]=7;
 \end{ccode}
 
 This example is translated in four steps. First, the variables \%x, \%y, \%z 
@@ -457,7 +448,7 @@ store i32 4, i32* %z, align 4
 %4 = sext i32 %3 to i64
 %5 = load i32* %x, align 4
 %6 = sext i32 %5 to i64
-%7 = getelementptr[10x[20x[30xi32]]]*@Array3,i32 0,i64 %6,i64 %4,i64 %2;getting an element
+%7 = getelementptr[10x[20x[30xi32]]]*@Array2,i32 0,i64 %6,i64 %4,i64 %2;getting an element
 store i32 7, i32* %7, align 4;setting an element
 \end{llvmcode}
 
@@ -483,6 +474,12 @@ type $t$.
 \end{split}
 \end{align*}
 
+
+The element access of array can need a shift in indexes. When the domain of 
+array is an interval and it is not started from zero, it must adjust the 
+indexes shifting the access, because the addressing  of array in intermediate 
+representation LLVM starts at 0.
+
 % Rule to get a element in array, it can be used in become equal or Expressions
 \begin{align*}
 \lefteqn{\trad{n}{lvalue} \isdef} \\
@@ -496,27 +493,45 @@ type $t$.
 
 
 \paragraph{Array item} selects an item in expressions as ``$a(n1,...,n_{n})$'', 
-where $a$ is $n.base$ and $n1,...,n_{n}$ is a sequence of indices that 
+where $a$ is $n.base$ and $n1,...,n_{n}$ is a sequence of indexes that 
 calculates the address of element. This rule also supports to translate 
 expressions of arrays.
 
 \begin{align*}
 \lefteqn{\trad{n}{ArrayItem} \isdef} \\
 &  \LET p_1 \sep v_1 \sep t_1  = \trad{n.base}{Exp}  \IN \\
-&  \LET r \sep p_2  = \trad{n.indices}{LRExp}  \IN \\
+&  \LET r \sep p_2  = \trad{n.indexes}{LRExp}  \IN \\
 &  \LET v =  \variable \AND  t = \trad{\B{n.type}}{Type}  \IN \\
 &  \llvm{"\PH{p_1} \PH{p_2} \PH{v} =  getelementptr \PH{t_1}, \PH{v_1}, i32 0 \PH{r}\nl"}  \sep v \sep t\\
 \end{align*}
 
 A list of type and variable is generated by the following rule.
-%TODO: check this rule with David 
-
+%TODO: insert a rule to do the shift address with the first element of interval
 \begin{align*}
 &\trad{n}{LRExp} \isdef \LET p \sep v \sep t  = \trad{n}{Exp}  \IN  \llvm{",\PH{t} \PH{v} "} \sep p\\
 &\trad{n l}{LRExp} \isdef \LET r_1 \sep p_1 = \trad{n}{LRExp} \AND 
  \LET r_2 \sep p_2 = \trad{l}{LRExp} \IN\\
 & \quad  \llvm{"\PH{r_1} \PH{r_2}"} \sep \llvm{"\PH{p_1} \PH{p_2}"}\\
 \end{align*}
+
+
+
+
+%TODO: support to shift between interval
+\begin{itemize}
+	\item $array2 \in (10..50) \times ((-10)..100) \to INT $   (a multidimensional array)
+\end{itemize}
+
+The array indexes can composed of only primitive types (INTEGER and BOOLEAN). To access an element the formula is $address(e(i1,..,in))  = i1-i1\_start, ... , in-in\_start$.
+
+%TODO create a new rule based on the below rule.
+
+
+ 
+%it must change the declaration and the rule of ArrayItem
+
+
+
 
 
 \paragraph{Restriction on array and structure:} The translation of direct attribution
@@ -527,6 +542,8 @@ A list of type and variable is generated by the following rule.
  structure1 := structure2;
 \end{pascalcode}
 
+The B0 language supports attribution directly between arrays or structures, even though the attribution
+must have the same domain type and range type. 
 
 
 \section*{Attachments}
