@@ -57,11 +57,12 @@
 \newcommand{\self}[0]{\ensuremath{\sf\Sigma}}
 \newcommand{\init}[0]{\ensuremath{\mathsf{I}}}
 \newcommand{\tradi}[2]{\ensuremath{\langle \textsf{#1} \rangle^{\textit{#2}}}}
+\newcommand{\SBPos}[0]{\ensuremath{\sf\varphi}}
+\newcommand{\SBType}[0]{\ensuremath{\sf\tau}}
 
 \newcommand{\DD}[1]{\marginpar{\tiny{DD: #1}}}
 \newcommand{\VGM}[1]{\marginpar{\tiny{VGM: #1}}}
 
-\newcommand{\stateindex}[0]{\ensuremath{\sf\tau}}
  
 \author{David Déharbe, Valério Medeiros Jr.}
 \title{Array}
@@ -137,14 +138,13 @@ or the structure.
         \multicolumn{3}{|c|}{Block: \B{Blk}} \\
         \hline
         \B{body} & : & seq \B{Inst} \\
-	\end{tabular}
-      
-       \begin{tabular}[t]{rcl}   
         \hline
         \multicolumn{3}{|c|}{Variable declaration: \B{VarD}} \\
         \hline
         \B{vars} & : & seq \B{Name} \\
         \B{body} & : & seq \B{Inst} \\
+\end{tabular}
+\begin{tabular}[t]{rcl}   
   	\hline
         \multicolumn{3}{|c|}{If: \B{If}} \\
         \hline
@@ -157,7 +157,7 @@ or the structure.
 	\hline
 	\multicolumn{3}{|c|}{Label value: \B{LValue}} \\	
 	\hline
-	\multicolumn{3}{c}{ \B{Vari} \alt \B{ArrayItem} }\\
+	\multicolumn{3}{c}{ \B{Vari} \alt \B{ArrayItem} \alt \B{StructItem} }\\
         \hline
         \multicolumn{3}{|c|}{Operation call: \B{Call}} \\
         \hline
@@ -189,8 +189,8 @@ or the structure.
         \hline
         \multicolumn{3}{|c|}{Expression: \B{Expr}} \\
         \hline
-        \multicolumn{3}{c} {\B{Lit} \alt \B{Term} \alt \B{Pred} \alt \B{Cons}}\\
-	\multicolumn{3}{c} {\B{Vari} \alt \B{Array} \alt \B{ArrayItem} } \\
+        \multicolumn{3}{c}{\B{Lit}\alt\B{Term}\alt\B{Pred}\alt\B{Cons}\alt\B{Record}}\\
+	\multicolumn{3}{c}{\B{Vari}\alt\B{StructItem}\alt\B{ArrayItem} } \\
         \hline
         \multicolumn{3}{|c|}{Term expression: \B{Term}} \\
         \hline
@@ -200,19 +200,20 @@ or the structure.
         \multicolumn{3}{|c|}{Predicate: \B{Pred}} \\
         \hline
         \multicolumn{3}{c}{\B{Form} \alt \B{Comp}} \\
-\end{tabular} 
-       
-  \begin{tabular}[t]{rcl}
 	\hline
         \multicolumn{3}{|c|}{Boolean formula: \B{Form}} \\
         \hline
         \B{op} & : & \B{BoolOp} \\
         \B{args} & : & seq \B{Pred} \\
-        \hline
+	\hline
         \multicolumn{3}{|c|}{Comparison: \B{Comp}} \\
         \hline
         \B{op} & : & \B{RelOp} \\
         \B{arg1}, \B{arg2} & : & \B{Exp} \\
+
+\end{tabular} 
+       
+\begin{tabular}[t]{rcl}
         \hline
         \multicolumn{3}{|c|}{Data type: \B{Type}} \\
         \hline
@@ -225,12 +226,17 @@ or the structure.
         \B{elements} & : & seq \B{Name} \\
 	\B{type} & : & seq \B{Type}\\
 	\hline
-%  	\multicolumn{3}{|c|}{Data record : \B{Record}} \\
-%        \hline
-%	\B{id} & : &  \B{Name}\\
-%        \B{elements} & : & seq \B{Name} \\
-%	\B{type} & : & \B{Struct}\\
-%	\hline
+	\multicolumn{3}{|c|}{Access struct : \B{StructItem}} \\
+        \hline
+	\B{base} & : &  \B{Struct} \\
+	\B{element} & : & \B{Name}\\
+	\B{type} & : & \B{Type}\\
+	\hline
+	\multicolumn{3}{|c|}{Record Structure : \B{Record}} \\
+        \hline
+	\B{elements} & : & seq \B{Name}\\
+	\B{values} & : & seq \B{Expr}\\
+	\hline
         \multicolumn{3}{|c|}{Array type : \B{ArrayType}} \\
         \hline 
 	\B{dom} & : & seq \B{Set}\\
@@ -238,7 +244,7 @@ or the structure.
         \hline
         \multicolumn{3}{|c|}{Array expression : \B{Array}} \\
         \hline
-	\multicolumn{3}{c}{ seq \B{Map} \alt \B{Product} }\\
+	\multicolumn{3}{c}{ seq \B{Map} \alt \B{Product} \alt \B{Name}  }\\
 	\hline
   	\multicolumn{3}{|c|}{Ordered pair : \B{Map}} \\
         \hline
@@ -253,7 +259,7 @@ or the structure.
 	\multicolumn{3}{|c|}{Access array : \B{ArrayItem}} \\
         \hline
 	\B{base} & : &  \B{Array} \\
-	\B{indices} & : & seq \B{Expr}\\
+	\B{indexes} & : & seq \B{Expr}\\
 	\B{type} & : & \B{ArrayType}\\
 	\hline
 	\multicolumn{3}{|c|}{Simple set : \B{Set}} \\
@@ -332,41 +338,80 @@ respective set.}
 
 \VGM{To support arrays and structures, I added only + after index.} 
 
-\section{Translation of Array and Structures}
 
 
-Two approaches are possible to support arrays. An approach is importing
-reusable libraries of AtelierB that are reported in the official document of
-ClearSy\footnote{\url{http://www.atelierb.eu/ressources/DOC/english/reusable-components-reference.pdf}}.
-This approach is supported, but the generated code is more complex and it needs
-more intermediate steps to manipulate the data of imported components. Moreover,
-this approach allows dynamic allocation for arrays, but it is strongly not
-recommended to safety-critical systems. A second approach enjoys the direct 
-correspondence between B0 native arrays and LLVM-IR and this approach is presented here.
+\subsection{Rules to be updated in first specification}
 
+\paragraph{Becomes equal instructions} must evaluate the target and the source
+of the assignment, and then copy the result of the latter in the former, using
+the LLVM instruction \llvm{store}. The evaluation of the target is defined with
+$\trad{}{lvalue}$, which yields the corresponding LLVM source code $l$ and the
+variable $p$ containing the assigned location. The evaluation of the source
+yields the corresponding code $r$, the variable $v$ holding the result, and its
+type $t$. 
+
+\begin{align*}
+\begin{split}
+  \trad{a}{\B{Beq}} \isdef
+  & \LET l \sep p \sep t'= \trad{a.lhs}{lvalue} \AND r \sep v \sep t = \trad{a.rhs}{\B{Expr}} \IN \\
+  & \llvm{"\PH{l}} \\
+  & \llvm{\PH{r}} \\
+  & \llvm{store \PH{t} \PH{v}, \PH{t'} \PH{p} \nl"}
+\end{split}
+\end{align*}
+
+The rule lvalue is:
+\begin{align*}
+\lefteqn{\trad{n}{lvalue} \isdef} \\
+& \LET t = \llvm{"\PH{\trad{\B{n.type}}{Type}}"} \IN \\
+& \quad \IF \mbox{\B{n} is a local variable} \THEN \llvm{""} \sep \local(\B{n}) \sep t \\
+& \quad \IF \mbox{\B{n} is an array item} \THEN  \trad{n}{ArrayItem} \\
+& \quad \IF \mbox{\B{n} is a struct item} \THEN  \trad{n}{StructItem} \\
+& \quad \ELSE \LET v = \variable \IN \\
+& \quad \quad \llvm{"\PH{v} = getelementptr \PH{\state(\B{n.root})}* \%self\$,} \\
+& \quad \quad \quad \llvm{i32 0, i32 \PH{\idx(\B{n})} \nl"} \sep v \sep t
+\end{align*}
+
+
+\section{Translation of Structures and Array}
+
+Two approaches are possible to support arrays and structures. An approach is importing reusable libraries of AtelierB that are reported in the official document of ClearSy\footnote{\url{http://www.atelierb.eu/ressources/DOC/english/reusable-components-reference.pdf}}. This approach is supported, but the generated code is more complex and it needs more intermediate steps to manipulate the data of imported components. Moreover, this approach allows dynamic allocation for arrays, but it is strongly not recommended to safety-critical systems. A second approach enjoys the direct correspondence between B0 native arrays and LLVM-IR and this approach is presented here.
+
+\subsection{Structure}
+The struct declaration defines a list of variables to be placed under one name, 
+allowing several variables to be accessed by one base name. This example get andset one value of xx'balance and initializes a structure. 
+ 
+\begin{ccode}
+xx := rec(name:aa, balance:10) ;
+xx'balance := xx'balance -1;
+\end{ccode}
+
+The following rule get an element value from the struct. The same rule is used in left side of attribution as a $LValue$ and right side of attribution as an $Expression$. The functions \SBPos(n) and \SBType(n)  get respectively the position and type of $n$ element in the structure. 
+
+\begin{align*}
+\begin{split}
+  \trad{n}{\B{StructItem}} \isdef \\
+   & \LET \ell = \lbl \AND \PH{t} = n.type \AND \PH{v} = n.element \IN\\
+   & \llvm{"\PH{\ell} = getelementptr \%\PH{t} @\PH{v}, i32 0, i32  \SBPos(\B{n})"} \\
+   & \sep  \ell  \sep \SBType(\B{n})  \\
+\end{split}
+\end{align*}
+
+The attribution from record structure to a structure variable, line 1 from last code example, is translated by a sequence of application of rule $StructItem$.
+
+\section{Arrays}
 A concrete array is a total function where the domain indexes the range 
 elements. The domain is composed of Cartesian product of sequence of concrete 
-sets. The node Data array in AST can represent a declaration of array or a 
-selection of element. The first element ``dec'' declares explicitly an array or 
-references a variable array. The second element ``type'' defines a sequence of 
-array types, where the last element defines the range of function and the other 
-elements define the domain. The third element ``indexes'' is optional, and it 
-represents the selection of an element in array, or the same type structure 
-when it is a structure.
+sets. The node Array in AST represents a declaration of array or a 
+selection of element.
 
 Some examples of array are:
 \begin{itemize}
 	\item $array1 \in (0..10) \to INT $	(a simple array)
-	\item $array2 \in (0..10) \times (0..10) \to INT $   (a multidimensional array)
-	\item $array3 \in BOOL \times (0..10) \to INT$ (an array with two index types)
-	\item $\{1\vdash2\vdash3, 2\vdash3\vdash4\}  \in (INT \times INT) \times INT$ (an explicit array)
+	\item $array2 \in (1..10) \times (1..20) \times (1..30) \to INT $   (a multidimensional array)
+	\item $\{1\vdash1\vdash4, 1\vdash2\vdash5\}  \in (INT \times INT) \times INT$ (an initialised array)
 \end{itemize} 
 
-\paragraph{Attributions between array and structure}
-
-
-The B0 language supports attribution directly between arrays or structure, even though the attribution
-must have the same domain type and range type.
 
 \subsection{Relation arrays B0 and LLVM-IR}
 
@@ -377,56 +422,53 @@ This section shows the relation between arrays B0 and LLVM-IR. The sequence of
 steps are: defining  an array, getting an element and setting an
 element.
 
-\subsubsection{Defining an array}
+\subsubsection{Declaring an array}
 
 
-The essential elements of array are its name, size and type. The
-following code declares an array global called ``Array3'' with 6000 (10*20*30)
-integer numbers with 32 bits and initialized with zero.
+The essential elements of the array are its name, size and type. 
+The size of ``e'' array with the indexes (i1,...,in) are defined according 
+to the formula: $size(e) = (e.i1\_end - e.i1\_star+1) * ... * (e.in\_end - 
+e.in\_start+1)$.
+
+The following code declares a multidimensional global array called ``Array2'' 
+with 6000 (10*20*30) integer numbers with 32 bits and initialized with zero.
 
 \begin{llvmcode}
-@Array3 = internal global [10 x [20 x [30 x i32]]] zeroinitializer, align 16
+@Array2 = internal global [10 x [20 x [30 x i32]]] zeroinitializer, align 16
 \end{llvmcode}
 
-Some type examples are:
-\begin{itemize}
-	\item \verb|[25 x i32]| - Array with 25 elements of 32-bit integer values.
-	\item \verb|[4 x [5 x [6 x i16]]] | - Multidimensional array with (4 x 5
-x 6) elements of 16-bit integer values.
-\end{itemize}
+\VGM{It is not implemented yet, because it requires generating an XML example.}
+The following example initialises a new array in C:
 
-%TODO: Explain the other rules of Array 
-%- Declaring the type of array  a : (INT X INT) --> INT
-%- Declaring a array dynamically {1|->2|->3, 2|->3|->4}
+\begin{ccode}
+int32_t arr[1][2][1]= {{{4},{5}}};
+\end{ccode}
 
+The syntax rule used to initialize an array in LLVM is:\\
+$@<var\_name> = constant [<size> x <type>] [<type> <value>]$.\\
+The translation of the last example is:
+
+\begin{llvmcode}
+@arr=constant[1 x [2 x [1 x i32]]] [[2 x [1 x i32]] [[1 x i32] [i32 4],[1 x i32] [i32 5]]]
+\end{llvmcode}
 
 
 \subsubsection{Getting a element from array}
-\VGM{Maybe it can be summarized with text of section 3}
 
 The LLVM-IR instruction \textit{getelementptr} is used to select an element in
 the array or structure. A simple example is: 
 
 \begin{llvmcode}
-  %7 = getelementptr [10 x [20 x [30 x i32]]]* @Array3, i32 0, i64 2, i64 3, i64 4
+%7 = getelementptr [10 x [20 x [30 x i32]]]* @Array2, i32 0, i64 2, i64 3, i64 4
 \end{llvmcode}
 
 
 The first parameter defines the type and name of the variable, and the others are
 indexes to select the element in the data type. The second parameter (i32 0)
-selects the first element in the pointer (* @Array3). The last elements 
-(i64 2, i64 3, i64 4) selects the value from position (2,3,4) storing it in \%7.
-This array is multidimensional then several index must be declared separated
+selects the first element in the pointer (* @Array2). The last elements 
+(i64 2, i64 3, i64 4) select the value from position (2,3,4) storing it in \%7.
+This array is multidimensional, so several indexes must be declared separated
 by comma to get the specific element.
-
-\iffalse
-\begin{verbatim}
-<temporary variable> = getelementptr  
-  [<number of elements> x <element type>]   * @<variable_name>, 
-  <type and index of pointer> <index_value>,
-  <type and index. ex:i64>  <index_value>
-\end{verbatim}
-\fi
 
 \subsubsection{Setting and getting array}
 
@@ -434,8 +476,8 @@ The following blocks illustrate a C code setting a value to array
 and its translation to LLVM-IR. 
 
 \begin{ccode} 
-  int x=2; int y=3; int z=4;
-  Array3[x][y][z]=7;
+int x=2; int y=3; int z=4;
+Array2[x][y][z]=7;
 \end{ccode}
 
 This example is translated in four steps. First, the variables \%x, \%y, \%z 
@@ -457,66 +499,70 @@ store i32 4, i32* %z, align 4
 %4 = sext i32 %3 to i64
 %5 = load i32* %x, align 4
 %6 = sext i32 %5 to i64
-%7 = getelementptr[10x[20x[30xi32]]]*@Array3,i32 0,i64 %6,i64 %4,i64 %2;getting an element
+%7 = getelementptr[10x[20x[30xi32]]]*@Array2,i32 0,i64 %6,i64 %4,i64 %2;getting an element
 store i32 7, i32* %7, align 4;setting an element
 \end{llvmcode}
 
 
-\subsection{Rules}
-
-
-\paragraph{Becomes equal instructions} must evaluate the target and the source
-of the assignment, and then copy the result of the latter in the former, using
-the LLVM instruction \llvm{store}. The evaluation of the target is defined with
-$\trad{}{lvalue}$, which yields the corresponding LLVM source code $l$ and the
-variable $p$ containing the assigned location. The evaluation of the source
-yields the corresponding code $r$, the variable $v$ holding the result, and its
-type $t$. 
-
-\begin{align*}
-\begin{split}
-  \trad{a}{\B{Beq}} \isdef
-  & \LET l \sep p \sep t'= \trad{a.lhs}{lvalue} \AND r \sep v \sep t = \trad{a.rhs}{\B{Expr}} \IN \\
-  & \llvm{"\PH{l}} \\
-  & \llvm{\PH{r}} \\
-  & \llvm{store \PH{t} \PH{v}, \PH{t'} \PH{p} \nl"}
-\end{split}
-\end{align*}
-
-% Rule to get a element in array, it can be used in become equal or Expressions
-\begin{align*}
-\lefteqn{\trad{n}{lvalue} \isdef} \\
-& \LET t = \llvm{"\PH{\trad{\B{n.type}}{Type}}"} \IN \\
-& \quad \IF \mbox{\B{n} is a local variable} \THEN \llvm{""} \sep \local(\B{n}) \sep t \\
-& \quad \IF \mbox{\B{n} is an array} \THEN  \trad{n}{ArrayItem} \\
-& \quad \ELSE \LET v = \variable \IN \\
-& \quad \quad \llvm{"\PH{v} = getelementptr \PH{\state(\B{n.root})}* \%self\$,} \\
-& \quad \quad \quad \llvm{i32 0, i32 \PH{\idx(\B{n})} \nl"} \sep v \sep t
-\end{align*}
+\subsection{Rules for support Array}
 
 
 \paragraph{Array item} selects an item in expressions as ``$a(n1,...,n_{n})$'', 
-where $a$ is $n.base$ and $n1,...,n_{n}$ is a sequence of indices that 
+where $a$ is $n.base$ and $n1,...,n_{n}$ is a sequence of indexes that 
 calculates the address of element. This rule also supports to translate 
 expressions of arrays.
 
 \begin{align*}
 \lefteqn{\trad{n}{ArrayItem} \isdef} \\
 &  \LET p_1 \sep v_1 \sep t_1  = \trad{n.base}{Exp}  \IN \\
-&  \LET p_2 \sep v_2 \sep t_2  = \trad{n.indices}{\ListOf{Exp}}  \IN \\
+&  \LET r \sep p_2  = \trad{n.indexes}{LRExp}  \IN \\
 &  \LET v =  \variable \AND  t = \trad{\B{n.type}}{Type}  \IN \\
-&  \llvm{"\PH{p_1} \PH{p_2} \PH{v} =  getelementptr \PH{t_1}, \PH{v_1}, i32 0 \ListOf{(,\PH{t_2} \PH{v_2})}\nl"}  \sep v \sep t\\
+&  \llvm{"\PH{p_1} \PH{p_2} \PH{v} =  getelementptr \PH{t_1}, \PH{v_1}, i32 0 \PH{r}\nl"}  \sep v \sep t\\
+\end{align*}
+
+A list of type and variable is generated by the following rule.
+\begin{align*}
+&\trad{n}{LRExp} \isdef \LET p \sep v \sep t  = \trad{n}{ShiftExp}  \IN  \llvm{",\PH{t} \PH{v} "} \sep p\\
+&\trad{n l}{LRExp} \isdef \LET r_1 \sep p_1 = \trad{n}{LRExp} \AND 
+ \LET r_2 \sep p_2 = \trad{l}{LRExp} \IN\\
+& \quad  \llvm{"\PH{r_1} \PH{r_2}"} \sep \llvm{"\PH{p_1} \PH{p_2}"}\\
 \end{align*}
 
 
-\paragraph{Restriction on array and structure:} The translation of direct attribution
+The element access of array can need a shift in indexes. When the domain of 
+array is an interval and it is not started from zero, it must adjust the 
+indexes shifting the access, because the addressing  of array in intermediate 
+representation LLVM starts at 0. To access an element from array the formula is 
+$address(e(i1,..,in))  = i1-i1\_start, ... , in-in\_start$. The following rule 
+\footnote{The function $TSymbol$ returns the "start", "end" and type of the one 
+index.} makes the shift for each index of array. \VGM{TODO: The function TSymbol
+returns the "start", "end" and type of the one index.}
+
+\begin{align*}
+&\trad{n}{ShiftExp} \isdef \LET p \sep v \sep t  = \trad{n}{Exp} \AND \\
+&\quad iStart \sep iEnd \sep iType = \trad{n}{TSymbol}  \AND  \ell = \lbl \IN \\
+&\quad \IF ( iStart == 0 ) \THEN  \llvm{",\PH{t} \PH{v} "} \sep p \\
+&\quad \ELSE \LET  p \sep v \sep v' \sep t'  = \trad{p,t,v,itype,istart}{Cast} \IN \\
+&\quad \llvm{",\PH{t} \PH{l} "} \sep  \llvm{"\PH{p} \PH{\ell} = sub \PH{t'} \PH{v}, \PH{v'}\nl"}  \\
+\end{align*}
+
+The \trad{}{ShiftExp} rule does a subtraction and this operation must have operators with the same data types so the following cast rule is used:
+
+\begin{align*}
+&\trad{p,t,v,t',v'}{Cast} \isdef \LET  \ell = \lbl \IN \\
+&\quad \IF ( t == t') \THEN p \sep v \sep v' \sep t  \\
+&\quad \ELSE \IF (t<t') \THEN \\
+&\quad \quad \llvm{"\PH{p} \PH{l}= bitcast \PH{t} \PH{v} , \PH{t'}\nl"}  \sep l \sep v' \sep t'\\ 
+&\quad \ELSE \\ 
+&\quad \quad \llvm{"\PH{p} \PH{l}= bitcast \PH{t'} \PH{v'} , \PH{t}\nl"} \sep v \sep l \sep t \\ 
+\end{align*}
+
+\paragraph{Restriction on array:} The translation of direct attribution
  between array expression is not yet supported, for example:
 
 \begin{pascalcode}
  array1 := array2;
- structure1 := structure2;
 \end{pascalcode}
-
 
 
 \section*{Attachments}
@@ -526,7 +572,7 @@ expressions of arrays.
 The following code example is defining a structure:
 
 
-\begin{minted}[frame=single,bgcolor=bg,linenos=true,fontsize=\scriptsize]{c}
+\begin{ccode}
 MACHINE Rec
 SETS
  ID={aa,bb}
@@ -555,10 +601,10 @@ OPERATIONS
        xx'balance := xx'balance - 1
   END
 END
-\end{minted}
+\end{ccode}
 
 
-\begin{minted}[frame=single,bgcolor=bg,linenos=true,fontsize=\scriptsize]{c}
+\begin{ccode}
 IMPLEMENTATION
     Rec_i
 
@@ -590,7 +636,7 @@ OPERATIONS
        xx'balance := xx'balance -1 
   END
 END
-\end{minted}
+\end{ccode}
 
 
 
@@ -608,8 +654,7 @@ This example can be used in approach using imported components.
 \subsection{A  simple example and its LLVM-IR}
 
 
-\begin{minted}[frame=single,bgcolor=bg,linenos=true,fontsize=\scriptsize]{c}
-
+\begin{ccode}
 MACHINE
    Array
 VARIABLES arr
@@ -637,9 +682,9 @@ swap(ix, jx)=
         END
 
 END
-\end{minted}
+\end{ccode}
 
-\begin{minted}[frame=single,bgcolor=bg,linenos=true,fontsize=\scriptsize]{c}
+\begin{ccode}
 IMPLEMENTATION 
    Array_i
 REFINES
@@ -679,18 +724,13 @@ OPERATIONS
            arr(ix) := temp
        END
    END
-
-
 END
-
-
-\end{minted}
+\end{ccode}
 
 
 
 
-\begin{minted}[frame=single,bgcolor=bg,linenos=true,fontsize=\scriptsize]{llvm}
-
+\begin{ccode}
 @Array__arr = internal global [100 x i32] zeroinitializer, align 16
 
 define void @Array__INITIALISATION() nounwind ssp {
@@ -732,11 +772,10 @@ define void @Array__set(i32 %ix, i32 %tt) nounwind ssp {
 ; <label>:19                                      ; preds = %14, %11, %8, %5, %0
   ret void
 }
-\end{minted}
+\end{ccode}
 
 
-\begin{minted}[frame=single,bgcolor=bg,linenos=true,fontsize=\scriptsize]{llvm}
-
+\begin{llvmcode}
 define void @Array__read(i32 %ix, i32* %tt) nounwind ssp {
   %1 = alloca i32, align 4
   %2 = alloca i32*, align 8
@@ -768,11 +807,10 @@ define void @Array__read(i32 %ix, i32* %tt) nounwind ssp {
 ; <label>:16                                      ; preds = %14, %8
   ret void
 }
-\end{minted}
+\end{llvmcode}
 
 
-\begin{minted}[frame=single,bgcolor=bg,linenos=true,fontsize=\scriptsize]{llvm}
-
+\begin{llvmcode}
 define void @Array__swap(i32 %ix, i32 %jx) nounwind ssp {
   %1 = alloca i32, align 4
   %2 = alloca i32, align 4
@@ -823,14 +861,14 @@ define void @Array__swap(i32 %ix, i32 %jx) nounwind ssp {
   ret void
 }
 
-\end{minted}
+\end{llvmcode}
 
 
 
 
 \subsection{Real example - Bubble Sort}
 
-\begin{minted}[frame=single,bgcolor=bg,linenos=true,fontsize=\scriptsize]{c}
+\begin{ccode}
 MACHINE
    Bubble
 VARIABLES
@@ -895,9 +933,7 @@ OPERATIONS
 	END
    END
 END
-
-
-\end{minted}
+\end{ccode}
 
 
 \end{document}
