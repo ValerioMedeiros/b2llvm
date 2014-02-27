@@ -57,11 +57,12 @@
 \newcommand{\self}[0]{\ensuremath{\sf\Sigma}}
 \newcommand{\init}[0]{\ensuremath{\mathsf{I}}}
 \newcommand{\tradi}[2]{\ensuremath{\langle \textsf{#1} \rangle^{\textit{#2}}}}
+\newcommand{\SBPos}[0]{\ensuremath{\sf\varphi}}
+\newcommand{\SBType}[0]{\ensuremath{\sf\tau}}
 
 \newcommand{\DD}[1]{\marginpar{\tiny{DD: #1}}}
 \newcommand{\VGM}[1]{\marginpar{\tiny{VGM: #1}}}
 
-\newcommand{\stateindex}[0]{\ensuremath{\sf\tau}}
  
 \author{David Déharbe, Valério Medeiros Jr.}
 \title{Array}
@@ -137,14 +138,13 @@ or the structure.
         \multicolumn{3}{|c|}{Block: \B{Blk}} \\
         \hline
         \B{body} & : & seq \B{Inst} \\
-	\end{tabular}
-      
-       \begin{tabular}[t]{rcl}   
         \hline
         \multicolumn{3}{|c|}{Variable declaration: \B{VarD}} \\
         \hline
         \B{vars} & : & seq \B{Name} \\
         \B{body} & : & seq \B{Inst} \\
+\end{tabular}
+\begin{tabular}[t]{rcl}   
   	\hline
         \multicolumn{3}{|c|}{If: \B{If}} \\
         \hline
@@ -200,14 +200,14 @@ or the structure.
         \multicolumn{3}{|c|}{Predicate: \B{Pred}} \\
         \hline
         \multicolumn{3}{c}{\B{Form} \alt \B{Comp}} \\
-\end{tabular} 
-       
-  \begin{tabular}[t]{rcl}
 	\hline
         \multicolumn{3}{|c|}{Boolean formula: \B{Form}} \\
         \hline
         \B{op} & : & \B{BoolOp} \\
         \B{args} & : & seq \B{Pred} \\
+\end{tabular} 
+       
+\begin{tabular}[t]{rcl}
         \hline
         \multicolumn{3}{|c|}{Comparison: \B{Comp}} \\
         \hline
@@ -225,12 +225,12 @@ or the structure.
         \B{elements} & : & seq \B{Name} \\
 	\B{type} & : & seq \B{Type}\\
 	\hline
-%  	\multicolumn{3}{|c|}{Data record : \B{Record}} \\
-%        \hline
-%	\B{id} & : &  \B{Name}\\
-%        \B{elements} & : & seq \B{Name} \\
-%	\B{type} & : & \B{Struct}\\
-%	\hline
+	\multicolumn{3}{|c|}{Access struct : \B{StructItem}} \\
+        \hline
+	\B{base} & : &  \B{Struct} \\
+	\B{element} & : & \B{Name}\\
+	\B{type} & : & \B{Type}\\
+	\hline
         \multicolumn{3}{|c|}{Array type : \B{ArrayType}} \\
         \hline 
 	\B{dom} & : & seq \B{Set}\\
@@ -334,19 +334,46 @@ respective set.}
 
 \section{Translation of Array and Structures}
 
+Two approaches are possible to support arrays and structures. An approach is importing reusable libraries of AtelierB that are reported in the official document of ClearSy\footnote{\url{http://www.atelierb.eu/ressources/DOC/english/reusable-components-reference.pdf}}. This approach is supported, but the generated code is more complex and it needs more intermediate steps to manipulate the data of imported components. Moreover, this approach allows dynamic allocation for arrays, but it is strongly not recommended to safety-critical systems. A second approach enjoys the direct correspondence between B0 native arrays and LLVM-IR and this approach is presented here.
 
-Two approaches are possible to support arrays. An approach is importing
-reusable libraries of AtelierB that are reported in the official document of
-ClearSy\footnote{\url{http://www.atelierb.eu/ressources/DOC/english/reusable-components-reference.pdf}}.
-This approach is supported, but the generated code is more complex and it needs
-more intermediate steps to manipulate the data of imported components. Moreover,
-this approach allows dynamic allocation for arrays, but it is strongly not
-recommended to safety-critical systems. A second approach enjoys the direct 
-correspondence between B0 native arrays and LLVM-IR and this approach is presented here.
+\section{Structure}
+The struct declaration defines a list of variables to be placed under one name, 
+allowing several variables to be accessed by one base name. This example get andset one value of xx'balance and initializes a structure. 
+ 
+\begin{ccode}
+xx := rec(name:aa, balance:10) ;
+xx'balance := xx'balance -1;
+\end{ccode}
 
+The following rule get an element value from the struct. The same rule is used in left side of attribution and right side of attribution. The functions \SBPos(n) and \SBType(n)  get respectively the position and type of $n$ element in the structure. 
+\begin{align*}
+\begin{split}
+  \trad{n}{\B{StructItem}} \isdef \\
+   & \LET \ell = \lbl \AND \PH{t} = n.type \AND \PH{v} = n.element \IN\\
+   & \llvm{"\PH{\ell} = getelementptr \%\PH{t} @\PH{v}, i32 0, i32  \SBPos(\B{n})"} \\
+   & \sep  \ell  \sep \SBType(\B{n})  \\
+\end{split}
+\end{align*}
+
+AST
+
+record structure : Record
+elements : seq Name;
+values : seq Expr;
+
+Isto é uma expressão
+
+
+
+
+To remove the restrictions:
+( ) The direct attribution between arrays  is madded in similar way 
+
+\section{Arrays}
+%TODO: update according the new names in AST, just change the names.
 A concrete array is a total function where the domain indexes the range 
 elements. The domain is composed of Cartesian product of sequence of concrete 
-sets. The node Data array in AST can represent a declaration of array or a 
+sets. The node Array in AST represents a declaration of array or a 
 selection of element. The first element ``dec'' declares explicitly an array or 
 references a variable array. The second element ``type'' defines a sequence of 
 array types, where the last element defines the range of function and the other 
@@ -375,7 +402,7 @@ element.
 
 
 The essential elements of the array are its name, size and type. 
-The size of ``e'' array with the indexes (i1, ... , in) are defined according 
+The size of ``e'' array with the indexes (i1,...,in) are defined according 
 to the formula: $size(e) = (e.i1\_end - e.i1\_star+1) * ... * (e.in\_end - 
 e.in\_start+1)$.
 
@@ -500,7 +527,6 @@ expressions of arrays.
 \end{align*}
 
 A list of type and variable is generated by the following rule.
-%TODO: insert a rule to do the shift address with the first element of interval
 \begin{align*}
 &\trad{n}{LRExp} \isdef \LET p \sep v \sep t  = \trad{n}{ShiftExp}  \IN  \llvm{",\PH{t} \PH{v} "} \sep p\\
 &\trad{n l}{LRExp} \isdef \LET r_1 \sep p_1 = \trad{n}{LRExp} \AND 
@@ -526,8 +552,7 @@ returns the "start", "end" and type of the one index.}
 &\quad \llvm{",\PH{t} \PH{l} "} \sep  \llvm{"\PH{p} \PH{\ell} = sub \PH{t'} \PH{v}, \PH{v'}\nl"}  \\
 \end{align*}
 
-The \trad{}{ShiftExp} rule does a subtraction and this operation must have operators 
-with the same data types so the following cast rule is used:
+The \trad{}{ShiftExp} rule does a subtraction and this operation must have operators with the same data types so the following cast rule is used:
 
 \begin{align*}
 &\trad{p,t,v,t',v'}{Cast} \isdef \LET  \ell = \lbl \IN \\
@@ -538,25 +563,11 @@ with the same data types so the following cast rule is used:
 &\quad \quad \llvm{"\PH{p} \PH{l}= bitcast \PH{t'} \PH{v'} , \PH{t}\nl"} \sep v \sep l \sep t \\ 
 \end{align*}
 
-
-
-
-
-
-
-
-
-
-\paragraph{Restriction on array and structure:} The translation of direct attribution
+\paragraph{Restriction on array:} The translation of direct attribution
  between array expression is not yet supported, for example:
-
 \begin{pascalcode}
  array1 := array2;
- structure1 := structure2;
 \end{pascalcode}
-
-The B0 language supports attribution directly between arrays or structures, even though the attribution
-must have the same domain type and range type. 
 
 
 \section*{Attachments}
@@ -566,7 +577,7 @@ must have the same domain type and range type.
 The following code example is defining a structure:
 
 
-\begin{minted}[frame=single,bgcolor=bg,linenos=true,fontsize=\scriptsize]{c}
+\begin{ccode}
 MACHINE Rec
 SETS
  ID={aa,bb}
@@ -595,10 +606,10 @@ OPERATIONS
        xx'balance := xx'balance - 1
   END
 END
-\end{minted}
+\end{ccode}
 
 
-\begin{minted}[frame=single,bgcolor=bg,linenos=true,fontsize=\scriptsize]{c}
+\begin{ccode}
 IMPLEMENTATION
     Rec_i
 
@@ -630,7 +641,7 @@ OPERATIONS
        xx'balance := xx'balance -1 
   END
 END
-\end{minted}
+\end{ccode}
 
 
 
@@ -648,8 +659,7 @@ This example can be used in approach using imported components.
 \subsection{A  simple example and its LLVM-IR}
 
 
-\begin{minted}[frame=single,bgcolor=bg,linenos=true,fontsize=\scriptsize]{c}
-
+\begin{ccode}
 MACHINE
    Array
 VARIABLES arr
@@ -677,9 +687,9 @@ swap(ix, jx)=
         END
 
 END
-\end{minted}
+\end{ccode}
 
-\begin{minted}[frame=single,bgcolor=bg,linenos=true,fontsize=\scriptsize]{c}
+\begin{ccode}
 IMPLEMENTATION 
    Array_i
 REFINES
@@ -719,18 +729,13 @@ OPERATIONS
            arr(ix) := temp
        END
    END
-
-
 END
-
-
-\end{minted}
+\end{ccode}
 
 
 
 
-\begin{minted}[frame=single,bgcolor=bg,linenos=true,fontsize=\scriptsize]{llvm}
-
+\begin{ccode}
 @Array__arr = internal global [100 x i32] zeroinitializer, align 16
 
 define void @Array__INITIALISATION() nounwind ssp {
@@ -772,11 +777,10 @@ define void @Array__set(i32 %ix, i32 %tt) nounwind ssp {
 ; <label>:19                                      ; preds = %14, %11, %8, %5, %0
   ret void
 }
-\end{minted}
+\end{ccode}
 
 
-\begin{minted}[frame=single,bgcolor=bg,linenos=true,fontsize=\scriptsize]{llvm}
-
+\begin{llvmcode}
 define void @Array__read(i32 %ix, i32* %tt) nounwind ssp {
   %1 = alloca i32, align 4
   %2 = alloca i32*, align 8
@@ -808,11 +812,10 @@ define void @Array__read(i32 %ix, i32* %tt) nounwind ssp {
 ; <label>:16                                      ; preds = %14, %8
   ret void
 }
-\end{minted}
+\end{llvmcode}
 
 
-\begin{minted}[frame=single,bgcolor=bg,linenos=true,fontsize=\scriptsize]{llvm}
-
+\begin{llvmcode}
 define void @Array__swap(i32 %ix, i32 %jx) nounwind ssp {
   %1 = alloca i32, align 4
   %2 = alloca i32, align 4
@@ -863,14 +866,14 @@ define void @Array__swap(i32 %ix, i32 %jx) nounwind ssp {
   ret void
 }
 
-\end{minted}
+\end{llvmcode}
 
 
 
 
 \subsection{Real example - Bubble Sort}
 
-\begin{minted}[frame=single,bgcolor=bg,linenos=true,fontsize=\scriptsize]{c}
+\begin{ccode}
 MACHINE
    Bubble
 VARIABLES
@@ -935,9 +938,7 @@ OPERATIONS
 	END
    END
 END
-
-
-\end{minted}
+\end{ccode}
 
 
 \end{document}
