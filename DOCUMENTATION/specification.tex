@@ -556,8 +556,9 @@ $\trad{BOOL}{\B{Type}} \isdef \llvm{i1}$ and $\trad{INT}{\B{Type}} \isdef
 
 B constants shall be translated to constants in the LLVM program. The
 translation of scalar constants consists in substituting them with their value.
-\DD{The translation of non-scalar constants will be defined in a next version of
-  this document.}  The definition of the translation for expressions is
+%TODO Look the following text. 
+The translation of non-scalar constants will be defined in a next version of
+this document. The definition of the translation for expressions is
 described next in section~\ref{sec:expr}.
 
 \section{Translation: Expressions}
@@ -1005,7 +1006,8 @@ body:
 \subsection{Initialization}
 \label{sec:trad-init}
 
-[[[ DEPRECATED ]]]
+%TODO It is deprecated 
+%[[[TODO: DEPRECATED ]]]
 
 Initialization is done is two steps: first all imported modules are
 initialized,  second the initialization clause is executed.
