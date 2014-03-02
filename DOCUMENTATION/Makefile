@@ -1,7 +1,7 @@
 
 NAME= AdvancedTypes
 
-all: $(NAME).pdf
+all: $(NAME).pdf specification.pdf translation.pdf
 
 $(NAME).pdf:
 
