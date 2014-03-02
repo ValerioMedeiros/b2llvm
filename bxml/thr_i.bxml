@@ -1,0 +1,117 @@
+<Machine name='thr_i' type='implementation'>
+<Abstraction>thr</Abstraction>
+<Sees>
+<Referenced_Machine>
+<Name>thrdef</Name>
+</Referenced_Machine>
+</Sees>
+<Concrete_Variables>
+<Identifier value='count' />
+</Concrete_Variables>
+<Invariant>
+<Nary_Predicate operator='&amp;'>
+<Expression_Comparison operator=':'>
+<Identifier value='count' />
+<Identifier value='INT'>
+<Attributes>
+<TypeInfo>
+<Unary_Expression operator='POW'>
+<Identifier value='INTEGER' />
+</Unary_Expression>
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Expression_Comparison>
+<Expression_Comparison operator=':'>
+<Identifier value='count' />
+<Binary_Expression operator='..'>
+<Integer_Litteral value='0'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Litteral>
+<Identifier value='maxval' />
+</Binary_Expression>
+</Expression_Comparison>
+</Nary_Predicate>
+</Invariant>
+<Initialisation>
+<Affectation_Substitution>
+<Variables>
+<Identifier value='count' />
+</Variables>
+<Values>
+<Integer_Litteral value='0'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Litteral>
+</Values>
+</Affectation_Substitution>
+</Initialisation>
+<Operations>
+<Operation name='inc'>
+<Output_Parameters>
+<Identifier value='ok' />
+</Output_Parameters>
+<Body>
+<If_Substitution>
+<Condition>
+<Expression_Comparison operator='&lt;'>
+<Identifier value='count' />
+<Identifier value='maxval' />
+</Expression_Comparison>
+</Condition>
+<Then>
+<Nary_Substitution operator=';'>
+<Affectation_Substitution>
+<Variables>
+<Identifier value='count' />
+</Variables>
+<Values>
+<Unary_Expression operator='succ'>
+<Identifier value='count' />
+</Unary_Expression>
+</Values>
+</Affectation_Substitution>
+<Affectation_Substitution>
+<Variables>
+<Identifier value='ok' />
+</Variables>
+<Values>
+<Boolean_Litteral value='TRUE'>
+<Attributes>
+<TypeInfo>
+<Identifier value='BOOL' />
+</TypeInfo>
+</Attributes>
+</Boolean_Litteral>
+</Values>
+</Affectation_Substitution>
+</Nary_Substitution>
+</Then>
+<Else>
+<Affectation_Substitution>
+<Variables>
+<Identifier value='ok' />
+</Variables>
+<Values>
+<Boolean_Litteral value='FALSE'>
+<Attributes>
+<TypeInfo>
+<Identifier value='BOOL' />
+</TypeInfo>
+</Attributes>
+</Boolean_Litteral>
+</Values>
+</Affectation_Substitution>
+</Else>
+</If_Substitution>
+</Body>
+</Operation>
+</Operations>
+</Machine>
