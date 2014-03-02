@@ -157,7 +157,7 @@ or the structure.
 	\hline
 	\multicolumn{3}{|c|}{Label value: \B{LValue}} \\	
 	\hline
-	\multicolumn{3}{c}{ \B{Vari} \alt \B{ArrayItem} }\\
+	\multicolumn{3}{c}{ \B{Vari} \alt \B{ArrayItem} \alt \B{StructItem} }\\
         \hline
         \multicolumn{3}{|c|}{Operation call: \B{Call}} \\
         \hline
@@ -189,8 +189,8 @@ or the structure.
         \hline
         \multicolumn{3}{|c|}{Expression: \B{Expr}} \\
         \hline
-        \multicolumn{3}{c} {\B{Lit} \alt \B{Term} \alt \B{Pred} \alt \B{Cons}}\\
-	\multicolumn{3}{c} {\B{Vari} \alt \B{Array} \alt \B{ArrayItem} } \\
+        \multicolumn{3}{c}{\B{Lit}\alt\B{Term}\alt\B{Pred}\alt\B{Cons}\alt\B{Record}}\\
+	\multicolumn{3}{c}{\B{Vari}\alt\B{StructItem}\alt\B{ArrayItem} } \\
         \hline
         \multicolumn{3}{|c|}{Term expression: \B{Term}} \\
         \hline
@@ -205,14 +205,15 @@ or the structure.
         \hline
         \B{op} & : & \B{BoolOp} \\
         \B{args} & : & seq \B{Pred} \\
-\end{tabular} 
-       
-\begin{tabular}[t]{rcl}
-        \hline
+	\hline
         \multicolumn{3}{|c|}{Comparison: \B{Comp}} \\
         \hline
         \B{op} & : & \B{RelOp} \\
         \B{arg1}, \B{arg2} & : & \B{Exp} \\
+
+\end{tabular} 
+       
+\begin{tabular}[t]{rcl}
         \hline
         \multicolumn{3}{|c|}{Data type: \B{Type}} \\
         \hline
@@ -230,6 +231,11 @@ or the structure.
 	\B{base} & : &  \B{Struct} \\
 	\B{element} & : & \B{Name}\\
 	\B{type} & : & \B{Type}\\
+	\hline
+	\multicolumn{3}{|c|}{Record Structure : \B{Record}} \\
+        \hline
+	\B{elements} & : & seq \B{Name}\\
+	\B{values} & : & seq \B{Expr}\\
 	\hline
         \multicolumn{3}{|c|}{Array type : \B{ArrayType}} \\
         \hline 
@@ -332,11 +338,46 @@ respective set.}
 
 \VGM{To support arrays and structures, I added only + after index.} 
 
-\section{Translation of Array and Structures}
+
+
+\subsection{Rules to be updated in first specification}
+
+\paragraph{Becomes equal instructions} must evaluate the target and the source
+of the assignment, and then copy the result of the latter in the former, using
+the LLVM instruction \llvm{store}. The evaluation of the target is defined with
+$\trad{}{lvalue}$, which yields the corresponding LLVM source code $l$ and the
+variable $p$ containing the assigned location. The evaluation of the source
+yields the corresponding code $r$, the variable $v$ holding the result, and its
+type $t$. 
+
+\begin{align*}
+\begin{split}
+  \trad{a}{\B{Beq}} \isdef
+  & \LET l \sep p \sep t'= \trad{a.lhs}{lvalue} \AND r \sep v \sep t = \trad{a.rhs}{\B{Expr}} \IN \\
+  & \llvm{"\PH{l}} \\
+  & \llvm{\PH{r}} \\
+  & \llvm{store \PH{t} \PH{v}, \PH{t'} \PH{p} \nl"}
+\end{split}
+\end{align*}
+
+The rule lvalue is:
+\begin{align*}
+\lefteqn{\trad{n}{lvalue} \isdef} \\
+& \LET t = \llvm{"\PH{\trad{\B{n.type}}{Type}}"} \IN \\
+& \quad \IF \mbox{\B{n} is a local variable} \THEN \llvm{""} \sep \local(\B{n}) \sep t \\
+& \quad \IF \mbox{\B{n} is an array item} \THEN  \trad{n}{ArrayItem} \\
+& \quad \IF \mbox{\B{n} is a struct item} \THEN  \trad{n}{StructItem} \\
+& \quad \ELSE \LET v = \variable \IN \\
+& \quad \quad \llvm{"\PH{v} = getelementptr \PH{\state(\B{n.root})}* \%self\$,} \\
+& \quad \quad \quad \llvm{i32 0, i32 \PH{\idx(\B{n})} \nl"} \sep v \sep t
+\end{align*}
+
+
+\section{Translation of Structures and Array}
 
 Two approaches are possible to support arrays and structures. An approach is importing reusable libraries of AtelierB that are reported in the official document of ClearSy\footnote{\url{http://www.atelierb.eu/ressources/DOC/english/reusable-components-reference.pdf}}. This approach is supported, but the generated code is more complex and it needs more intermediate steps to manipulate the data of imported components. Moreover, this approach allows dynamic allocation for arrays, but it is strongly not recommended to safety-critical systems. A second approach enjoys the direct correspondence between B0 native arrays and LLVM-IR and this approach is presented here.
 
-\section{Structure}
+\subsection{Structure}
 The struct declaration defines a list of variables to be placed under one name, 
 allowing several variables to be accessed by one base name. This example get andset one value of xx'balance and initializes a structure. 
  
@@ -345,7 +386,8 @@ xx := rec(name:aa, balance:10) ;
 xx'balance := xx'balance -1;
 \end{ccode}
 
-The following rule get an element value from the struct. The same rule is used in left side of attribution and right side of attribution. The functions \SBPos(n) and \SBType(n)  get respectively the position and type of $n$ element in the structure. 
+The following rule get an element value from the struct. The same rule is used in left side of attribution as a $LValue$ and right side of attribution as an $Expression$. The functions \SBPos(n) and \SBType(n)  get respectively the position and type of $n$ element in the structure. 
+
 \begin{align*}
 \begin{split}
   \trad{n}{\B{StructItem}} \isdef \\
@@ -355,31 +397,13 @@ The following rule get an element value from the struct. The same rule is used i
 \end{split}
 \end{align*}
 
-%AST
-
-%record structure : Record
-%elements : seq Name;
-%values : seq Expr;
-
-%Isto é uma expressão
-
-
-
-
-%To remove the restrictions:
-%( ) The direct attribution between arrays  is madded in similar way 
+The attribution from record structure to a structure variable, line 1 from last code example, is translated by a sequence of application of rule $StructItem$.
 
 \section{Arrays}
-%TODO: update according the new names in AST, just change the names.
 A concrete array is a total function where the domain indexes the range 
 elements. The domain is composed of Cartesian product of sequence of concrete 
 sets. The node Array in AST represents a declaration of array or a 
-selection of element. The first element ``dec'' declares explicitly an array or 
-references a variable array. The second element ``type'' defines a sequence of 
-array types, where the last element defines the range of function and the other 
-elements define the domain. The third element ``indexes'' is optional, and it 
-represents the selection of an element in array, or the same type structure 
-when it is a structure.
+selection of element.
 
 Some examples of array are:
 \begin{itemize}
@@ -480,37 +504,7 @@ store i32 7, i32* %7, align 4;setting an element
 \end{llvmcode}
 
 
-\subsection{Rules}
-
-
-\paragraph{Becomes equal instructions} must evaluate the target and the source
-of the assignment, and then copy the result of the latter in the former, using
-the LLVM instruction \llvm{store}. The evaluation of the target is defined with
-$\trad{}{lvalue}$, which yields the corresponding LLVM source code $l$ and the
-variable $p$ containing the assigned location. The evaluation of the source
-yields the corresponding code $r$, the variable $v$ holding the result, and its
-type $t$. 
-
-\begin{align*}
-\begin{split}
-  \trad{a}{\B{Beq}} \isdef
-  & \LET l \sep p \sep t'= \trad{a.lhs}{lvalue} \AND r \sep v \sep t = \trad{a.rhs}{\B{Expr}} \IN \\
-  & \llvm{"\PH{l}} \\
-  & \llvm{\PH{r}} \\
-  & \llvm{store \PH{t} \PH{v}, \PH{t'} \PH{p} \nl"}
-\end{split}
-\end{align*}
-
-The rule lvalue is:
-\begin{align*}
-\lefteqn{\trad{n}{lvalue} \isdef} \\
-& \LET t = \llvm{"\PH{\trad{\B{n.type}}{Type}}"} \IN \\
-& \quad \IF \mbox{\B{n} is a local variable} \THEN \llvm{""} \sep \local(\B{n}) \sep t \\
-& \quad \IF \mbox{\B{n} is an array} \THEN  \trad{n}{ArrayItem} \\
-& \quad \ELSE \LET v = \variable \IN \\
-& \quad \quad \llvm{"\PH{v} = getelementptr \PH{\state(\B{n.root})}* \%self\$,} \\
-& \quad \quad \quad \llvm{i32 0, i32 \PH{\idx(\B{n})} \nl"} \sep v \sep t
-\end{align*}
+\subsection{Rules for support Array}
 
 
 \paragraph{Array item} selects an item in expressions as ``$a(n1,...,n_{n})$'', 
@@ -565,6 +559,7 @@ The \trad{}{ShiftExp} rule does a subtraction and this operation must have opera
 
 \paragraph{Restriction on array:} The translation of direct attribution
  between array expression is not yet supported, for example:
+
 \begin{pascalcode}
  array1 := array2;
 \end{pascalcode}
