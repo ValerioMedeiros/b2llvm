@@ -495,7 +495,7 @@ The translation of the last example is:
 \end{llvmcode}
 
 
-\subsubsection{Getting a element from array}
+\subsubsection{Getting an element from array}
 
 The LLVM instruction \textit{getelementptr} is used to select an element in
 the array or structure. A simple example is: 
@@ -576,9 +576,9 @@ array is an interval and it is not started from zero, it must adjust the
 indexes shifting the access, because the addressing  of array in intermediate 
 representation LLVM starts at 0. To access an element from array the formula is 
 $address(e(i1,..,in))  = i1-i1\_start, ... , in-in\_start$. The following rule 
-\footnote{The function $TSymbol$ returns the "start", "end" and type of the one 
+\footnote{The function $TSymbol$ returns the ``start'', ``end'' and type of the one 
 index.} makes the shift for each index of array. \VGM{TODO: The function TSymbol
-returns the "start", "end" and type of the one index.}
+returns the ``start'', ``end'' and type of the one index.}
 
 \begin{align*}
 &\trad{n}{ShiftExp} \isdef \LET p \sep v \sep t  = \trad{n}{Exp} \AND \\
@@ -600,7 +600,7 @@ The \trad{}{ShiftExp} rule does a subtraction and this operation must have opera
 \end{align*}
 
 \paragraph{Restriction on array:} The translation of direct attribution
- between array expression is not yet supported, for example:
+ between arrays is not yet supported, for example:
 
 \begin{pascalcode}
  array1 := array2;
