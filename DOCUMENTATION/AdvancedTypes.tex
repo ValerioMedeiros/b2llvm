@@ -153,22 +153,22 @@ select an element in the array or the structure.
         \multicolumn{3}{|c|}{Becomes equal: \B{Beq}} \\
         \hline
         \B{lhs} & : & \B{LValue} \\
-        \B{rhs} & : & \B{Expr} \\
+        \B{rhs} & : & \B{Exp} \\
 	\hline
-	\multicolumn{3}{|c|}{Label value: \B{LValue}} \\	
+	\multicolumn{3}{|c|}{Left value: \B{LValue}} \\	
 	\hline
 	\multicolumn{3}{c}{ \B{Vari} \alt \B{ArrayItem} \alt \B{StructItem} }\\
         \hline
         \multicolumn{3}{|c|}{Operation call: \B{Call}} \\
         \hline
         \B{op} & : & \B{Oper} \\
-        \B{inp} & : & seq \B{Expr} \\
+        \B{inp} & : & seq \B{Exp} \\
         \B{out} & : & seq \B{Name} \\
         \B{inst} & : & opt \B{Impo} \\
         \hline
         \multicolumn{3}{|c|}{Case conditional: \B{Case}} \\
         \hline
-        \B{expr} & : & \B{Expr} \\
+        \B{expr} & : & \B{Exp} \\
         \B{branches} & : & seq \B{CaseBr}\\
 	\hline
         \multicolumn{3}{|c|}{Case branch: \B{CaseBr}} \\
@@ -187,7 +187,7 @@ select an element in the array or the structure.
         \B{cond} & : & opt \B{Pred} \\
         \B{body} & : & \B{Inst} \\
         \hline
-        \multicolumn{3}{|c|}{Expression: \B{Expr}} \\
+        \multicolumn{3}{|c|}{Expression: \B{Exp}} \\
         \hline
         \multicolumn{3}{c}{\B{Lit}\alt\B{Term}\alt\B{Pred}\alt\B{Cons}\alt\B{Vari}}\\
 	\multicolumn{3}{c}{\B{Record}\alt\B{Array}\alt\B{ValueItem} } \\
@@ -221,24 +221,23 @@ select an element in the array or the structure.
         \multicolumn{3}{|c|}{Data type: \B{Type}} \\
         \hline
         \multicolumn{3}{c}{\B{INT} \alt \B{BOOL}\alt}\\
-	\multicolumn{3}{c}{\B{Struct} \alt \B{ArrayType}}\\
+	\multicolumn{3}{c}{\B{StructType} \alt \B{ArrayType}}\\
 	\hline
-  	\multicolumn{3}{|c|}{Data struct : \B{Struct}} \\
+  	\multicolumn{3}{|c|}{Data struct : \B{StructType}} \\
         \hline
-	\B{id} & : &  \B{Name}\\
         \B{elements} & : & seq \B{Name} \\
 	\B{type} & : & seq \B{Type}\\
 	\hline
 	\multicolumn{3}{|c|}{Access struct : \B{StructItem}} \\
         \hline
-	\B{base} & : &  \B{Struct} \\
-	\B{element} & : & \B{Name}\\
+	\B{base} & : &  \B{Name} \\
+	\B{element} & : & seq \B{Name}\\
 	\B{type} & : & \B{Type}\\
 	\hline
 	\multicolumn{3}{|c|}{Record struct : \B{Record}} \\
         \hline
 	\B{elements} & : & seq \B{Name}\\
-	\B{values} & : & seq \B{Expr}\\
+	\B{values} & : & seq \B{Exp}\\
 	\hline
         \multicolumn{3}{|c|}{Array type : \B{ArrayType}} \\
         \hline 
@@ -251,18 +250,18 @@ select an element in the array or the structure.
 	\hline
   	\multicolumn{3}{|c|}{Ordered pair : \B{Map}} \\
         \hline
-	\B{arg1} & : & seq \B{Expr}\\ 
-	\B{arg2} & : & \B{Expr}\\ 
+	\B{arg1} & : & seq \B{Exp}\\ 
+	\B{arg2} & : & \B{Exp}\\ 
 	\hline
   	\multicolumn{3}{|c|}{Cartesian product : \B{Product}} \\
         \hline
-	\B{arg1} & : & seq \B{Expr}\\ 
-	\B{arg2} & : & \B{Expr}\\ 	
+	\B{arg1} & : & seq \B{Exp}\\ 
+	\B{arg2} & : & \B{Exp}\\ 	
 	\hline
 	\multicolumn{3}{|c|}{Access array : \B{ArrayItem}} \\
         \hline
 	\B{base} & : &  \B{Array} \\
-	\B{indexes} & : & seq \B{Expr}\\
+	\B{indexes} & : & seq \B{Exp}\\
 	\B{type} & : & \B{ArrayType}\\
 	\hline
 	\multicolumn{3}{|c|}{Simple set : \B{Set}} \\
@@ -272,7 +271,7 @@ select an element in the array or the structure.
 	\hline
 	\multicolumn{3}{|c|}{B0 interval : \B{Interval}} \\
 	\hline
-	\B{start}, \B{end} & : & \B{Expr} \\
+	\B{start}, \B{end} & : & \B{Exp} \\
 	\hline
 	\multicolumn{3}{|c|}{Literal : \B{Lit}} \\
 	\hline
@@ -315,6 +314,7 @@ select an element in the array or the structure.
 \nt{exp}\llvm{,} \nt{index}\llvm{,} \ListOf{\nt{index}} \\
       & \alt & \nt{name} \llvm{=} \llvm{load} \nt{type} \nt{exp} \\
       & \alt & \llvm{store} \nt{type} \nt{exp}, \nt{type} \llvm{*} \nt{exp} \\
+      & \alt & \nt{name} \llvm{=} \llvm{bitcast} \nt{type} \nt{name}, \nt{type} \\
       & \alt & \llvm{br} \llvm{i1} \nt{exp} \llvm{,} \llvm{label} \nt{lbl} \llvm{,} \llvm{label} \nt{lbl} \\
       & \alt & \llvm{br} \llvm{label} \nt{lbl} \\
 %       & \alt & \llvm{switch} \nt{type} \nt{exp} \llvm{,} \llvm{branch} \nt{lbl} \llvm{[} \ListOf{\nt{branch}} \llvm{]} \\
@@ -351,7 +351,7 @@ type $t$.
 \begin{align*}
 \begin{split}
   \trad{a}{\B{Beq}} \isdef
-  & \LET l \sep p \sep t'= \trad{a.lhs}{lvalue} \AND r \sep v \sep t = \trad{a.rhs}{\B{Expr}} \IN \\
+  & \LET l \sep p \sep t'= \trad{a.lhs}{lvalue} \AND r \sep v \sep t = \trad{a.rhs}{\B{Exp}} \IN \\
   & \llvm{"\PH{l}} \\
   & \llvm{\PH{r}} \\
   & \llvm{store \PH{t} \PH{v}, \PH{t'} \PH{p} \nl"}
@@ -430,10 +430,10 @@ The $StructItem$ rule gets an element value from the struct. The same rule is us
 \begin{align*}
 \begin{split}
   \trad{n}{\B{StructItem}} \isdef \\
-   & \LET \ell = \lbl  \AND  \PH{t} = n.type \AND \PH{v} = n.element \IN\\
-   & \llvm{"\PH{\ell} = getelementptr \%\PH{t}* @\PH{v}, i32 0, i32  \SBPos(\B{n})\nl"} \\
-%   & \llvm{\PH{\ell2}  = load  \PH{\SBType(\B{n})}* \PH{\ell1} \nl"} \\
-   & \sep  \ell  \sep \SBType(\B{n})\\
+   & \IF \B{n.type} \mbox{ is \B{BOOL or NAT or INT} } \THEN \\
+   &\quad  \LET \ell = \lbl  \AND  \PH{t} = n.type \AND \PH{v} = n.element \IN\\
+   &\quad  \llvm{"\PH{\ell} = getelementptr \%\PH{t}* @\PH{v}, i32 0, i32  \SBPos(\B{n})\nl"} \\
+   &\quad  \sep  \ell  \sep \SBType(\B{n})\\
 \end{split}
 \end{align*}
 
