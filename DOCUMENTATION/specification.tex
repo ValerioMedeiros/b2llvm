@@ -7,12 +7,23 @@
 \usepackage[colorlinks=false]{hyperref}
 \usepackage{xspace,framed,here,keystroke}
 \usepackage{graphicx}
+\usepackage{color}
+\usepackage{minted}
+
 \pagestyle{headings}
+
 \title{Translation of B Implementations to the LLVM: Specification}
-\author{David Déharbe \and Valério Medeiros Jr}
-\institute{Federal University of Rio Grande do Norte \\
-  Natal (Brazil)}
-\date{May 2013}
+\author{David Déharbe and Valério Medeiros Jr}
+\institute{Federal University of Rio Grande do Norte\\
+Federal Institute of Education Science and Technology\\
+ Natal (Brazil)}
+
+\date{March 2014}
+\definecolor{bg}{rgb}{0.95,0.95,0.95}
+\newminted{llvm}{frame=single,firstnumber=1,linenos=true,fontsize=\scriptsize,bgcolor=bg}
+\newminted{pascal}{frame=single,firstnumber=1,linenos=true,fontsize=\scriptsize,bgcolor=bg}
+\newminted{c}{frame=single,firstnumber=1,linenos=true,fontsize=\scriptsize,bgcolor=bg}
+
 
 \newcommand{\trad}[2]{\ensuremath{\lVert \textsf{#1} \rVert^{\textit{#2}}}}
 \newcommand{\nl}[0]{\ensuremath{\downarrow}}
@@ -37,7 +48,7 @@
 \newcommand{\THEN}[0]{\textbf{ then }}
 \newcommand{\LET}[0]{\textbf{ let }}
 \newcommand{\IN}[0]{\textbf{ in }}
-\newcommand{\AND}[0]{\textbf{ and }}
+\newcommand{\AND}[1]{\textbf{ and }}
 \newcommand{\PH}[1]{\framebox{$#1$}}
 \newcommand{\sep}[0]{\otimes}
 \newcommand{\intf}[0]{\ensuremath{\mathbb{I}}}
@@ -56,10 +67,14 @@
 \newcommand{\self}[0]{\ensuremath{\sf\Sigma}}
 \newcommand{\init}[0]{\ensuremath{\mathsf{I}}}
 \newcommand{\tradi}[2]{\ensuremath{\langle \textsf{#1} \rangle^{\textit{#2}}}}
+\newcommand{\SBPos}[0]{\ensuremath{\sf\varphi}}
+\newcommand{\SBType}[0]{\ensuremath{\sf\tau}}
 
 \newcommand{\DD}[1]{\marginpar{\tiny{DD: #1}}}
+\newcommand{\VGM}[1]{\marginpar{\tiny{VGM: #1}}}
 
 \begin{document}
+
 \maketitle
 
 \section{Description of the input of the code generator}
@@ -262,6 +277,236 @@ the B method ensures the absence of overflows and underflows.
   \end{center}
 \end{figure}
 
+
+
+\section{The abstract syntax tree with support for advanced types}
+
+\textcolor{blue}{
+The supported advanced types are array and structures. The nodes Array and 
+Structure can be used to declare a variable, or  declare an element, or to 
+select an element in the array or the structure. 
+}
+
+\begin{figure}[H]
+  \begin{center}
+    {\footnotesize
+      \frame{
+    \begin{tabular}[t]{ccc}
+      \begin{tabular}[t]{rcl}
+        \hline
+        \multicolumn{3}{|c|}{Machine: \B{Machine}} \\
+        \hline
+        \B{id} & : & \B{Name} \\
+        \B{const} & : & seq \B{Cons} \\
+        \B{var} & : & seq \B{Vari} \\
+        \B{init} & : & seq \B{Inst} \\
+        \B{op} & : & seq \B{Oper} \\
+        \B{impl} & : & opt \B{Impl} \\
+        \hline
+        \multicolumn{3}{|c|}{Implementation: \B{Impl}} \\
+        \hline
+        \B{id} & : & \B{Name} \\
+        \B{impo} & : & seq \B{Import} \\
+        \B{const} & : & seq \B{Cons} \\
+        \B{var} & : & seq \B{Vari} \\
+        \B{init} & : & seq \B{Inst} \\
+        \B{op} & : & seq \B{Oper} \\
+        \hline
+        \multicolumn{3}{|c|}{Imports: \B{Import}} \\
+        \hline
+        \B{mach} & : & \B{Machine} \\
+        \B{pre} & : & opt \B{Name}
+        \\
+        \hline
+        \multicolumn{3}{|c|}{Constant: \B{Cons}} \\
+        \hline
+        \B{id} & : & \B{Name} \\
+        \B{type} & : & \B{Type} \\
+        \B{val} & : & \B{Value} \\
+        \hline
+        \multicolumn{3}{|c|}{Variable: \B{Vari}} \\
+        \hline
+        \B{id} & : & \B{Name} \\
+        \B{type} & : & \B{Type} \\
+        \B{scope} & : & \B{Impl} \alt \B{Oper}\\
+	\hline
+        \multicolumn{3}{|c|}{Operation: \B{Oper}} \\
+        \hline
+        \B{id} & : & \B{Name} \\
+        \B{inp} & : & seq \B{Vari} \\
+        \B{out} & : & seq \B{Vari} \\
+        \B{body} & : & \B{Inst}
+        \\
+       \hline
+        \multicolumn{3}{|c|}{Instruction: \B{Inst}} \\
+        \hline
+        \multicolumn{3}{c}{\B{Blk} \alt \B{VarD} \alt \B{If} \alt \B{BEq} \alt } \\
+        \multicolumn{3}{c}{\B{Call} \alt \B{While} \alt \B{Case} \alt \B{Skip}} \\
+        \hline
+        \multicolumn{3}{|c|}{Block: \B{Blk}} \\
+        \hline
+        \B{body} & : & seq \B{Inst} \\
+        \hline
+        \multicolumn{3}{|c|}{Variable declaration: \B{VarD}} \\
+        \hline
+        \B{vars} & : & seq \B{Name} \\
+        \B{body} & : & seq \B{Inst} \\
+\end{tabular}
+\begin{tabular}[t]{rcl}   
+  	\hline
+        \multicolumn{3}{|c|}{If: \B{If}} \\
+        \hline
+        \B{branches} & : & seq \B{IfBr} \\
+        \hline
+        \multicolumn{3}{|c|}{Becomes equal: \B{Beq}} \\
+        \hline
+        \B{lhs} & : & \B{LValue} \\
+        \B{rhs} & : & \B{Exp} \\
+	\hline
+	\multicolumn{3}{|c|}{Left value: \B{LValue}} \\	
+	\hline
+	\multicolumn{3}{c}{ \B{Vari} \alt \B{ArrayItem} \alt \B{StructItem} }\\
+        \hline
+        \multicolumn{3}{|c|}{Operation call: \B{Call}} \\
+        \hline
+        \B{op} & : & \B{Oper} \\
+        \B{inp} & : & seq \B{Exp} \\
+        \B{out} & : & seq \B{Name} \\
+        \B{inst} & : & opt \B{Impo} \\
+        \hline
+        \multicolumn{3}{|c|}{Case conditional: \B{Case}} \\
+        \hline
+        \B{expr} & : & \B{Exp} \\
+        \B{branches} & : & seq \B{CaseBr}\\
+	\hline
+        \multicolumn{3}{|c|}{Case branch: \B{CaseBr}} \\
+        \hline
+        \B{val} & : & seq \B{Value} \\
+        \B{body} & : & \B{Inst}
+        \\
+        \hline
+        \multicolumn{3}{|c|}{While loop: \B{While}} \\
+        \hline
+        \B{cond} & : & \B{Pred} \\
+        \B{body} & : & \B{Inst} \\
+        \hline
+        \multicolumn{3}{|c|}{If branch: \B{IfBr}} \\
+        \hline
+        \B{cond} & : & opt \B{Pred} \\
+        \B{body} & : & \B{Inst} \\
+        \hline
+        \multicolumn{3}{|c|}{Expression: \B{Exp}} \\
+        \hline
+        \multicolumn{3}{c}{\B{Lit}\alt\B{Term}\alt\B{Pred}\alt\B{Cons}\alt\B{Vari}}\\
+	\multicolumn{3}{c}{\B{Record}\alt\B{Array}\alt\B{ValueItem} } \\
+        \hline
+        \multicolumn{3}{|c|}{Value item : \B{ValueItem}} \\
+        \hline
+	\multicolumn{3}{c}{\B{StructItem}\alt\B{ArrayItem} } \\
+        \hline
+        \multicolumn{3}{|c|}{Term expression: \B{Term}} \\
+        \hline
+        \B{op} & : & \B{ArithOp} \\
+        \B{args} & : & seq \B{Exp} \\
+	\hline
+        \multicolumn{3}{|c|}{Predicate: \B{Pred}} \\
+        \hline
+        \multicolumn{3}{c}{\B{Form} \alt \B{Comp}} \\
+	\hline
+        \multicolumn{3}{|c|}{Boolean formula: \B{Form}} \\
+        \hline
+        \B{op} & : & \B{BoolOp} \\
+        \B{args} & : & seq \B{Pred} \\
+\end{tabular} 
+       
+\begin{tabular}[t]{rcl}
+	\hline
+        \multicolumn{3}{|c|}{Comparison: \B{Comp}} \\
+        \hline
+        \B{op} & : & \B{RelOp} \\
+        \B{arg1}, \B{arg2} & : & \B{Exp} \\
+        \hline
+        \multicolumn{3}{|c|}{Data type: \B{Type}} \\
+        \hline
+        \multicolumn{3}{c}{\B{INT} \alt \B{BOOL}\alt}\\
+	\multicolumn{3}{c}{\B{StructType} \alt \B{ArrayType}}\\
+	\hline
+  	\multicolumn{3}{|c|}{Data struct : \B{StructType}} \\
+        \hline
+        \B{elements} & : & seq \B{Name} \\
+	\B{type} & : & seq \B{Type}\\
+	\hline
+	\multicolumn{3}{|c|}{Access struct : \B{StructItem}} \\
+        \hline
+	\B{base} & : &  \B{Name} \\
+	\B{element} & : & seq \B{Name}\\
+	\B{type} & : & \B{Type}\\
+	\hline
+	\multicolumn{3}{|c|}{Record struct : \B{Record}} \\
+        \hline
+	\B{elements} & : & seq \B{Name}\\
+	\B{values} & : & seq \B{Exp}\\
+	\hline
+        \multicolumn{3}{|c|}{Array type : \B{ArrayType}} \\
+        \hline 
+	\B{dom} & : & seq \B{Set}\\
+	\B{ran} & : & \B{Set}\\
+        \hline
+        \multicolumn{3}{|c|}{Array expression : \B{Array}} \\
+        \hline
+	\multicolumn{3}{c}{ seq \B{Map} \alt \B{Product} \alt \B{Name}  }\\
+	\hline
+  	\multicolumn{3}{|c|}{Ordered pair : \B{Map}} \\
+        \hline
+	\B{arg1} & : & seq \B{Exp}\\ 
+	\B{arg2} & : & \B{Exp}\\ 
+	\hline
+  	\multicolumn{3}{|c|}{Cartesian product : \B{Product}} \\
+        \hline
+	\B{arg1} & : & seq \B{Exp}\\ 
+	\B{arg2} & : & \B{Exp}\\ 	
+	\hline
+	\multicolumn{3}{|c|}{Access array : \B{ArrayItem}} \\
+        \hline
+	\B{base} & : &  \B{Array} \\
+	\B{indexes} & : & seq \B{Exp}\\
+	\B{type} & : & \B{ArrayType}\\
+	\hline
+	\multicolumn{3}{|c|}{Simple set : \B{Set}} \\
+	\hline
+	\multicolumn{3}{c}{\B{BOOL} \alt \B{NAT} \alt \B{NAT$_{1}$}\alt } \\
+	\multicolumn{3}{c}{\B{INT} \alt \B{Interval}} \\
+	\hline
+	\multicolumn{3}{|c|}{B0 interval : \B{Interval}} \\
+	\hline
+	\B{start}, \B{end} & : & \B{Exp} \\
+	\hline
+	\multicolumn{3}{|c|}{Literal : \B{Lit}} \\
+	\hline
+	\multicolumn{3}{c}{ \B{Bool\_lit} \alt \B{Int\_lit}} \\ 
+      \end{tabular}
+    \end{tabular}
+  }
+  }
+    \caption{Abstract syntax structure of a B implementation.  For each abstract
+      syntax element, we give the name of the class (e.g. \B{CaseBr} for a
+      branch in a case instruction, and the different attributes of the class),
+      or a list of the possible sub-classes (e.g. \B{Inst} for the different
+      kinds of instructions).  Sequence and optional attributes are denoted 
+      ``seq'' and ``opt'',respectively.}
+    \label{tab:node-attr}
+  \end{center}
+\end{figure}
+
+
+
+
+
+
+
+
+
+
 \section{Target LLVM Subset}
 \label{sec:llvm}
 
@@ -286,14 +531,15 @@ Figure~\ref{fig:llvm-grammar} presents a grammar of this subset of the LLVM.
       & \alt & \nt{name} \llvm{=} \lalt \llvm{add} \alt \llvm{sub} \alt \llvm{mul} \alt \llvm{sdiv} \alt \llvm{srem} \ralt \nt{itype} \nt{exp} \llvm{,} \nt{exp} \\
       & \alt & \nt{name} \llvm{=} \llvm{icmp} \lalt \llvm{eq} \alt \llvm{ne} \alt \llvm{sgt} \alt \llvm{sge} \alt \llvm{slt} \alt \llvm{sle} \ralt \llvm{i1} \nt{exp} \llvm{,} \nt{exp}\\
       & \alt & \nt{name} \llvm{=} \llvm{call} \nt{type} \llvm{(} \ListOf{\nt{arg}} \llvm{)} \\
-      & \alt & \nt{name} \llvm{=} \llvm{getelementptr} \nt{type} \llvm{*} \nt{exp}\llvm{,} \nt{index}\llvm{,} \nt{index} \\
+      & \alt & \nt{name} \llvm{=} \llvm{getelementptr} \nt{type} \llvm{*} \nt{exp}\llvm{,} \nt{index}\llvm{,} \textcolor{blue}{\ListOf{ \nt{index}}}  \\
       & \alt & \nt{name} \llvm{=} \llvm{load} \nt{type} \nt{exp} \\
       & \alt & \llvm{store} \nt{type} \nt{exp}, \nt{type} \llvm{*} \nt{exp} \\
+      & \alt & \textcolor{blue}{\nt{name} \llvm{=} \llvm{bitcast} \nt{type} \nt{name}, \nt{type} }\\
       & \alt & \llvm{br} \llvm{i1} \nt{exp} \llvm{,} \llvm{label} \nt{lbl} \llvm{,} \llvm{label} \nt{lbl} \\
       & \alt & \llvm{br} \llvm{label} \nt{lbl} \\
 %       & \alt & \llvm{switch} \nt{type} \nt{exp} \llvm{,} \llvm{branch} \nt{lbl} \llvm{[} \ListOf{\nt{branch}} \llvm{]} \\
       & \alt & \llvm{ret} \lalt \nt{type} \nt{exp} \alt \llvm{void} \ralt \\
-      \nt{exp} & ::= & \nt{name} \alt \nt{iliteral} \alt \llvm{getelementptr} \llvm{(} \nt{type} \nt{exp} \llvm{,} \nt{index} \llvm{,} \nt{index} \llvm{)} \\
+      \nt{exp} & ::= & \nt{name} \alt \nt{iliteral} \alt \llvm{getelementptr} \llvm{(} \nt{type} \nt{exp} \llvm{,} \nt{index} \llvm{,} \textcolor{blue}{\ListOf{ \nt{index}}}  \llvm{)} \\
       \nt{index} & ::= & \nt{itype} \nt{iliteral} \\
       \nt{branch} & ::= & \nt{iliteral} \nt{iliteral} \nt{lbl} \\
       \nt{arg} & ::= & \nt{type} \nt{exp}
@@ -1028,5 +1274,10 @@ corresponding initialization function:
   & \quad \llvm{call void @\PH{\B{m.id}}\$init\$(\PH{\state(\B{m.impl})}*
     \PH{\ell}) \nl"}
 \end{align*}
+
+
+\include{AdvancedTypes}
+
+\include{Attachments}
 
 \end{document}
