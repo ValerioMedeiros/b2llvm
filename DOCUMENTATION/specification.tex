@@ -1009,24 +1009,51 @@ body:
 %TODO It is deprecated 
 %[[[TODO: DEPRECATED ]]]
 
-Initialization is done is two steps: first all imported modules are
-initialized,  second the initialization clause is executed.
+Initialization of a module is implemented by a LLVM function that takes as
+parameters: the address of the aggregate representing the state of the module,
+which we name \llvm{\%self}, and the addressses of the aggregates representing
+the state of each component of the module, which we name \llvm{\%argN}, where
+\llvm{N} is a numeric identifier. The body of this function is composed as
+follows: first frame stack memory is allocated, to store the representation of
+the local variables in the initialization; second, all imported modules are
+bound to the component's elements and initialized; last the instructions
+composing the initialization clause are executed:
+
 \begin{align*}
-  \trad{i}{Init} \isdef
-  & \llvm{"define void @\PH{\B{i.id}}\$init\$() \{ \nl"} \\
+  \trad{\B{n}}{\B{init}}_{\text{interface}} \isdef
+  & \llvm{"define void \PH{\init(\B{n})} ( \PH{\stateref(\B{n})} \%self,
+    \PH{\trad{\trimportedinstances(\B{n})}{\B{args}}} \{ \nl"} \\
+  & \quad\llvm{entry: \nl} \\
+  & \quad\llvm{\PH{\trad{i.init}{alloc}}} \\
   & \quad\llvm{\PH{\trad{i, i.impl}{\ListOf{InitImp}}}} \\
   & \quad\llvm{\PH{\trad{i.init, "exit"}{\ListOf{\B{Inst}}}_L}} \\
   & \quad\llvm{exit: ret void \nl} \\
   & \llvm{\}"}
 \end{align*}
+
+Next, we specify how to generate the code to enumerate the list of arguments
+representing the components. Essentially, for each stateful component
+\B{inst}, the argument is a reference to the aggregate representing the
+state and named \llvm{\%argN}, where \llvm{N} is a number:
+\begin{align*}
+  \trad{}{args} \isdef & \llvm{""} \\
+  \trad{\B{inst} L}{args} \isdef &
+  \llvm{"\trad{\B{inst}, \textit{index}(\B{inst}, L)}{arg}, \trad{L}{args}"} \\
+  \trad{\B{inst}, $n$}{arg} \isdef &
+  \llvm{""} \triangleleft \stateless(\B{inst.mach}) \triangleright 
+  \llvm{"\PH{\stateref(\B{inst.mach})} \%arg\PH{n}"}
+\end{align*}
+
 The initialization of an imported module is performed by a call to the
 corresponding initialization function:
 \begin{align*}
   \lefteqn{\trad{\B{impl}, \B{impo}}{InitImp} \isdef} \\
   & \LET v = \variable \AND \B{m} = \B{impo.mach} \IN \\
   & \quad \llvm{"\PH{v} = getelementptr \PH{\state(\B{impl.root})}* \%self\$, i32 0, i32 \PH{\idx(\B{impo})}\nl}\\
+  & \quad \llvm{"store \PH{?ref} \%arg\PH{?X}, \PH{?ref} * \PH{\idx(\B{impo})}\nl}\\
   & \quad \llvm{call void @\PH{\B{m.id}}\$init\$(\PH{\state(\B{m.impl})}*
     \PH{\ell}) \nl"}
 \end{align*}
++ add binding!
 
 \end{document}
