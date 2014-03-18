@@ -1252,27 +1252,82 @@ body:
 \subsection{Initialization}
 \label{sec:trad-init}
 
-%TODO It is deprecated 
-%[[[TODO: DEPRECATED ]]]
+\newcommand{\argname}[0]{\ensuremath{\mathsf{\nabla}}}
+\newcommand{\components}[0]{\ensuremath{\textsf{st-comp*}}}
 
-Initialization is done is two steps: first all imported modules are
-initialized,  second the initialization clause is executed.
+Initialization of a module is implemented by a LLVM function that takes as
+parameters: the address of the aggregate representing the state of the module,
+which we name \llvm{\%self}, and the addressses of the aggregates representing
+the state of each component of the module. 
+We first define a naming function $\argname$ having as domain the list of
+\emph{stateful} module components:
 \begin{align*}
-  \trad{i}{Init} \isdef
-  & \llvm{"define void @\PH{\B{i.id}}\$init\$() \{ \nl"} \\
-  & \quad\llvm{\PH{\trad{i, i.impl}{\ListOf{InitImp}}}} \\
-  & \quad\llvm{\PH{\trad{i.init, "exit"}{\ListOf{\B{Inst}}}_L}} \\
+  \argname(l) \isdef
+  & \lambda c \cdot \llvm{"\%arg\PH{\mathit{index}(c, l)}"}
+\end{align*}
+So \llvm{\%arg0}, \llvm{\%arg1}, \ldots are the identifiers for the parameters
+representing the components of the initialized module. 
+
+More precisely, the specification needs to make a distinction between stateful
+and stateless components, as only the former are represented by a LLVM
+aggregate. We use the expression $\components(\B{n}) \isdef
+\mathit{remove}(\trimportedinstances(\B{n}), \stateless)$ to denote the list of
+stateful components of $\B{n}$, so that $\argname(\components(\B{n}))$ is the
+function that, given a stateful component $c$ of \B{n}, returns the parameter of
+the initialization function of $c$. We are now ready to specify the 
+signature of this initialization function, using an auxiliary translation
+function to produce the LLVM parameter type and name for each stateful
+component $\B{c}$:
+\begin{align*}
+\trad{\B{n}}{init-sig} \isdef &
+\llvm{"\PH{\init(\B{n})}(\PH{\stateref(\B{n})} \%self, 
+  \PH{\trad{\components(\B{n}), \argname(\components(\B{n}))}{\ListOf{arg}}})"} \\
+\trad{\B{c}, \argname}{arg} \isdef & \llvm{"\stateref(\B{c.root}) \argname(\B{c})"}
+\end{align*}
+
+The body of this function is composed as follows: firstly, frame stack memory is
+allocated, to store the representation of the local variables in the
+initialization; second, all the directly imported, stateful, component modules
+are bound to the main module's elements; third, the directly imported components
+are initialized, by calling the corresponding initialization function; last, the
+instructions composing the initialization clause are executed:
+
+\begin{align*}
+  \trad{\B{n}}{\B{init}}_{\text{interface}} \isdef
+  & \llvm{"define void \PH{\trad{\B{n}}{init-sig}} \{ \nl"} \\
+  & \quad\llvm{entry: \nl} \\
+  & \quad\llvm{\PH{\trad{n.init}{alloc}}} \\
+  & \quad\llvm{\PH{\trad{n, \importedinstances(n), \argname(\components(\B{n}))}{\ListOf{BindImp}}}} \\
+  & \quad\llvm{\PH{\trad{\importedinstances(n), \argname(\components(\B{n}))}{\ListOf{InitImp}}}} \\
+  & \quad\llvm{\PH{\trad{n.init, "exit"}{\ListOf{\B{Inst}}}_L}} \\
   & \quad\llvm{exit: ret void \nl} \\
   & \llvm{\}"}
 \end{align*}
-The initialization of an imported module is performed by a call to the
-corresponding initialization function:
+
+The translation for the memory allocation and the instructions are specified in
+section~\ref{sec:trad-instr}.  
+
+The aggregate representing the state of the root module has one element for
+each directly imported stateful module. The initialization function is
+responsible for binding this element with the corresponding argument.
 \begin{align*}
-  \lefteqn{\trad{\B{impl}, \B{impo}}{InitImp} \isdef} \\
-  & \LET v = \variable \AND \B{m} = \B{impo.mach} \IN \\
-  & \quad \llvm{"\PH{v} = getelementptr \PH{\state(\B{impl.root})}* \%self\$, i32 0, i32 \PH{\idx(\B{impo})}\nl}\\
-  & \quad \llvm{call void @\PH{\B{m.id}}\$init\$(\PH{\state(\B{m.impl})}*
-    \PH{\ell}) \nl"}
+  \lefteqn{\trad{\B{n}, \B{c}, \argname}{BindImp} \isdef} \\
+  & \LET v = \variable \IN \\
+  & \quad \llvm{"\PH{v} = getelementptr \PH{\stateref(\B{n})} \%self\$, i32 0, i32 \PH{\idx(\B{c})}\nl}\\
+  & \quad \llvm{store \PH{\stateref(\B{c.root})} \PH{\argname(\B{c})}, 
+    \PH{\stateref(\B{c.root})}* \PH{v}\nl"}
+\end{align*}
+
+
+In general, the initialization function of a component module $c$ has as
+argument the address of the aggregate representing the module, as well as the
+addresses of the aggregates representing the modules in the importation tree of
+$c$.
+\begin{align*}
+  \trad{\B{c}, \argname}{InitImp} \isdef&
+  \llvm{call void \PH{\init(\B{c})}(\PH{\trad{c}{arg}}, \trad{\components(\B{c}), \argname}{\ListOf{arg}}) \nl"} \\
+\trad{\B{c}, \argname}{arg} \isdef& 
+  \llvm{"\PH{\stateref(\B{c.root})} \PH{\argname(\B{c})}"}
 \end{align*}
 
 
