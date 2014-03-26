@@ -524,7 +524,7 @@ Figure~\ref{fig:llvm-grammar} presents a grammar of this subset of the LLVM.
       \alt \nt{const\_def} \alt \nt{var\_def} \alt \nt{function\_def} \\
       \nt{const\_decl} & ::= & \nt{name} \llvm{=} \llvm{external} \llvm{constant} \nt{type} \\
       \nt{type\_def} & ::= & \nt{name} \llvm{=} \llvm{type} \nt{type} \\
-      \nt{type} & ::= & \llvm{void} \alt \nt{itype} \alt \llvm{\{} \ListOf{\nt{type}} \llvm{\}} \alt \nt{type}\llvm{*} \\
+       \nt{type} & ::= & \llvm{void} \alt \nt{itype} \alt \textcolor{blue}{$\left[ iliteral\ x\ type  \right]$} \alt \llvm{\{} \ListOf{\nt{type}} \llvm{\}} \alt \nt{type}\llvm{*} \\
       \nt{const\_def} & ::= & \nt{name} \llvm{=} \llvm{constant} \nt{type} \nt{iliteral} \\
       \nt{var\_def} & ::= & \nt{name} \llvm{=} \llvm{common} \llvm{global} \nt{type} \llvm{zeroinitializer} \\
       \nt{function\_decl} & ::= & \llvm{declare} \nt{type} \nt{name} \llvm{(} \ListOf{\nt{type}} \llvm{)}\\
