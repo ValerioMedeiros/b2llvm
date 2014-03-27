@@ -245,21 +245,21 @@ returns the ``start'', ``end'' and type of the one index.}
 
 \begin{align*}
 &\trad{n}{ShiftExp} \isdef \LET p \sep v \sep t  = \trad{n}{Exp} \AND \\ \\
-&\quad iStart \sep iEnd \sep iType = \trad{n}{TSymbol}  \AND  \ell = \lbl \IN \\
+&\quad iStart \sep iEnd \sep iType = \trad{n}{TSymbol}  \AND  \PH{\ell} = \lbl \IN \\
 &\quad \IF ( iStart == 0 ) \THEN  \llvm{",\PH{t} \PH{v} "} \sep p \\
-&\quad \ELSE \LET  p \sep v \sep v' \sep t'  = \trad{p,t,v,itype,istart}{Cast} \IN \\
-&\quad \llvm{",\PH{t} \PH{l} "} \sep  \llvm{"\PH{p} \PH{\ell} = sub \PH{t'} \PH{v}, \PH{v'}\nl"}  \\
+&\quad \ELSE \LET  p' \sep v \sep v' \sep t'  = \trad{t,v,itype,istart}{Cast} \IN \\
+&\quad \llvm{",\PH{t} \PH{\ell} "} \sep  \llvm{"\PH{p} \PH{p'}  \PH{\ell} = sub \PH{t'} \PH{v}, \PH{v'}\nl"}  \\
 \end{align*}
 
 The \trad{}{ShiftExp} rule does a subtraction and this operation must have operators with the same data types so the following cast rule is used:
 
 \begin{align*}
-&\trad{p,t,v,t',v'}{Cast} \isdef \LET  \ell = \lbl \IN \\
+&\trad{t,v,t',v'}{Cast} \isdef \LET  \ell = \lbl \IN \\
 &\quad \IF ( t == t') \THEN p \sep v \sep v' \sep t  \\
 &\quad \ELSE \IF (t<t') \THEN \\
-&\quad \quad \llvm{"\PH{p} \PH{l}= bitcast \PH{t} \PH{v} , \PH{t'}\nl"}  \sep l \sep v' \sep t'\\ 
+&\quad \quad \llvm{"\PH{\ell}= bitcast \PH{t} \PH{v} , \PH{t'}\nl"}  \sep l \sep v' \sep t'\\ 
 &\quad \ELSE \\ 
-&\quad \quad \llvm{"\PH{p} \PH{l}= bitcast \PH{t'} \PH{v'} , \PH{t}\nl"} \sep v \sep l \sep t \\ 
+&\quad \quad \llvm{"\PH{\ell}= bitcast \PH{t'} \PH{v'} , \PH{t}\nl"} \sep v \sep l \sep t \\ 
 \end{align*}
 
 \paragraph{Restriction on array:} The translation of direct attribution
