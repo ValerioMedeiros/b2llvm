@@ -1,5 +1,9 @@
 <project>
   <developed>
+    <machine>enumeration</machine>
+    <implementation>enumeration_i</implementation>
+  </developed>
+  <developed>
     <machine>array</machine>
     <implementation>array_i</implementation>
   </developed>

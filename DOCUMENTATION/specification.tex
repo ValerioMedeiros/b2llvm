@@ -49,7 +49,7 @@ Federal Institute of Education Science and Technology\\
 \newcommand{\LET}[0]{\textbf{ let }}
 \DeclareMathOperator{\BE}{\hat{=}}
 \newcommand{\IN}[0]{\textbf{ in }}
-\newcommand{\AND}[1]{\textbf{ and }}
+\newcommand{\AND}[0]{\textbf{ and }}
 \newcommand{\PH}[1]{\framebox{$#1$}}
 \newcommand{\sep}[0]{\otimes}
 \newcommand{\intf}[0]{\ensuremath{\mathbb{I}}}
@@ -418,19 +418,29 @@ select an element in the array or the structure.
         \hline
         \B{op} & : & \B{BoolOp} \\
         \B{args} & : & seq \B{Pred} \\
-\end{tabular} 
-       
-\begin{tabular}[t]{rcl}
 	\hline
         \multicolumn{3}{|c|}{Comparison: \B{Comp}} \\
         \hline
         \B{op} & : & \B{RelOp} \\
-        \B{arg1}, \B{arg2} & : & \B{Exp} \\
+        \B{arg1}, \B{arg2} & : & \B{Exp}
+\end{tabular} 
+       
+\begin{tabular}[t]{rcl}
         \hline
         \multicolumn{3}{|c|}{Data type: \B{Type}} \\
         \hline
         \multicolumn{3}{c}{\B{INT} \alt \B{BOOL}\alt}\\
-	\multicolumn{3}{c}{\B{Structure} \alt \B{ArrayType}}\\
+	\multicolumn{3}{c}{\B{Structure} \alt \B{ArrayType} \alt} \\
+	\multicolumn{3}{c}{\B{Enumeration}} \\
+	\hline
+  	\multicolumn{3}{|c|}{Enumerated set: \B{Enumeration}} \\
+        \hline
+        \B{elements} & : & seq \B{Enumerated} \\
+	\hline
+  	\multicolumn{3}{|c|}{Enumerated value: \B{Enumerated}} \\
+        \hline
+        \B{id} & : & \B{name} \\
+        \B{type} & : & \B{Enumeration} \\
 	\hline
   	\multicolumn{3}{|c|}{Structure : \B{Structure}} \\
         \hline
@@ -801,14 +811,14 @@ The translation presented in this paper handles the following concrete data:
 \begin{description}
 \item[Booleans] There is no Boolean type in LLVM, so we encode Booleans with
   one-bit integer:
-$$\trad{BOOL}{\B{Type}} \isdef \llvm{i1}.$$
+$$\trad{BOOL}{\B{Type}} \isdef \llvm{"i1"}.$$
 \item[integers] Atelier-B offers three possible definitions for integers,
   corresponding to 16-bit, 32-bit (default) and 64-bit integers. The code
   generator has an option to specify which definition is employed, and we have:
-$$\trad{INT}{\B{Type}} \isdef \llvm{i16} \mid \llvm{i32} \mid \llvm{i64}.$$
+$$\trad{INT}{\B{Type}} \isdef \llvm{"i16"} \mid \llvm{"i32"} \mid \llvm{"i64"}.$$
 \item[enumerated sets] Again, enumerations are encoded as integer types, and the
   width of the type depends on the size of the enumeration.
-$$\trad{\{e1 ... en\}}{\B{Type}} \isdef \LET w \BE \log_2 \B{n} \IN \llvm{i\PH{w}}.$$
+$$\trad{\B{n}}{\B{Type}} \isdef \LET w \BE \log_2 \mathit{size}(\B{n.elements}) \IN \llvm{i\PH{w}}.$$
 \item[arrays] In LLVM, an array type is defined by its size and the type of its
   elements, the main issues in encoding a B array type into LLVM being to
   determine the size of the array and multi-dimensionality.
@@ -859,10 +869,15 @@ $\trad{FALSE}{\B{Lit}} \isdef \llvm{""} \sep \llvm{"0"} \sep \llvm{"i1"}$ and
 $\trad{l}{\B{Lit}} \isdef \llvm{""} \sep \llvm{"\PH{l}"} \sep \llvm{"i32"}$ when
 $\B{l.type} = \B{INT}$.
 
-For identifiers, three cases are possible: global constants, local variables,
-and module state variables. For state variables, the translation issues
-statements to assign the address of the corresponding element in the state
-structure to pointer variable $p$ and then dereference $p$ to assign $v$:
+Enumerated values are encoded as integers, using as code their position in the
+corresponding set declaration: $\trad{\B{n}}{\B{Enum}} \isdef \LET t =
+\trad{\B{n.type}}{\B{Type}} \AND v = \mathit{index}(\B{n}, \B{n.type.elements})
+\IN \llvm{""} \sep \PH{v} \sep \PH{t}$.
+
+For identifiers, the following cases are possible: global constants, local
+variables, and module state variables. For state variables, the translation
+issues statements to assign the address of the corresponding element in the
+state structure to pointer variable $p$ and then dereference $p$ to assign $v$:
 \begin{align*}
 \lefteqn{\trad{n}{\B{Name}} \isdef \LET t \BE \trad{n.type}{\B{Type}} \IN} \\
 & \IF \B{n} \mbox{ is a constant } \THEN \trad{n.value}{\B{Expr}} \\

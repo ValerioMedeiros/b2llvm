@@ -11,6 +11,7 @@
 # tries to proceed processing the input.
 #
 ###
+import math
 
 import b2llvm.ast as ast
 import b2llvm.loadbxml as loadbxml
@@ -134,7 +135,7 @@ def translate_mode_proj(buf, m, emit_printer):
     Appends to text the LLVM code corresponding to the LLVM code generation for m
     in project mode.
     '''
-    check_kind(m, "Machine")
+    check_kind(m, { "Machine" })
     assert is_developed(m)
     buf.trace.outu("Preamble")
     buf.trace.outu("")
@@ -374,16 +375,21 @@ def section_implementation(buf, m, emit_printer):
 
 ### TYPE TRANSLATION ###
 
+def bit_width(n):
+    """Returns the number of bits to represent n different values."""
+    return str(max(1, math.log(n, 2)))
 #
 # This function is responsible for translation B0 type names to LLVM types
 #
 def x_type(t):
     """Returns the type for declaration."""
-    assert(t == ast.INTEGER or t == ast.BOOL or (t.get("kind")== "arrayType") )
+    check_kind(t, {"Integer", "Bool", "Enumeration", "arrayType"})
     if (t == ast.INTEGER):
         return "i32" 
     if (t == ast.BOOL):
         return "i1"
+    if (t["kind"] == "Enumeration"):
+        return "i"+str(bit_width(len(t["elements"])))
     if (t.get("kind")== "arrayType"):
         return x_arrayType(t)
 
@@ -1177,13 +1183,16 @@ def x_expression(buf, n):
       A pair containing, the identifier of the LLVM temporary variable storing the value
       of the expression, and the LLVM type of this temporary variable.
     '''
-    check_kind(n, {"IntegerLit", "BooleanLit", "Vari", "Term", "Cons"})
+    check_kind(n, {"IntegerLit", "BooleanLit", "Enumerated", 
+                   "Vari", "Term", "Cons"})
     buf.trace.out("Evaluate expression \""+ellipse(printer.term(n))+"\".")
     buf.trace.tab()
     if n["kind"] == "IntegerLit":
         res = x_integerlit(buf, n), "i32"
     elif n["kind"] == "BooleanLit":
         res = x_booleanlit(buf, n), "i1"
+    elif n["kind"] == "Enumerated":
+        res = x_enumerated(buf, n)
     elif n["kind"] == "Vari":
         res = x_name(buf, n)
     elif n["kind"] == "Term":
@@ -1223,6 +1232,23 @@ def x_booleanlit(buf, n):
     check_kind(n, {"BooleanLit"})
     buf.trace.out("A Boolean literal is represented as a one-bit integer in LLVM.")
     return "1" if n["value"] == "TRUE" else "0"
+
+def x_enumerated(buf, n):
+    '''
+    Generates LLVM code to evaluate an element from an enumerated set.
+
+    Input:
+      - buf: a CodeBuffer object where the generated code is stored
+      - n: an AST node representing a B enumerated value.
+    Output:
+      A pair containing a string for the integer value encoding the
+      enumerated value, and a string for the integer type encoding
+      the corresponding enumerated set.
+    '''
+    check_kind(n, {"Enumerated"})
+    buf.trace.out("An enumerated value is represented as an integer literal.")
+    t = n["type"]
+    return (str(t["elements"].index(n)), x_type(t))
 
 def x_name(buf, n):
     '''
@@ -1311,7 +1337,7 @@ def state_r_name(n):
       A string for the name of the LLVM type representing a reference to
       the state of (the implementation) of n.
     '''
-    check_kind(n, {"Machine", "Impl"})
+    check_kind(n, { "Machine", "Impl" })
     if n["kind"] == "Machine":
         return "%"+n["id"]+"$ref$"
     else:
@@ -1324,9 +1350,9 @@ def op_name(n):
     - Output:
       A string for the name of the LLVM construct representing n.
     '''
-    check_kind(n, "Operation")
+    check_kind(n, { "Oper" })
     root = n["root"]
-    check_kind(root, "Impl")
+    check_kind(root, { "Impl" })
     machine = root["machine"]
     return "@" + machine["id"] + "$" + n["id"]
 
@@ -1396,7 +1422,9 @@ def check_kind(n, s):
     Example:
        >>> check_kind(n, {"IntegerLit, BooleanLit"})
     '''
-    assert(n["kind"] in s)
+    if n["kind"] not in s:
+        print(commas([str(el) for el in s]) + " expected, got " + 
+              str(n["kind"]) + "\n")
 
 def state_position(n):
     '''

@@ -1,0 +1,273 @@
+<Machine name='enumeration' type='abstraction'>
+  <Sets>
+    <Set>
+      <Attributes>
+	<TypeInfo>
+	  <Unary_Expression operator='POW'>
+	    <Identifier value='PARITY' />
+	  </Unary_Expression>
+	</TypeInfo>
+	<B0Type>
+	  <Identifier value='PARITY' />
+	</B0Type>
+      </Attributes>
+      <Identifier value='PARITY'>
+	<Attributes>
+	  <TypeInfo>
+	    <Unary_Expression operator='POW'>
+	      <Identifier value='PARITY' />
+	    </Unary_Expression>
+	  </TypeInfo>
+	  <B0Type>
+	    <Identifier value='PARITY' />
+	  </B0Type>
+	</Attributes>
+      </Identifier>
+      <Enumerated_Values>
+	<Identifier value='even'>
+	  <Attributes>
+	    <TypeInfo>
+	      <Identifier value='PARITY' />
+	    </TypeInfo>
+	    <B0Type>
+	      <Identifier value='PARITY' />
+	    </B0Type>
+	  </Attributes>
+	</Identifier>
+	<Identifier value='odd'>
+	  <Attributes>
+	    <TypeInfo>
+	      <Identifier value='PARITY' />
+	    </TypeInfo>
+	    <B0Type>
+	      <Identifier value='PARITY' />
+	    </B0Type>
+	  </Attributes>
+	</Identifier>
+      </Enumerated_Values>
+    </Set>
+  </Sets>
+  <Abstract_Variables>
+    <Identifier value='count'>
+      <Attributes>
+	<TypeInfo>
+	  <Identifier value='INTEGER' />
+	</TypeInfo>
+      </Attributes>
+    </Identifier>
+  </Abstract_Variables>
+  <Invariant>
+    <Nary_Predicate operator='&amp;'>
+      <Expression_Comparison operator=':'>
+	<Identifier value='count'>
+	  <Attributes>
+	    <TypeInfo>
+	      <Identifier value='INTEGER' />
+	    </TypeInfo>
+	  </Attributes>
+	</Identifier>
+	<Identifier value='INT'>
+	  <Attributes>
+	    <TypeInfo>
+	      <Unary_Expression operator='POW'>
+		<Identifier value='INTEGER' />
+	      </Unary_Expression>
+	    </TypeInfo>
+	    <B0Type>
+	      <Binary_Expression operator='..'>
+		<Identifier value='MININT' />
+		<Identifier value='MAXINT' />
+	      </Binary_Expression>
+	    </B0Type>
+	  </Attributes>
+	</Identifier>
+      </Expression_Comparison>
+      <Expression_Comparison operator=':'>
+	<Identifier value='count'>
+	  <Attributes>
+	    <TypeInfo>
+	      <Identifier value='INTEGER' />
+	    </TypeInfo>
+	  </Attributes>
+	</Identifier>
+	<Binary_Expression operator='..'>
+	  <Attributes>
+	    <TypeInfo>
+	      <Unary_Expression operator='POW'>
+		<Identifier value='INTEGER' />
+	      </Unary_Expression>
+	    </TypeInfo>
+	  </Attributes>
+	  <Integer_Litteral value='0'>
+	    <Attributes>
+	      <TypeInfo>
+		<Identifier value='INTEGER' />
+	      </TypeInfo>
+	    </Attributes>
+	  </Integer_Litteral>
+	  <Integer_Litteral value='1'>
+	    <Attributes>
+	      <TypeInfo>
+		<Identifier value='INTEGER' />
+	      </TypeInfo>
+	    </Attributes>
+	  </Integer_Litteral>
+	</Binary_Expression>
+      </Expression_Comparison>
+    </Nary_Predicate>
+  </Invariant>
+  <Initialisation>
+    <Affectation_Substitution>
+      <Variables>
+	<Identifier value='count'>
+	  <Attributes>
+	    <TypeInfo>
+	      <Identifier value='INTEGER' />
+	    </TypeInfo>
+	  </Attributes>
+	</Identifier>
+      </Variables>
+      <Values>
+	<Integer_Litteral value='0'>
+	  <Attributes>
+	    <TypeInfo>
+	      <Identifier value='INTEGER' />
+	    </TypeInfo>
+	  </Attributes>
+	</Integer_Litteral>
+      </Values>
+    </Affectation_Substitution>
+  </Initialisation>
+  <Operations>
+    <Operation name='tick'>
+      <Body>
+	<Affectation_Substitution>
+	  <Variables>
+	    <Identifier value='count'>
+	      <Attributes>
+		<TypeInfo>
+		  <Identifier value='INTEGER' />
+		</TypeInfo>
+	      </Attributes>
+	    </Identifier>
+	  </Variables>
+	  <Values>
+	    <Binary_Expression operator='-'>
+	      <Attributes>
+		<TypeInfo>
+		  <Identifier value='INTEGER' />
+		</TypeInfo>
+	      </Attributes>
+	      <Integer_Litteral value='1'>
+		<Attributes>
+		  <TypeInfo>
+		    <Identifier value='INTEGER' />
+		  </TypeInfo>
+		</Attributes>
+	      </Integer_Litteral>
+	      <Identifier value='count'>
+		<Attributes>
+		  <TypeInfo>
+		    <Identifier value='INTEGER' />
+		  </TypeInfo>
+		</Attributes>
+	      </Identifier>
+	    </Binary_Expression>
+	  </Values>
+	</Affectation_Substitution>
+      </Body>
+    </Operation>
+    <Operation name='read'>
+      <Output_Parameters>
+	<Identifier value='res'>
+	  <Attributes>
+	    <TypeInfo>
+	      <Identifier value='PARITY' />
+	    </TypeInfo>
+	    <B0Type>
+	      <Identifier value='PARITY' />
+	    </B0Type>
+	  </Attributes>
+	</Identifier>
+      </Output_Parameters>
+      <Body>
+	<If_Substitution>
+	  <Condition>
+	    <Expression_Comparison operator='='>
+	      <Identifier value='count'>
+		<Attributes>
+		  <TypeInfo>
+		    <Identifier value='INTEGER' />
+		  </TypeInfo>
+		</Attributes>
+	      </Identifier>
+	      <Integer_Litteral value='0'>
+		<Attributes>
+		  <TypeInfo>
+		    <Identifier value='INTEGER' />
+		  </TypeInfo>
+		</Attributes>
+	      </Integer_Litteral>
+	    </Expression_Comparison>
+	  </Condition>
+	  <Then>
+	    <Affectation_Substitution>
+	      <Variables>
+		<Identifier value='res'>
+		  <Attributes>
+		    <TypeInfo>
+		      <Identifier value='PARITY' />
+		    </TypeInfo>
+		    <B0Type>
+		      <Identifier value='PARITY' />
+		    </B0Type>
+		  </Attributes>
+		</Identifier>
+	      </Variables>
+	      <Values>
+		<Identifier value='even'>
+		  <Attributes>
+		    <TypeInfo>
+		      <Identifier value='PARITY' />
+		    </TypeInfo>
+		    <B0Type>
+		      <Identifier value='PARITY' />
+		    </B0Type>
+		  </Attributes>
+		</Identifier>
+	      </Values>
+	    </Affectation_Substitution>
+	  </Then>
+	  <Else>
+	    <Affectation_Substitution>
+	      <Variables>
+		<Identifier value='res'>
+		  <Attributes>
+		    <TypeInfo>
+		      <Identifier value='PARITY' />
+		    </TypeInfo>
+		    <B0Type>
+		      <Identifier value='PARITY' />
+		    </B0Type>
+		  </Attributes>
+		</Identifier>
+	      </Variables>
+	      <Values>
+		<Identifier value='odd'>
+		  <Attributes>
+		    <TypeInfo>
+		      <Identifier value='PARITY' />
+		    </TypeInfo>
+		    <B0Type>
+		      <Identifier value='PARITY' />
+		    </B0Type>
+		  </Attributes>
+		</Identifier>
+	      </Values>
+	    </Affectation_Substitution>
+	  </Else>
+	</If_Substitution>
+      </Body>
+    </Operation>
+  </Operations>
+</Machine>

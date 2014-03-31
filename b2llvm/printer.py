@@ -30,6 +30,8 @@ def term(n):
         return (SP + term(n["base"])+"("+ term(n["index"])+ ")")
     elif kind == "Vari":
         return n["id"]
+    elif kind == "Enumerated":
+        return n["id"]
     elif n["op"] in { "succ", "pred" }:
         return n["op"] + "(" + term(n["args"][0]) + ")"
     elif n["op"] in { "+", "*", "-" }:
@@ -67,7 +69,7 @@ def condition(n):
         return "<<UNRECOGNIZED >>"
 
 def type(n):
-    return n
+    return n["id"]
 
 def imports(n):
     result = ""
@@ -75,6 +77,11 @@ def imports(n):
         result += n["pre"] + "."
     result += n["mach"]["id"]
     return result
+
+def sets(n):
+    result = ""
+    return (n["id"] + " = " + 
+            "{" + commas([e["name"] for e in n["elements"]]) + "}")
 
 def value(n):
     return n["id"] + " = " + term(n["value"])
@@ -259,13 +266,17 @@ def oper(n):
 
 def implementation(n):
     global SP, TB, NL
-    imp, consts, vars = n["imports"], n["concrete_constants"], n["variables"]
+    imp, sets = n["imports"], n["sets"]
+    consts, vars = n["concrete_constants"], n["variables"]
     init, ops = n["initialisation"], n["operations"]
     result = ""
     result += "IMPLEMENTATION" + SP + n["id"] + NL
     if imp != []:
         result += "IMPORTS" + NL
         result += TB + commas([imports(e) for e in imp]) + NL
+    if sets != []:
+        result += "SETS" + NL
+        result += TB + commas([sets(e) for e in sets]) + NL        
     if consts != []:
         result += "VALUES" + NL
         result += TB + commas([value(e) for e in consts]) + NL
