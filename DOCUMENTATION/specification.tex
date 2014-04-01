@@ -9,6 +9,7 @@
 \usepackage{graphicx}
 \usepackage{color}
 \usepackage{minted}
+\usepackage{array} 
 
 \pagestyle{headings}
 
@@ -280,10 +281,10 @@ the B method ensures the absence of overflows and underflows.
 
 
 
-\section{The abstract syntax tree with support for advanced types}
+\section{The abstract syntax tree with support for derived types}
 
 \textcolor{blue}{
-The supported advanced types are array and structures. The nodes Array and 
+The supported derived types are array and structures. The nodes Array and 
 Structure can be used to declare a variable, or  declare an element, or to 
 select an element in the array or the structure. 
 }
@@ -448,7 +449,7 @@ select an element in the array or the structure.
 	\hline
 	\multicolumn{3}{|c|}{Record field : \B{RecField}} \\
         \hline
-	\B{base} & : &  \B{name} \\
+	\B{base} & : &  \B{Name} \\
 	\B{element} & : & seq \B{Name} \\
 	\hline
         \multicolumn{3}{|c|}{Array type : \B{ArrayType}} \\
@@ -809,21 +810,67 @@ $$\trad{INT}{\B{Type}} \isdef \llvm{i16} \mid \llvm{i32} \mid \llvm{i64}.$$
 \item[enumerated sets] Again, enumerations are encoded as integer types, and the
   width of the type depends on the size of the enumeration.
 $$\trad{\{e1 ... en\}}{\B{Type}} \isdef \LET w \BE \log_2 \B{n} \IN \llvm{i\PH{w}}.$$
-\item[arrays] In LLVM, an array type is defined by its size and the type of its
-  elements, the main issues in encoding a B array type into LLVM being to
-  determine the size of the array and multi-dimensionality.
-  
-  [[[ TODO ]]]
+
+\end{description}
+
+\subsection{Derived Data Types}
+
+The data types \textbf{structures} and \textbf{arrays} require detailed 
+representation in the abstract syntax structure from the table \ref{tab:node-attr}.
+The section \ref{sec:StructArray} also presents other examples and rules for these derived data types.
+ 
+The following examples relate the B code and their abstract syntax representation. The \textcolor{gray}{gray elements} are not related to their abstract syntax tree to simplify the examples. 
+
+\begin{description}
 
 \item[structures] The structure types of B are naturally encoded as structure
   types in LLVM.
 
-  [[[ TODO ]]]
+Declaring an structure type:
+\[
+  \textcolor{gray}{accountRecord \in} \underbrace{struct( \underbrace{name \in ID, balance \in \mathbb{N} }_{seq\ Field} )}_{Struct} 
+\]
+Initializing a record with a sequence of expressions:
+\[
+  \textcolor{gray}{accountRecord :=}  \underbrace{rec(\underbrace{name:xx’name, balance:(xx’balance - amt)}_{seq\ Exp})}_{Record}
+\]
+
+Setting a record field to a variable:
+\[
+  \textcolor{gray}{xx :=}  \underbrace{accountRecord'balance}_{RecField} 
+\]
+
+
+
+\item[arrays] In LLVM, an array type is defined by its size and the type of its
+  elements, the main issues in encoding a B array type into LLVM being to
+  determine the size of the array and multi-dimensionality.
+Declaring an array type:
+\[
+\textcolor{gray}{arr \in} \underbrace{( \underbrace{(0..99) \times (0..99)}_{seq\ Set} \to \underbrace{0..1000}_{Set})}_{ArrayType}
+\]
+Initializing an array:
+\[
+\textcolor{gray}{arr :=} \underbrace{\{\underbrace{1 \mapsto  100,2 \mapsto 101}_{seq\ Map}\}}_{Array}
+\]
+\[
+\textcolor{gray}{arr :=} \underbrace{\{\underbrace{\underbrace{0..100 \times 0..100  \times}_{seq\ Exp} \underbrace{\{0,1\}}_{Exp} }_{Product}\}}_{Array}
+\]
+
+Updating a selected element from array by a value of variable:
+\[  \underbrace{\underbrace{arr}_{Array}(\underbrace{1+ii}_{seq\ Exp})}_{ArrayItem} \textcolor{gray}{:= xx}
+\]
+
+Setting a selected element from array to a variable:
+\[ 
+\textcolor{gray}{xx :=} \underbrace{\underbrace{arr}_{Array}(\underbrace{1+ii}_{seq\ Exp})}_{ArrayItem} \]
 \end{description}
 
 The current specification of the code generator does not handle deferred sets.
+These data types and logic/math operators compose expressions that is in 
+the next section.
 
-\section{Translation: Expressions}
+\section{Translation Expressions}
 \label{sec:expr}
 
 To evaluate a composed expression using the LLVM, one must first generate a
@@ -1350,7 +1397,7 @@ $c$.
 \end{align*}
 
 
-\include{AdvancedTypes}
+\include{DerivedTypes}
 
 \include{Attachments}
 
