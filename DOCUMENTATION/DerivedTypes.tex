@@ -52,6 +52,7 @@ partial results. This translation is represented by $ValueItem$.}
 
 
 \section{Translation of Structures and Array}
+\label{sec:StructArray}
 
 Two approaches are possible to support arrays and structures. An approach is 
 importing reusable libraries of AtelierB that are reported in the official 
@@ -104,7 +105,7 @@ B code example, is translated by a sequence of application of rule $StructItem$.
 The nested structures will be designed in the next project phase.
 
 
-\section{Arrays}
+\subsection{Arrays}
 
 The arrays store a fixed-size sequential collection of elements with the same type. 
 They consist of contiguous memory locations, where the lowest address (0) 
@@ -114,11 +115,11 @@ elements. Declaration examples of arrays are:
 \begin{itemize}
 	\item $array1 \in (0..10) \to INT $	(a simple array)
 	\item $array2 \in (1..10) \times (1..20) \times (1..30) \to INT $   (a multidimensional array)
-	\item $\{1\vdash1\vdash4, 1\vdash2\vdash5\}  \in (INT \times INT) \times INT$ (an initialised array)
+	\item $\{1\mapsto1\mapsto4, 1\mapsto2\mapsto5\}  \in (INT \times INT) \times INT$ (an explicit array)
 \end{itemize} 
 
 
-\subsection{Relation arrays B0 and LLVM}
+\subsubsection{Relation arrays B0 and LLVM}
 
 The arrays in B0 are represented by functions where an index points to an 
 element. By default, the element of index not initialized has a zero value. 
@@ -177,13 +178,17 @@ by comma to get the specific element.
 
 \subsubsection{Setting and getting array}
 
-The following blocks illustrate a C code setting a value to array
+The following blocks illustrate a B code setting a value to array
 and its translation to LLVM. 
 
-\begin{ccode} 
-int x=2; int y=3; int z=4;
-Array2[x][y][z]=7;
-\end{ccode}
+\begin{pascalcode} 
+VAR xx, yy, zz IN
+	xx=2;
+	yy=3;
+	zz=4;
+	Array2(x,y,z):=7
+END
+\end{pascalcode}
 
 This example is translated in four steps. First, the variables \%x, \%y, \%z 
 are allocated. Second, the respective values 2, 3, 4 are stored in variables. 
@@ -192,17 +197,17 @@ Finally, the address of array is calculated in local variable \%7 and the value
 7 is stored in it.  
 \begin{figure}[h]
 \begin{llvmcode}
-%x = alloca i32
-%y = alloca i32
-%z = alloca i32
-store i32 2, i32* %x
-store i32 3, i32* %y
-store i32 4, i32* %z
-%1 = load i32* %z
+%xx = alloca i32
+%yy = alloca i32
+%zz = alloca i32
+store i32 2, i32* %xx
+store i32 3, i32* %yy
+store i32 4, i32* %zz
+%1 = load i32* %zz
 %2 = sext i32 %1 to i64
-%3 = load i32* %y
+%3 = load i32* %yy
 %4 = sext i32 %3 to i64
-%5 = load i32* %x
+%5 = load i32* %xx
 %6 = sext i32 %5 to i64
 %7 = getelementptr[10x[20x[30xi32]]]*@Array2,i32 0,i64 %6,i64 %4,i64 %2;getting an element
 store i32 7, i32* %7         ;setting an element
