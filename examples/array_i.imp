@@ -1,8 +1,8 @@
-/* Author: ??? */
+/* Author:  */
 IMPLEMENTATION 
-   Array_i
+   array_i
 REFINES
-   Array
+   array
 CONCRETE_VARIABLES
    arr, arr_n, tmp
 INVARIANT 

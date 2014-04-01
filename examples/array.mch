@@ -1,6 +1,6 @@
 /* Author: ??? */
 MACHINE
-   Array
+   array
 VARIABLES arr
 
 INVARIANT 
