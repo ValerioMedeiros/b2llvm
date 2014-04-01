@@ -170,10 +170,12 @@ def load_base_machine(dirname, loaded, machine):
     root = tree.getroot()
     assert root.tag == 'Machine'
     assert root.get("type") == "abstraction"
+    sets = []
     constants = load_values(root, symast)
     variables = load_concrete_variables(root, symast)
     operations = load_operations(root, symast, symimp)
-    pymachine = ast.make_base_machine(machine, constants, variables, operations)
+    pymachine = ast.make_base_machine(machine, sets, constants, variables, 
+                                      operations)
     symast.clear()
     symimp.clear()
     _LOADING.remove(machine)
@@ -215,9 +217,10 @@ def load_developed_machine(dirname, project, loaded, machine):
     assert root.tag == 'Machine'
     assert root.get("type") == "abstraction"
     assert name_attr(root) == machine
+    sets = []
     impl_id = project.implementation(machine)
     pyimpl = load_implementation(dirname, project, loaded, impl_id)
-    pymachine = ast.make_developed_machine(machine, pyimpl)
+    pymachine = ast.make_developed_machine(machine, sets, pyimpl)
     pyimpl["machine"] = pymachine
     _LOADING.remove(machine)
     loaded.set(machine, pymachine)
@@ -246,6 +249,8 @@ def load_implementation(dirname, project, loaded, module):
     if module in _LOADING:
         _LOG.error("there seems to be a recursive dependency in imports")
     symast = SymbolTable()
+    symast.add("BOOL", ast.BOOL)
+    symast.add("INTEGER", ast.INTEGER)
     symimp = SymbolTable()
     _LOADING.add(module)
     tree = ET.parse(path(dirname, module))
@@ -255,14 +260,15 @@ def load_implementation(dirname, project, loaded, module):
     impl_name = name_attr(root)
     assert impl_name == module
     imports = load_imports(root, symast, symimp, dirname, project, loaded)
+    sets = load_sets(root, symast)
     constants = load_values(root, symast)
     variables = load_concrete_variables(root, symast)
     initialisation = load_initialisation(root, symast, symimp)
     operations = load_operations(root, symast, symimp)
     symast.clear()
     symimp.clear()
-    pyimpl = ast.make_implementation(impl_name, imports, constants, variables,
-                                initialisation, operations)
+    pyimpl = ast.make_implementation(impl_name, imports, sets, constants, 
+                                     variables, initialisation, operations)
     _LOADING.remove(module)
     loaded.set(module, pyimpl)
     return pyimpl
@@ -337,6 +343,24 @@ def load_import(xmlimp, symast, dirname, project, loaded):
         pyimp = ast.make_import(mach)
     return pyimp
 
+def load_sets(root, symast):
+    """Loads SETS clause to Python AST and updates symbol table."""
+    xmlsets = root.findall("./Sets/Set")
+    result = []
+    for xmlset in xmlsets:
+        name = value(xmlset.find("Identifier"))
+        xmlelements = xmlset.findall("Enumerated_Values/Identifier")
+        elements = []
+        for ex in xmlelements:
+            ename = value(ex)
+            epyval = ast.make_enumerated(ename)
+            symast.add(ename, epyval)
+            elements.append(epyval)
+        pyval = ast.make_enumeration(name, elements)
+        symast.add(name, pyval)
+        result.append(pyval)
+    return result
+
 def load_values(root, symast):
     """Loads VALUES clause to Python AST and updates symbol table."""
     xmlvals = root.findall("./Values/Valuation")
@@ -347,7 +371,7 @@ def load_values(root, symast):
         assert len(children) == 1
         xmlexp = children[0]
         value_exp = load_exp(xmlexp, symast)
-        value_type = get_type(xmlexp)
+        value_type = load_type(xmlexp, symast)
         pyval = ast.make_const(value_id, value_type, value_exp)
         result.append(pyval)
         symast.add(value_id, pyval)
@@ -363,15 +387,12 @@ def load_concrete_variables(elem, symast):
     representation for the concrete variables in the B implementation.
     '''
     xmlvars = elem.findall("./Concrete_Variables/Identifier")
-    #TODO: it suppose the data type search in INVARIANT, but the invariant defines the data type using a expressions 
-    #TODO: So the data type must be inferred
     
     xmlinv = elem.findall(".//Invariant//Expression_Comparison[@operator=':']")
-    #mount_arrayType(xmlinv)
     
     result = []
     for xmlvar in xmlvars:
-        asttype = get_identifier_type(xmlvar)
+        asttype = load_type(xmlvar, symast)
         if asttype == None :
             asttype =  get_inv_type(xmlvar,xmlinv)
         assert asttype != None
@@ -409,12 +430,12 @@ def load_operation(elem, symast, symimp):
     symast2.clear()
     return ast.make_oper(name, p_inputs, p_outputs, p_body)
 
-def load_parameter(elem, symtable):
+def load_parameter(elem, symast):
     """Loads an XML element for an operation parameter to an AST node."""
     name = value(elem)
-    pytype = get_identifier_type(elem)
+    pytype = load_type(elem, symast)
     astnode = ast.make_arg_var(name, pytype)
-    symtable.add(name, astnode)
+    symast.add(name, astnode)
     return astnode
 
 ###
@@ -557,7 +578,7 @@ def load_var_in(node, symast, symimp):
     pyvars = []
     for xmlvar in xmlvars:
         name = value(xmlvar)
-        pytype = get_identifier_type(xmlvar)
+        pytype = load_type(xmlvar, symast)
         pyvar = ast.make_loc_var(name, pytype)
         symast2.add(name, pyvar)
         pyvars.append(pyvar)
@@ -918,31 +939,17 @@ def get_inv_type(xmlid, xmlinv):
     return res   
   
     
-def get_identifier_type(xmlid):
+def load_type(xmlid, symast):
     '''
     Input:
     - xmlid: a XML node representing an identifier
     Output:
-    - "INTEGER" or "BOOL": the string representing the name of the type of id
+    - AST node representing the type for xmlid
+    Note:
+    - Assumes that the XML attribute TypeInfo exists and
+    is an identifier with the name of the type.
     '''
-    # This follow code cause a problem when the variable has not the TypeInfo 
-    ##assert xmlid.tag == "Identifier"
-    tmp = xmlid.find("./Attributes/TypeInfo/Identifier")
-    if tmp == None:
-        return None
-    
-    return value(tmp)
-
-def get_type(xmlid):
-    '''
-    Input:
-    - xmlid: a XML node representing an identifier
-    Output:
-    - "INTEGER" or "BOOL": the string representing the name of the type of id
-    '''
-    res = value(xmlid.find("./Attributes/TypeInfo/Identifier"))
-    assert res != None
-    return res
+    return symast.get(value(xmlid.find("./Attributes/TypeInfo/Identifier")))
 
 def discard_attributes(exp):
     '''

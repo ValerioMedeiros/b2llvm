@@ -20,6 +20,12 @@ bxml/wd.bxml: bxml/wd_i.bxml
 bxml/timer.bxml: bxml/timer_i.bxml
 	touch bxml/timer.bxml
 
+bxml/enumeration.bxml: bxml/enumeration_i.bxml
+	touch bxml/enumeration.bxml
+
+enumeration: enumeration.bc scaffold-enumeration.bc init-enumeration.bc
+	$(LLVM_LINK) $^ -o $@
+
 counter: counter.bc scaffold-counter.bc init-counter.bc
 	$(LLVM_LINK) $^ -o $@
 

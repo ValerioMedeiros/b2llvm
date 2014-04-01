@@ -15,8 +15,34 @@ oriented towards the implementation of the translation to LLVM.
 
 ### TYPES ###
 
-INTEGER = "INTEGER"
-BOOL = "BOOL"
+# We are only concerned with representing concrete data.
+# The following types of concrete data are supported
+# - INTEGERS
+# - BOOL
+# - Enumerations
+# The following types of concrete data are partially supported 
+# and are being handled by Valerio, the corresponding code is
+# present elsewhere and shall eventually be merged in this section:
+# - Arrays (=> Valerio)
+# - Intervals (=> Valerio)
+#
+
+INTEGER = { "kind": "Integer", "id" : "INTEGER" }
+BOOL = { "kind": "Bool", "id": "BOOL" }
+
+def make_enumerated(name):
+    """Creates an AST node for an element of an enumerated set.
+    The created node does not have the type attribute set."""
+    return { "kind": "Enumerated", "id": name }
+
+def make_enumeration(name, elements):
+    """Creates an AST node for an enumerated set. Sets the
+    type nodes for all the elements to the created node."""
+    assert type(elements) is list
+    n = { "kind": "Enumeration", "id": name, "elements": elements }
+    for e in elements:
+        e["type"] = n
+    return n
 
 ### TERMINALS ###
 
@@ -84,18 +110,6 @@ def become_list(elem):
     if (type( elem ) == list ): 
         return elem
     else: return  [elem]
-
-def make_sset_bool():
-    """Creates an AST node for a B simple bool set."""
-    return { "kind" : "set_BOOL" }
-
-def make_sset_nat():
-    """Creates an AST node for a B simple natural set."""
-    return { "kind" : "set_NAT" }
-
-def make_sset_int():
-    """Creates an AST node for a B simple integer set."""
-    return { "kind" : "set_INT" }
 
 def make_interval(start,end):
     """Creates an AST node for a B simple interval set."""
@@ -272,10 +286,11 @@ def make_import(mach, prefix = None):
     assert(mach["kind"] in { "Machine" })
     return { "kind": "Module", "mach": mach, "pre": prefix }
 
-def make_implementation(name, imports, consts, variables, init, ops):
+def make_implementation(name, imports, sets, consts, variables, init, ops):
     """Creates an AST node for a B implementation module."""
     assert type(imports) is list
     assert type(consts) is list
+    assert type(sets) is list
     assert type(variables) is list
     assert type(init) is list
     assert type(ops) is list
@@ -283,6 +298,7 @@ def make_implementation(name, imports, consts, variables, init, ops):
              "id": name,
              "machine": None,
              "imports": imports,
+             "sets": sets,
              "concrete_constants": consts,
              "variables": variables,
              "initialisation": init, "operations": ops,
@@ -291,12 +307,13 @@ def make_implementation(name, imports, consts, variables, init, ops):
         node["root"] = root
     return root
 
-def make_base_machine(name, consts, variables, ops):
+def make_base_machine(name, sets, consts, variables, ops):
     '''
     Constructor for node that represent a machine interface, namely
     the elements of a machine that may be accessed by a module depending
     on that machine.
     '''
+    assert type(sets) is list
     assert type(consts) is list
     assert type(variables) is list
     assert type(ops) is list
@@ -314,15 +331,17 @@ def make_base_machine(name, consts, variables, ops):
         node["root"] = root
     return root
 
-def make_developed_machine(name, impl):
+def make_developed_machine(name, sets, impl):
     '''
     Constructor for node that represents a developed machine.
 
     For now we are just interested in the implementation of that machine.
     '''
+    assert type(sets) is list
     return { "kind": "Machine",
              "id": name,
              "base": False,
+             "sets": sets,
              "concrete_constants": [],
              "variables": [],
              "implementation": impl,
