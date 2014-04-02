@@ -1,0 +1,38 @@
+/* Rec_i
+ * Author: 
+ * Creation date: 8/21/12
+ */
+IMPLEMENTATION
+    rec_example_i
+
+REFINES
+    rec_example
+
+CONCRETE_VARIABLES
+   xx ,
+   bank ,
+   total
+
+INITIALISATION
+   
+   bank := rec(name:bb) ;
+   xx := rec(name:aa, balance:10) ;
+   total :=rec(money:20)
+OPERATIONS
+
+
+  res<--positive = 
+  IF xx'balance > 0 THEN
+       res:= TRUE 
+  ELSE res := FALSE
+  END;
+
+  withrdaw(amt) = IF   amt >=0 & amt <= MAXINT & (xx'balance >= amt) THEN 
+     xx := rec(name:xx'name, balance:(xx'balance - amt))
+  END;
+
+  unsafe_dec = BEGIN
+       xx'balance := xx'balance -1 
+  END
+END
+

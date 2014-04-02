@@ -1,5 +1,5 @@
 /* Monopoly
- * Author:  ???
+ * Author: 
  * Creation date: 12/16/13
  */
 MACHINE

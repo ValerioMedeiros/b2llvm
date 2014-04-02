@@ -1,0 +1,214 @@
+<Machine name='rec_example_i' type='implementation'>
+<Abstraction>rec_example</Abstraction>
+<Concrete_Variables>
+<Identifier value='xx' />
+<Identifier value='bank' />
+<Identifier value='total' />
+</Concrete_Variables>
+<Initialisation>
+<Nary_Substitution operator=';'>
+<Affectation_Substitution>
+<Variables>
+<Identifier value='bank' />
+</Variables>
+<Values>
+<Record>
+<Record_Item label='name'>
+<Identifier value='bb' />
+</Record_Item>
+</Record>
+</Values>
+</Affectation_Substitution>
+<Affectation_Substitution>
+<Variables>
+<Identifier value='xx' />
+</Variables>
+<Values>
+<Record>
+<Record_Item label='name'>
+<Identifier value='aa' />
+</Record_Item>
+<Record_Item label='balance'>
+<Integer_Litteral value='10'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Litteral>
+</Record_Item>
+</Record>
+</Values>
+</Affectation_Substitution>
+<Affectation_Substitution>
+<Variables>
+<Identifier value='total' />
+</Variables>
+<Values>
+<Record>
+<Record_Item label='money'>
+<Integer_Litteral value='20'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Litteral>
+</Record_Item>
+</Record>
+</Values>
+</Affectation_Substitution>
+</Nary_Substitution>
+</Initialisation>
+<Operations>
+<Operation name='positive'>
+<Output_Parameters>
+<Identifier value='res' />
+</Output_Parameters>
+<Body>
+<If_Substitution>
+<Condition>
+<Expression_Comparison operator='&gt;'>
+<Binary_Expression operator='&apos;'>
+<Identifier value='xx' />
+<Identifier value='balance' />
+</Binary_Expression>
+<Integer_Litteral value='0'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Litteral>
+</Expression_Comparison>
+</Condition>
+<Then>
+<Affectation_Substitution>
+<Variables>
+<Identifier value='res' />
+</Variables>
+<Values>
+<Boolean_Litteral value='TRUE'>
+<Attributes>
+<TypeInfo>
+<Identifier value='BOOL' />
+</TypeInfo>
+</Attributes>
+</Boolean_Litteral>
+</Values>
+</Affectation_Substitution>
+</Then>
+<Else>
+<Affectation_Substitution>
+<Variables>
+<Identifier value='res' />
+</Variables>
+<Values>
+<Boolean_Litteral value='FALSE'>
+<Attributes>
+<TypeInfo>
+<Identifier value='BOOL' />
+</TypeInfo>
+</Attributes>
+</Boolean_Litteral>
+</Values>
+</Affectation_Substitution>
+</Else>
+</If_Substitution>
+</Body>
+</Operation>
+<Operation name='withrdaw'>
+<Input_Parameters>
+<Identifier value='amt' />
+</Input_Parameters>
+<Body>
+<If_Substitution>
+<Condition>
+<Nary_Predicate operator='&amp;'>
+<Expression_Comparison operator='&gt;='>
+<Identifier value='amt' />
+<Integer_Litteral value='0'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Litteral>
+</Expression_Comparison>
+<Expression_Comparison operator='&lt;='>
+<Identifier value='amt' />
+<Identifier value='MAXINT'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Expression_Comparison>
+<Expression_Comparison operator='&gt;='>
+<Binary_Expression operator='&apos;'>
+<Identifier value='xx' />
+<Identifier value='balance' />
+</Binary_Expression>
+<Identifier value='amt' />
+</Expression_Comparison>
+</Nary_Predicate>
+</Condition>
+<Then>
+<Affectation_Substitution>
+<Variables>
+<Identifier value='xx' />
+</Variables>
+<Values>
+<Record>
+<Record_Item label='name'>
+<Binary_Expression operator='&apos;'>
+<Identifier value='xx' />
+<Identifier value='name' />
+</Binary_Expression>
+</Record_Item>
+<Record_Item label='balance'>
+<Binary_Expression operator='-'>
+<Binary_Expression operator='&apos;'>
+<Identifier value='xx' />
+<Identifier value='balance' />
+</Binary_Expression>
+<Identifier value='amt' />
+</Binary_Expression>
+</Record_Item>
+</Record>
+</Values>
+</Affectation_Substitution>
+</Then>
+</If_Substitution>
+</Body>
+</Operation>
+<Operation name='unsafe_dec'>
+<Body>
+<Affectation_Substitution>
+<Variables>
+<Binary_Expression operator='&apos;'>
+<Identifier value='xx' />
+<Identifier value='balance' />
+</Binary_Expression>
+</Variables>
+<Values>
+<Binary_Expression operator='-'>
+<Binary_Expression operator='&apos;'>
+<Identifier value='xx' />
+<Identifier value='balance' />
+</Binary_Expression>
+<Integer_Litteral value='1'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Litteral>
+</Binary_Expression>
+</Values>
+</Affectation_Substitution>
+</Body>
+</Operation>
+</Operations>
+</Machine>
