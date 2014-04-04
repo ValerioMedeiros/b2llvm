@@ -1,57 +1,6 @@
 
 
-\subsection{Rules to be updated in first specification}
-
-\paragraph{Becomes equal instructions} \textcolor{blue}{ must evaluate the
- target and the source of the assignment, and then copy the result of the 
-latter in the former, using the LLVM instruction \llvm{store}. The evaluation 
-of the target is defined with $\trad{}{lvalue}$, which yields the corresponding 
-LLVM source code $l$ and the variable $p$ containing the assigned location. The 
-evaluation of the source yields the corresponding code $r$, the variable $v$ 
-holding the result, and its type $t$. }
-
-\begin{align*}
-\begin{split}
-  \trad{a}{\B{Beq}} \isdef
-  & \LET l \sep p \sep t'= \trad{a.lhs}{lvalue} \AND r \sep v \sep t = \trad{a.rhs}{\B{Exp}} \IN \\
-  & \llvm{"\PH{l}} \\
-  & \llvm{\PH{r}} \\
-  & \llvm{store \PH{t} \PH{v}, \PH{t'} \PH{p} \nl"}
-\end{split}
-\end{align*}
-
-The rule lvalue is:
-\begin{align*}
-\lefteqn{\trad{n}{lvalue} \isdef} \\
-& \LET t = \llvm{"\PH{\trad{\B{n.type}}{Type}}"} \IN \\
-& \quad \IF \mbox{\B{n} is a local variable} \THEN \llvm{""} \sep \local(\B{n}) \sep t \\
-& \quad \IF \mbox{\B{n} is an ArrayItem} \THEN  \trad{n}{ArrayItem} \\
-& \quad \IF \mbox{\B{n} is a StructItem} \THEN  \trad{n}{StructItem} \\
-& \quad \ELSE \LET v = \variable \IN \\
-& \quad \quad \llvm{"\PH{v} = getelementptr \PH{\state(\B{n.root})}* \%self\$,} \\
-& \quad \quad \quad \llvm{i32 0, i32 \PH{\idx(\B{n})} \nl"} \sep v \sep t
-\end{align*}
-
-\textcolor{blue}{ The expressions have elements represented by pointers that need a special 
-care. The attributions between these elements are made  directly by the memory 
-address.  However, the expression resolution are made by parts, where the 
-partial results are stored to temporary variables. Therefore, the expression 
-resolution with pointers needs an additional instruction $LOAD$ for store the 
-partial results. This translation is represented by $ValueItem$.} 
-
-\begin{align*}
-\begin{split}
-  \trad{n}{\B{ValueItem}} \isdef \\
-   & \LET \ell = \lbl  \IN\\
-   & \IF \B{n} \mbox{ is \B{StructItem}} \THEN p' \sep v' \sep t' = \trad{\B{n}}{\B{StructItem}} \\
-   & \ELSIF \B{n} \mbox{ is \B{ArrayItem}} \THEN p' \sep v' \sep t' = \trad{\B{n}}{\B{ArrayItem}} \\
-   & \llvm{"\PH{p'} \PH{\ell}  = load  \PH{t'}* \PH{v'} \nl"} \\
-   & \sep  \ell  \sep t'\\
-\end{split}
-\end{align*}
-
-
-\section{Translation of Structures and Array}
+\subsection{Translation of structures and arrays}
 \label{sec:StructArray}
 
 Two approaches are possible to support arrays and structures. An approach is 
@@ -64,15 +13,15 @@ strongly not recommended for safety-critical systems. A second approach enjoys
 the direct correspondence between B0 native types and LLVM and this approach 
 is presented here.
 
-\subsection{Structure} \VGM{It is not implemented yet, because it requires generating an XML example.}
+\subsubsection{Structure} \VGM{It is not implemented yet, because it requires generating an XML example.}
 The structure declaration defines a list of variables to be placed under one 
 name, allowing several variables to be accessed by one base name. This example  
 initializes a structure, and gets and sets one value of xx'balance. 
  
-\begin{ccode}
+\begin{pascalcode}
 xx := rec(id:1, balance:10);
 xx'balance := xx'balance -1;
-\end{ccode}
+\end{pascalcode}
 The lines 1 and 2 are represented in translation in LLVM code:
 
 \begin{llvmcode}
@@ -88,11 +37,14 @@ store i32 10, i32 * %2
 store i32 %5, i32* %6
 \end{llvmcode}
 
-The $StructItem$ rule gets an element value from the struct. The same rule is used on the left side of attribution as a $LValue$ and right side of attribution as an $Expression$. The functions \SBPos(n) and \SBType(n)  get respectively the position and type of $n$ element in the structure. 
+The $RecField$ rule gets an element value from the record. The same rule is 
+used on the left side of attribution as a $LValue$ and right side of 
+attribution as an $Expression$. The functions \SBPos(n) and \SBType(n)  get 
+respectively the position and type of $n$ element in the structure. 
 
 \begin{align*}
 \begin{split}
-  \trad{n}{\B{StructItem}} \isdef \\
+  \trad{n}{\B{RecField}} \isdef \\
    & \IF \B{n.type} \mbox{ is \B{BOOL or NAT or INT} } \THEN \\
    &\quad  \LET \ell = \lbl  \AND  \PH{t} = n.type \AND \PH{v} = n.element \IN\\
    &\quad  \llvm{"\PH{\ell} = getelementptr \PH{t}* \PH{v}, i32 0, i32  \SBPos(\B{n})\nl"} \\
@@ -100,12 +52,12 @@ The $StructItem$ rule gets an element value from the struct. The same rule is us
 \end{split}
 \end{align*}
 
-The attribution from record structure to a structure variable, line 1 from last 
-B code example, is translated by a sequence of application of rule $StructItem$.
-The nested structures will be designed in the next project phase.
+The attribution from record structure to a record structure variable, line 1 
+from last B code example, is translated by a sequence of application of rule 
+$RecField$. The nested structures will be designed in the next project phase.
+%TODO after test the first examples.
 
-
-\subsection{Arrays}
+\subsubsection{Arrays}
 
 The arrays store a fixed-size sequential collection of elements with the same type. 
 They consist of contiguous memory locations, where the lowest address (0) 
@@ -140,26 +92,22 @@ The following code declares a multidimensional global array called ``Array2''
 with 6000 (10*20*30) integer numbers with 32 bits and initialized with zero.
 
 \begin{llvmcode}
-@Array2 = internal global [10 x [20 x [30 x i32]]] zeroinitializer, align 16
+@array2 = internal global [10 x [20 x [30 x i32]]] zeroinitializer, align 16
 \end{llvmcode}
 
 \VGM{It is not implemented yet, because it requires generating an XML example.}
-The following example initialises an new array in C:
+The following example updates several elements from an array in B, but it is not present in B0 grammar.
 
-\begin{ccode}
-int32_t arr[1][2][1]= {{{4},{5}}};
-\end{ccode}
+\begin{pascalcode}
+array2 := array2 <+ {1|->2|->0|->4,  1|->2|->1|->5}
+\end{pascalcode}
+An alternative  way to represent these updating in B0 is using sequential attribution:
 
-The syntax rule\footnote{The underlined element type can be expanded in others types definitions.} used to initialize an array in LLVM is:\\
-$@<var\_name> = constant [<size> x \underline{<type>}] [<type> <value>]$.\\
-The translation of the last example is:
+\begin{pascalcode}
+array2(1,2,0) := 4;
+array2(1,2,1) := 5;
+\end{pascalcode}
 
-\begin{llvmcode}
-@arr=constant[1 x [2 x [1 x i32]]] [[2 x [1 x i32]] [[1 x i32] [i32 4],[1 x i32] [i32 5]]]
-\end{llvmcode}
-
-
-\subsubsection{Getting an element from array}
 
 The LLVM instruction \textit{getelementptr} is used to select an element in
 the array or structure. A simple example is: 
@@ -169,9 +117,8 @@ the array or structure. A simple example is:
 \end{llvmcode}
 
 
-The first parameter defines the type and name of the variable, and the others are
-indexes to select the element in the data type. The second parameter (i32 0)
-selects the first element in the pointer (* @Array2). The last elements 
+The first two parameters define the type and name of the variable, and the others are indexes to select the element in the data type. The third parameter (i32 0)
+selects the first element in the pointer (* @array2). The last elements 
 (i64 2, i64 3, i64 4) select the value from position (2,3,4) storing it in \%7.
 This array is multidimensional, so several indexes must be declared separated
 by comma to get the specific element.
@@ -186,7 +133,7 @@ VAR xx, yy, zz IN
 	xx=2;
 	yy=3;
 	zz=4;
-	Array2(x,y,z):=7
+	array2(x,y,z):=7
 END
 \end{pascalcode}
 
@@ -214,7 +161,7 @@ store i32 7, i32* %7         ;setting an element
 \end{llvmcode}
 \end{figure}
 
-\subsection{Rules for support Array}
+\subsubsection{Rules for support array}
 
 
 \paragraph{Array item} selects an item in expressions as ``$a(n1,...,n_{n})$'', 
