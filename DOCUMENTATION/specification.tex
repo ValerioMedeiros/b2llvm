@@ -1002,6 +1002,9 @@ The definition of the translation for disjunctions is similar and is omitted.
 
 [[[ TODO ]]]
 
+\include{derivedTypes}
+
+
 \section{Translation: Control Flow and Instructions
 \label{sec:control}}
 
@@ -1162,6 +1165,55 @@ variable.
 & \quad \quad \llvm{"\PH{v} = getelementptr \PH{\state(\B{n.root})}* \self,} \\
 & \quad \quad \quad \llvm{i32 0, i32 \PH{\idx(\B{n})} \nl"} \sep v \sep t
 \end{align*}
+
+\paragraph{Becomes equal instructions} \textcolor{blue}{ must evaluate the
+ target and the source of the assignment, and then copy the result of the 
+latter in the former, using the LLVM instruction \llvm{store}. The evaluation 
+of the target is defined with $\trad{}{lvalue}$, which yields the corresponding 
+LLVM source code $l$ and the variable $p$ containing the assigned location. The 
+evaluation of the source yields the corresponding code $r$, the variable $v$ 
+holding the result, and its type $t$. }
+
+\begin{align*}
+\begin{split}
+  \trad{a}{\B{Beq}} \isdef
+  & \LET l \sep p \sep t'= \trad{a.lhs}{lvalue} \AND r \sep v \sep t = \trad{a.rhs}{\B{Exp}} \IN \\
+  & \llvm{"\PH{l}} \\
+  & \llvm{\PH{r}} \\
+  & \llvm{store \PH{t} \PH{v}, \PH{t'} \PH{p} \nl"}
+\end{split}
+\end{align*}
+
+The rule lvalue is:
+\begin{align*}
+\lefteqn{\trad{n}{lvalue} \isdef} \\
+& \LET t = \llvm{"\PH{\trad{\B{n.type}}{Type}}"} \IN \\
+& \quad \IF \mbox{\B{n} is a local variable} \THEN \llvm{""} \sep \local(\B{n}) \sep t \\
+& \quad \IF \mbox{\B{n} is an ArrayItem} \THEN  \trad{n}{ArrayItem} \\
+& \quad \IF \mbox{\B{n} is a RecField} \THEN  \trad{n}{RecField} \\
+& \quad \ELSE \LET v = \variable \IN \\
+& \quad \quad \llvm{"\PH{v} = getelementptr \PH{\state(\B{n.root})}* \%self\$,} \\
+& \quad \quad \quad \llvm{i32 0, i32 \PH{\idx(\B{n})} \nl"} \sep v \sep t
+\end{align*}
+
+\textcolor{blue}{ The expressions have elements represented by pointers that need a special 
+care. The attributions between these elements are made  directly by the memory 
+address.  However, the expression resolution are made by parts, where the 
+partial results are stored to temporary variables. Therefore, the expression 
+resolution with pointers needs an additional instruction $LOAD$ for store the 
+partial results. This translation is represented by $ValueItem$.} 
+
+\begin{align*}
+\begin{split}
+  \trad{n}{\B{ValueItem}} \isdef \\
+   & \LET \ell = \lbl  \IN\\
+   & \IF \B{n} \mbox{ is \B{RecField}} \THEN p' \sep v' \sep t' = \trad{\B{n}}{\B{RecField}} \\
+   & \ELSIF \B{n} \mbox{ is \B{ArrayItem}} \THEN p' \sep v' \sep t' = \trad{\B{n}}{\B{ArrayItem}} \\
+   & \llvm{"\PH{p'} \PH{\ell}  = load  \PH{t'}* \PH{v'} \nl"} \\
+   & \sep  \ell  \sep t'\\
+\end{split}
+\end{align*}
+
 
 \paragraph{Call up} instructions apply B operations with some values and obtain
 results. The LLVM code generator produces instructions to evaluate the operation
@@ -1411,8 +1463,6 @@ $c$.
   \llvm{"\PH{\stateref(\B{c.mach})} \PH{\argname(\B{c})}"}
 \end{align*}
 
-
-\include{DerivedTypes}
 
 \include{Attachments}
 
