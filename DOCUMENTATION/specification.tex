@@ -16,7 +16,7 @@
 \title{Translation of B Implementations to the LLVM: Specification}
 \author{David Déharbe and Valério Medeiros Jr}
 \institute{Federal University of Rio Grande do Norte\\
-Federal Institute of Education Science and Technology\\
+Federal Institute of Education Science and Technology of Rio Grande do Norte\\
  Natal (Brazil)}
 
 \date{March 2014}
@@ -117,177 +117,7 @@ local operations or operations of instances of external modules, in this case
 they have an optional prefix identifying the module.
 
 Note that the translation presented in this paper only considers types \B{INT}
-(integer) and \B{BOOL} (Boolean). Accordingly, the expression language consists
-in arithmetic operations \B{-} (unary and binary), \B{+}, \B{*}, \B{/}, \B{mod},
-% \B{**} (exponentiation),
-\B{succ} and \B{pred} and Boolean operations
-\B{$\land$}, \B{$\lor$}, \B{$\neg$} as well as relations \B{=}, \B{$\neq$},
-\B{$>$}, \B{$<$}, \B{$\leq$} and \B{$\neq$}. Atomic expressions are identifiers,
-Boolean constants \B{FALSE} and \B{TRUE}, integer literals, and integer
-constants \B{MAXINT} and \B{MININT}. The development through the application of
-the B method ensures the absence of overflows and underflows.
-
-\begin{figure}[t]
-  \begin{center}
-    {\footnotesize
-      \frame{
-    \begin{tabular}[t]{ccccc}
-      \begin{tabular}[t]{rcl}
-        \hline
-        \multicolumn{3}{|c|}{Machine: \B{Machine}} \\
-        \hline
-        \B{id} & : & \B{Name} \\
-        \B{const} & : & seq \B{Cons} \\
-        \B{var} & : & seq \B{Vari} \\
-        \B{init} & : & seq \B{Inst} \\
-        \B{op} & : & seq \B{Oper} \\
-        \B{impl} & : & opt \B{Impl} \\
-        \hline
-        \multicolumn{3}{|c|}{Implementation: \B{Impl}} \\
-        \hline
-        \B{id} & : & \B{Name} \\
-        \B{impo} & : & seq \B{Import} \\
-        \B{const} & : & seq \B{Cons} \\
-        \B{var} & : & seq \B{Vari} \\
-        \B{init} & : & seq \B{Inst} \\
-        \B{op} & : & seq \B{Oper} \\
-        \hline
-        \multicolumn{3}{|c|}{Imports: \B{Import}} \\
-        \hline
-        \B{mach} & : & \B{Machine} \\
-        \B{pre} & : & opt \B{Name}
-        \\
-        \hline
-        \multicolumn{3}{|c|}{Constant: \B{Cons}} \\
-        \hline
-        \B{id} & : & \B{Name} \\
-        \B{type} & : & \B{Type} \\
-        \B{val} & : & \B{Value} \\
-        \hline
-        \multicolumn{3}{|c|}{Variable: \B{Vari}} \\
-        \hline
-        \B{id} & : & \B{Name} \\
-        \B{type} & : & \B{Type} \\
-        \B{scope} & : & \B{Impl} \alt \B{Oper}
-        \\
-      \end{tabular}
-      & &
-      \begin{tabular}[t]{rcl}
-        \hline
-        \multicolumn{3}{|c|}{Operation: \B{Oper}} \\
-        \hline
-        \B{id} & : & \B{Name} \\
-        \B{inp} & : & seq \B{Vari} \\
-        \B{out} & : & seq \B{Vari} \\
-        \B{body} & : & \B{Inst}
-        \\
-        \hline
-        \multicolumn{3}{|c|}{Instruction: \B{Inst}} \\
-        \hline
-        \multicolumn{3}{c}{\B{Blk} \alt \B{VarD} \alt \B{If} \alt \B{BEq} \alt } \\
-        \multicolumn{3}{c}{\B{Call} \alt \B{While} \alt \B{Case} \alt \B{Skip}} \\
-        \hline
-        \multicolumn{3}{|c|}{Block: \B{Blk}} \\
-        \hline
-        \B{body} & : & seq \B{Inst} \\
-        \hline
-        \multicolumn{3}{|c|}{Variable declaration: \B{VarD}} \\
-        \hline
-        \B{vars} & : & seq \B{Name} \\
-        \B{body} & : & seq \B{Inst} \\
-        \hline
-        \multicolumn{3}{|c|}{If: \B{If}} \\
-        \hline
-        \B{branches} & : & seq \B{IfBr} \\
-        \hline
-        \multicolumn{3}{|c|}{Becomes equal: \B{Beq}} \\
-        \hline
-        \B{lhs} & : & \B{Vari} \\
-        \B{rhs} & : & \B{Expr} \\
-        \hline
-        \multicolumn{3}{|c|}{Operation call: \B{Call}} \\
-        \hline
-        \B{op} & : & \B{Oper} \\
-        \B{inp} & : & seq \B{Expr} \\
-        \B{out} & : & seq \B{Name} \\
-        \B{inst} & : & opt \B{Impo}
-        \\
-        \hline
-        \multicolumn{3}{|c|}{Case conditional: \B{Case}} \\
-        \hline
-        \B{expr} & : & \B{Expr} \\
-        \B{branches} & : & seq \B{CaseBr}
-      \end{tabular}
-      & &
-      \begin{tabular}[t]{rcl}
-        \hline
-        \multicolumn{3}{|c|}{Case branch: \B{CaseBr}} \\
-        \hline
-        \B{val} & : & seq \B{Value} \\
-        \B{body} & : & \B{Inst}
-        \\
-        \hline
-        \multicolumn{3}{|c|}{While loop: \B{While}} \\
-        \hline
-        \B{cond} & : & \B{Pred} \\
-        \B{body} & : & \B{Inst}
-        \\
-        \hline
-        \multicolumn{3}{|c|}{If branch: \B{IfBr}} \\
-        \hline
-        \B{cond} & : & opt \B{Pred} \\
-        \B{body} & : & \B{Inst} \\
-        \hline
-        \multicolumn{3}{|c|}{Expression: \B{Expr}} \\
-        \hline
-        \multicolumn{3}{c} {\B{Lit} \alt \B{Term} \alt \B{Pred} \alt \B{Vari}} \\
-        \hline
-        \multicolumn{3}{|c|}{Term expression: \B{Term}} \\
-        \hline
-        \B{op} & : & \B{ArithOp} \\
-        \B{args} & : & seq \B{Exp} \\
-        \hline
-        \multicolumn{3}{|c|}{Predicate: \B{Pred}} \\
-        \hline
-        \multicolumn{3}{c}{\B{Form} \alt \B{Comp}} \\
-        \hline
-        \multicolumn{3}{|c|}{Boolean formula: \B{Form}} \\
-        \hline
-        \B{op} & : & \B{BoolOp} \\
-        \B{args} & : & seq \B{Pred} \\
-        \hline
-        \multicolumn{3}{|c|}{Comparison: \B{Comp}} \\
-        \hline
-        \B{op} & : & \B{RelOp} \\
-        \B{arg1}, \B{arg2} & : & \B{Exp} \\
-        \hline
-        \multicolumn{3}{|c|}{Data type: \B{Type}} \\
-        \hline
-        \multicolumn{3}{c}{\B{INT} \alt \B{BOOL}}
-      \end{tabular}
-    \end{tabular}
-  }
-  }
-    \caption{Abstract syntax structure of a B implementation.  For each abstract
-      syntax element, we give the name of the class (e.g. \B{CaseBr} for a
-      branch in a case instruction, and the different attributes of the class),
-      or a list of the possible sub-classes (e.g. \B{Inst} for the different
-      kinds of instructions).
-      Sequence and optional attributes are denoted ``seq'' and ``opt'',
-      respectively}
-    \label{tab:node-attr}
-  \end{center}
-\end{figure}
-
-
-
-\section{The abstract syntax tree with support for derived types}
-
-\textcolor{blue}{
-The supported derived types are array and structures. The nodes Array and 
-Structure can be used to declare a variable, or  declare an element, or to 
-select an element in the array or the structure. 
-}
+(integer), \B{BOOL} (Boolean), enumerated set, arrays and structures. All elements and data types from B code are represented in abstract syntax tree. It is illustrated in Figure~\ref{tab:node-attr} and used as an intermediate representation of B code.
 
 \begin{figure}[H]
   \begin{center}
@@ -353,12 +183,13 @@ select an element in the array or the structure.
         \hline
         \B{vars} & : & seq \B{Name} \\
         \B{body} & : & seq \B{Inst} \\
-\end{tabular}
-\begin{tabular}[t]{rcl}   
-  	\hline
+	\hline
         \multicolumn{3}{|c|}{If: \B{If}} \\
         \hline
         \B{branches} & : & seq \B{IfBr} \\
+
+\end{tabular}
+\begin{tabular}[t]{rcl}   
         \hline
         \multicolumn{3}{|c|}{Becomes equal: \B{Beq}} \\
         \hline
@@ -399,11 +230,8 @@ select an element in the array or the structure.
         \hline
         \multicolumn{3}{|c|}{Expression: \B{Exp}} \\
         \hline
-        \multicolumn{3}{c}{\B{Lit}\alt\B{Term}\alt\B{Pred}\alt\B{Cons}\alt\B{Vari}}\\
-	\multicolumn{3}{c}{\B{Record}\alt\B{Array}\alt\B{ValueItem} } \\
-        \hline
-        \multicolumn{3}{|c|}{Value item : \B{ValueItem}} \\
-        \hline
+        \multicolumn{3}{c}{\B{Lit}\alt\B{Term}\alt\B{Pred}\alt\B{Cons}\alt}\\
+	\multicolumn{3}{c}{\B{Vari}\alt\B{Record}\alt\B{Array}\alt} \\
 	\multicolumn{3}{c}{\B{RecField}\alt\B{ArrayItem} } \\
         \hline
         \multicolumn{3}{|c|}{Term expression: \B{Term}} \\
@@ -423,16 +251,17 @@ select an element in the array or the structure.
         \multicolumn{3}{|c|}{Comparison: \B{Comp}} \\
         \hline
         \B{op} & : & \B{RelOp} \\
-        \B{arg1}, \B{arg2} & : & \B{Exp}
-\end{tabular} 
-       
-\begin{tabular}[t]{rcl}
+        \B{arg1}, \B{arg2} & : & \B{Exp}\\
         \hline
         \multicolumn{3}{|c|}{Data type: \B{Type}} \\
         \hline
         \multicolumn{3}{c}{\B{INT} \alt \B{BOOL}\alt}\\
 	\multicolumn{3}{c}{\B{Structure} \alt \B{ArrayType} \alt} \\
 	\multicolumn{3}{c}{\B{Enumeration}} \\
+
+\end{tabular} 
+       
+\begin{tabular}[t]{rcl}
 	\hline
   	\multicolumn{3}{|c|}{Enumerated set: \B{Enumeration}} \\
         \hline
@@ -513,13 +342,15 @@ select an element in the array or the structure.
   \end{center}
 \end{figure}
 
-
-
-
-
-
-
-
+ Accordingly, the expression language consists
+in arithmetic operations \B{-} (unary and binary), \B{+}, \B{*}, \B{/}, \B{mod},
+% \B{**} (exponentiation),
+\B{succ} and \B{pred} and Boolean operations
+\B{$\land$}, \B{$\lor$}, \B{$\neg$} as well as relations \B{=}, \B{$\neq$},
+\B{$>$}, \B{$<$}, \B{$\leq$} and \B{$\neq$}. Atomic expressions are identifiers,
+Boolean constants \B{FALSE} and \B{TRUE}, integer literals, and integer
+constants \B{MAXINT} and \B{MININT}. The development through the application of
+the B method ensures the absence of overflows and underflows.
 
 
 \section{Target LLVM Subset}
@@ -864,7 +695,7 @@ Initializing an array:
 \textcolor{gray}{arr :=} \underbrace{\{\underbrace{1 \mapsto  100,2 \mapsto 101}_{seq\ Map}\}}_{Array}
 \]
 \[
-\textcolor{gray}{arr :=} \underbrace{\{\underbrace{\underbrace{0..100 \times 0..100  \times}_{seq\ Exp} \underbrace{\{0,1\}}_{Exp} }_{Product}\}}_{Array}
+\textcolor{gray}{arr :=} \underbrace{\{\underbrace{\underbrace{0..100 \times 0..100  \times}_{seq\ Exp} \underbrace{\{1\}}_{Exp} }_{Product}\}}_{Array}
 \]
 
 Updating a selected element from array by a value of variable:
