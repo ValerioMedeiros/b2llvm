@@ -5,6 +5,9 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
+<B0Type>
+<Identifier value='INTEGER' />
+</B0Type>
 </Attributes>
 </Identifier>
 </Concrete_Constants>
@@ -25,6 +28,9 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
+<B0Type>
+<Identifier value='INTEGER' />
+</B0Type>
 </Attributes>
 </Identifier>
 <Identifier value='INT'>
@@ -34,6 +40,12 @@
 <Identifier value='INTEGER' />
 </Unary_Expression>
 </TypeInfo>
+<B0Type>
+<Binary_Expression operator='..'>
+<Identifier value='MININT' />
+<Identifier value='MAXINT' />
+</Binary_Expression>
+</B0Type>
 </Attributes>
 </Identifier>
 </Expression_Comparison>
@@ -43,15 +55,18 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
+<B0Type>
+<Identifier value='INTEGER' />
+</B0Type>
 </Attributes>
 </Identifier>
-<Integer_Litteral value='0'>
+<Integer_Literal value='0'>
 <Attributes>
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
 </Attributes>
-</Integer_Litteral>
+</Integer_Literal>
 </Expression_Comparison>
 </Nary_Predicate>
 </Properties>
@@ -72,6 +87,12 @@
 <Identifier value='INTEGER' />
 </Unary_Expression>
 </TypeInfo>
+<B0Type>
+<Binary_Expression operator='..'>
+<Identifier value='MININT' />
+<Identifier value='MAXINT' />
+</Binary_Expression>
+</B0Type>
 </Attributes>
 </Identifier>
 </Expression_Comparison>
@@ -83,13 +104,13 @@
 </TypeInfo>
 </Attributes>
 </Identifier>
-<Integer_Litteral value='0'>
+<Integer_Literal value='0'>
 <Attributes>
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
 </Attributes>
-</Integer_Litteral>
+</Integer_Literal>
 </Expression_Comparison>
 <Expression_Comparison operator='&gt;='>
 <Identifier value='timeout'>
@@ -97,6 +118,9 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
+<B0Type>
+<Identifier value='INTEGER' />
+</B0Type>
 </Attributes>
 </Identifier>
 <Identifier value='ticker'>
@@ -110,7 +134,7 @@
 </Nary_Predicate>
 </Invariant>
 <Initialisation>
-<Affectation_Substitution>
+<Assignement_Substitution>
 <Variables>
 <Identifier value='ticker'>
 <Attributes>
@@ -121,20 +145,20 @@
 </Identifier>
 </Variables>
 <Values>
-<Integer_Litteral value='0'>
+<Integer_Literal value='0'>
 <Attributes>
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
 </Attributes>
-</Integer_Litteral>
+</Integer_Literal>
 </Values>
-</Affectation_Substitution>
+</Assignement_Substitution>
 </Initialisation>
 <Operations>
 <Operation name='start'>
 <Body>
-<Affectation_Substitution>
+<Assignement_Substitution>
 <Variables>
 <Identifier value='ticker'>
 <Attributes>
@@ -150,15 +174,18 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
+<B0Type>
+<Identifier value='INTEGER' />
+</B0Type>
 </Attributes>
 </Identifier>
 </Values>
-</Affectation_Substitution>
+</Assignement_Substitution>
 </Body>
 </Operation>
 <Operation name='tick'>
 <Body>
-<If_Substitution>
+<If_Substitution elseif='no'>
 <Condition>
 <Expression_Comparison operator='&gt;'>
 <Identifier value='ticker'>
@@ -168,17 +195,17 @@
 </TypeInfo>
 </Attributes>
 </Identifier>
-<Integer_Litteral value='0'>
+<Integer_Literal value='0'>
 <Attributes>
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
 </Attributes>
-</Integer_Litteral>
+</Integer_Literal>
 </Expression_Comparison>
 </Condition>
 <Then>
-<Affectation_Substitution>
+<Assignement_Substitution>
 <Variables>
 <Identifier value='ticker'>
 <Attributes>
@@ -202,16 +229,16 @@
 </TypeInfo>
 </Attributes>
 </Identifier>
-<Integer_Litteral value='1'>
+<Integer_Literal value='1'>
 <Attributes>
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
 </Attributes>
-</Integer_Litteral>
+</Integer_Literal>
 </Binary_Expression>
 </Values>
-</Affectation_Substitution>
+</Assignement_Substitution>
 </Then>
 </If_Substitution>
 </Body>
@@ -223,11 +250,14 @@
 <TypeInfo>
 <Identifier value='BOOL' />
 </TypeInfo>
+<B0Type>
+<Identifier value='BOOL' />
+</B0Type>
 </Attributes>
 </Identifier>
 </Output_Parameters>
 <Body>
-<If_Substitution>
+<If_Substitution elseif='no'>
 <Condition>
 <Expression_Comparison operator='='>
 <Identifier value='ticker'>
@@ -237,58 +267,64 @@
 </TypeInfo>
 </Attributes>
 </Identifier>
-<Integer_Litteral value='0'>
+<Integer_Literal value='0'>
 <Attributes>
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
 </Attributes>
-</Integer_Litteral>
+</Integer_Literal>
 </Expression_Comparison>
 </Condition>
 <Then>
-<Affectation_Substitution>
+<Assignement_Substitution>
 <Variables>
 <Identifier value='res'>
 <Attributes>
 <TypeInfo>
 <Identifier value='BOOL' />
 </TypeInfo>
+<B0Type>
+<Identifier value='BOOL' />
+</B0Type>
 </Attributes>
 </Identifier>
 </Variables>
 <Values>
-<Boolean_Litteral value='TRUE'>
+<Boolean_Literal value='TRUE'>
 <Attributes>
 <TypeInfo>
 <Identifier value='BOOL' />
 </TypeInfo>
 </Attributes>
-</Boolean_Litteral>
+</Boolean_Literal>
 </Values>
-</Affectation_Substitution>
+</Assignement_Substitution>
 </Then>
 <Else>
-<Affectation_Substitution>
+<Assignement_Substitution>
 <Variables>
 <Identifier value='res'>
 <Attributes>
 <TypeInfo>
 <Identifier value='BOOL' />
 </TypeInfo>
+<B0Type>
+<Identifier value='BOOL' />
+</B0Type>
 </Attributes>
 </Identifier>
 </Variables>
 <Values>
-<Boolean_Litteral value='FALSE'>
+<Boolean_Literal value='FALSE'>
 <Attributes>
 <TypeInfo>
 <Identifier value='BOOL' />
 </TypeInfo>
 </Attributes>
-</Boolean_Litteral>
+</Boolean_Literal>
 </Values>
-</Affectation_Substitution>
+</Assignement_Substitution>
 </Else>
 </If_Substitution>
 </Body>

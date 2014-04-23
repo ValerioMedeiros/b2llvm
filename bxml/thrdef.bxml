@@ -5,6 +5,9 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
+<B0Type>
+<Identifier value='INTEGER' />
+</B0Type>
 </Attributes>
 </Identifier>
 </Concrete_Constants>
@@ -16,6 +19,9 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
+<B0Type>
+<Identifier value='INTEGER' />
+</B0Type>
 </Attributes>
 </Identifier>
 <Identifier value='INT'>
@@ -25,6 +31,12 @@
 <Identifier value='INTEGER' />
 </Unary_Expression>
 </TypeInfo>
+<B0Type>
+<Binary_Expression operator='..'>
+<Identifier value='MININT' />
+<Identifier value='MAXINT' />
+</Binary_Expression>
+</B0Type>
 </Attributes>
 </Identifier>
 </Expression_Comparison>
@@ -34,15 +46,18 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
+<B0Type>
+<Identifier value='INTEGER' />
+</B0Type>
 </Attributes>
 </Identifier>
-<Integer_Litteral value='0'>
+<Integer_Literal value='0'>
 <Attributes>
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
 </Attributes>
-</Integer_Litteral>
+</Integer_Literal>
 </Expression_Comparison>
 <Expression_Comparison operator='&lt;='>
 <Identifier value='maxval'>
@@ -50,6 +65,9 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
+<B0Type>
+<Identifier value='INTEGER' />
+</B0Type>
 </Attributes>
 </Identifier>
 <Identifier value='MAXINT'>
@@ -57,6 +75,9 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
+<B0Type>
+<Identifier value='INTEGER' />
+</B0Type>
 </Attributes>
 </Identifier>
 </Expression_Comparison>

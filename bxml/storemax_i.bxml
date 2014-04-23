@@ -6,14 +6,50 @@
 </Referenced_Machine>
 </Imports>
 <Concrete_Variables>
-<Identifier value='empty' />
-<Identifier value='largest' />
-<Identifier value='smallest' />
+<Identifier value='empty'>
+<Attributes>
+<TypeInfo>
+<Identifier value='BOOL' />
+</TypeInfo>
+<B0Type>
+<Identifier value='BOOL' />
+</B0Type>
+</Attributes>
+</Identifier>
+<Identifier value='largest'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+<B0Type>
+<Identifier value='INTEGER' />
+</B0Type>
+</Attributes>
+</Identifier>
+<Identifier value='smallest'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+<B0Type>
+<Identifier value='INTEGER' />
+</B0Type>
+</Attributes>
+</Identifier>
 </Concrete_Variables>
 <Invariant>
 <Nary_Predicate operator='&amp;'>
 <Expression_Comparison operator=':'>
-<Identifier value='empty' />
+<Identifier value='empty'>
+<Attributes>
+<TypeInfo>
+<Identifier value='BOOL' />
+</TypeInfo>
+<B0Type>
+<Identifier value='BOOL' />
+</B0Type>
+</Attributes>
+</Identifier>
 <Identifier value='BOOL'>
 <Attributes>
 <TypeInfo>
@@ -21,11 +57,26 @@
 <Identifier value='BOOL' />
 </Unary_Expression>
 </TypeInfo>
+<B0Type>
+<Binary_Expression operator='..'>
+<Integer_Literal value='0' />
+<Integer_Literal value='1' />
+</Binary_Expression>
+</B0Type>
 </Attributes>
 </Identifier>
 </Expression_Comparison>
 <Expression_Comparison operator=':'>
-<Identifier value='largest' />
+<Identifier value='largest'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+<B0Type>
+<Identifier value='INTEGER' />
+</B0Type>
+</Attributes>
+</Identifier>
 <Identifier value='INT'>
 <Attributes>
 <TypeInfo>
@@ -33,11 +84,26 @@
 <Identifier value='INTEGER' />
 </Unary_Expression>
 </TypeInfo>
+<B0Type>
+<Binary_Expression operator='..'>
+<Identifier value='MININT' />
+<Identifier value='MAXINT' />
+</Binary_Expression>
+</B0Type>
 </Attributes>
 </Identifier>
 </Expression_Comparison>
 <Expression_Comparison operator=':'>
-<Identifier value='smallest' />
+<Identifier value='smallest'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+<B0Type>
+<Identifier value='INTEGER' />
+</B0Type>
+</Attributes>
+</Identifier>
 <Identifier value='INT'>
 <Attributes>
 <TypeInfo>
@@ -45,31 +111,90 @@
 <Identifier value='INTEGER' />
 </Unary_Expression>
 </TypeInfo>
+<B0Type>
+<Binary_Expression operator='..'>
+<Identifier value='MININT' />
+<Identifier value='MAXINT' />
+</Binary_Expression>
+</B0Type>
 </Attributes>
 </Identifier>
 </Expression_Comparison>
 <Binary_Predicate operator='=&gt;'>
 <Expression_Comparison operator='='>
-<Identifier value='empty' />
-<Boolean_Litteral value='FALSE'>
+<Identifier value='empty'>
+<Attributes>
+<TypeInfo>
+<Identifier value='BOOL' />
+</TypeInfo>
+<B0Type>
+<Identifier value='BOOL' />
+</B0Type>
+</Attributes>
+</Identifier>
+<Boolean_Literal value='FALSE'>
 <Attributes>
 <TypeInfo>
 <Identifier value='BOOL' />
 </TypeInfo>
 </Attributes>
-</Boolean_Litteral>
+</Boolean_Literal>
 </Expression_Comparison>
 <Nary_Predicate operator='&amp;'>
 <Expression_Comparison operator='='>
-<Identifier value='largest' />
+<Identifier value='largest'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+<B0Type>
+<Identifier value='INTEGER' />
+</B0Type>
+</Attributes>
+</Identifier>
 <Unary_Expression operator='max'>
-<Identifier value='numbers' />
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+<Identifier value='numbers'>
+<Attributes>
+<TypeInfo>
+<Unary_Expression operator='POW'>
+<Identifier value='INTEGER' />
+</Unary_Expression>
+</TypeInfo>
+</Attributes>
+</Identifier>
 </Unary_Expression>
 </Expression_Comparison>
 <Expression_Comparison operator='='>
-<Identifier value='smallest' />
+<Identifier value='smallest'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+<B0Type>
+<Identifier value='INTEGER' />
+</B0Type>
+</Attributes>
+</Identifier>
 <Unary_Expression operator='min'>
-<Identifier value='numbers' />
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+<Identifier value='numbers'>
+<Attributes>
+<TypeInfo>
+<Unary_Expression operator='POW'>
+<Identifier value='INTEGER' />
+</Unary_Expression>
+</TypeInfo>
+</Attributes>
+</Identifier>
 </Unary_Expression>
 </Expression_Comparison>
 </Nary_Predicate>
@@ -79,48 +204,75 @@
 <Initialisation>
 <Bloc_Substitution>
 <Nary_Substitution operator=';'>
-<Affectation_Substitution>
+<Assignement_Substitution>
 <Variables>
-<Identifier value='largest' />
+<Identifier value='largest'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+<B0Type>
+<Identifier value='INTEGER' />
+</B0Type>
+</Attributes>
+</Identifier>
 </Variables>
 <Values>
-<Integer_Litteral value='0'>
+<Integer_Literal value='0'>
 <Attributes>
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
 </Attributes>
-</Integer_Litteral>
+</Integer_Literal>
 </Values>
-</Affectation_Substitution>
-<Affectation_Substitution>
+</Assignement_Substitution>
+<Assignement_Substitution>
 <Variables>
-<Identifier value='smallest' />
+<Identifier value='smallest'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+<B0Type>
+<Identifier value='INTEGER' />
+</B0Type>
+</Attributes>
+</Identifier>
 </Variables>
 <Values>
-<Integer_Litteral value='0'>
+<Integer_Literal value='0'>
 <Attributes>
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
 </Attributes>
-</Integer_Litteral>
+</Integer_Literal>
 </Values>
-</Affectation_Substitution>
-<Affectation_Substitution>
+</Assignement_Substitution>
+<Assignement_Substitution>
 <Variables>
-<Identifier value='empty' />
+<Identifier value='empty'>
+<Attributes>
+<TypeInfo>
+<Identifier value='BOOL' />
+</TypeInfo>
+<B0Type>
+<Identifier value='BOOL' />
+</B0Type>
+</Attributes>
+</Identifier>
 </Variables>
 <Values>
-<Boolean_Litteral value='TRUE'>
+<Boolean_Literal value='TRUE'>
 <Attributes>
 <TypeInfo>
 <Identifier value='BOOL' />
 </TypeInfo>
 </Attributes>
-</Boolean_Litteral>
+</Boolean_Literal>
 </Values>
-</Affectation_Substitution>
+</Assignement_Substitution>
 </Nary_Substitution>
 </Bloc_Substitution>
 </Initialisation>
@@ -129,7 +281,16 @@
 <Body>
 <VAR_IN>
 <Variables>
-<Identifier value='val' />
+<Identifier value='val'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+<B0Type>
+<Identifier value='INTEGER' />
+</B0Type>
+</Attributes>
+</Identifier>
 </Variables>
 <Body>
 <Nary_Substitution operator=';'>
@@ -138,79 +299,205 @@
 <Identifier value='read_int' />
 </Name>
 <Output_Parameters>
-<Identifier value='val' />
+<Identifier value='val'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+<B0Type>
+<Identifier value='INTEGER' />
+</B0Type>
+</Attributes>
+</Identifier>
 </Output_Parameters>
 </Operation_Call>
-<If_Substitution>
+<If_Substitution elseif='no'>
 <Condition>
 <Expression_Comparison operator='='>
-<Identifier value='empty' />
-<Boolean_Litteral value='TRUE'>
+<Identifier value='empty'>
+<Attributes>
+<TypeInfo>
+<Identifier value='BOOL' />
+</TypeInfo>
+<B0Type>
+<Identifier value='BOOL' />
+</B0Type>
+</Attributes>
+</Identifier>
+<Boolean_Literal value='TRUE'>
 <Attributes>
 <TypeInfo>
 <Identifier value='BOOL' />
 </TypeInfo>
 </Attributes>
-</Boolean_Litteral>
+</Boolean_Literal>
 </Expression_Comparison>
 </Condition>
 <Then>
 <Nary_Substitution operator=';'>
-<Affectation_Substitution>
+<Assignement_Substitution>
 <Variables>
-<Identifier value='largest' />
+<Identifier value='largest'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+<B0Type>
+<Identifier value='INTEGER' />
+</B0Type>
+</Attributes>
+</Identifier>
 </Variables>
 <Values>
-<Identifier value='val' />
+<Identifier value='val'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+<B0Type>
+<Identifier value='INTEGER' />
+</B0Type>
+</Attributes>
+</Identifier>
 </Values>
-</Affectation_Substitution>
-<Affectation_Substitution>
+</Assignement_Substitution>
+<Assignement_Substitution>
 <Variables>
-<Identifier value='smallest' />
+<Identifier value='smallest'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+<B0Type>
+<Identifier value='INTEGER' />
+</B0Type>
+</Attributes>
+</Identifier>
 </Variables>
 <Values>
-<Identifier value='val' />
+<Identifier value='val'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+<B0Type>
+<Identifier value='INTEGER' />
+</B0Type>
+</Attributes>
+</Identifier>
 </Values>
-</Affectation_Substitution>
+</Assignement_Substitution>
 </Nary_Substitution>
 </Then>
 <Else>
 <Bloc_Substitution>
 <Nary_Substitution operator=';'>
-<If_Substitution>
+<If_Substitution elseif='no'>
 <Condition>
 <Expression_Comparison operator='&gt;'>
-<Identifier value='val' />
-<Identifier value='largest' />
+<Identifier value='val'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+<B0Type>
+<Identifier value='INTEGER' />
+</B0Type>
+</Attributes>
+</Identifier>
+<Identifier value='largest'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+<B0Type>
+<Identifier value='INTEGER' />
+</B0Type>
+</Attributes>
+</Identifier>
 </Expression_Comparison>
 </Condition>
 <Then>
-<Affectation_Substitution>
+<Assignement_Substitution>
 <Variables>
-<Identifier value='largest' />
+<Identifier value='largest'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+<B0Type>
+<Identifier value='INTEGER' />
+</B0Type>
+</Attributes>
+</Identifier>
 </Variables>
 <Values>
-<Identifier value='val' />
+<Identifier value='val'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+<B0Type>
+<Identifier value='INTEGER' />
+</B0Type>
+</Attributes>
+</Identifier>
 </Values>
-</Affectation_Substitution>
+</Assignement_Substitution>
 </Then>
 </If_Substitution>
-<If_Substitution>
+<If_Substitution elseif='no'>
 <Condition>
 <Expression_Comparison operator='&lt;'>
-<Identifier value='val' />
-<Identifier value='smallest' />
+<Identifier value='val'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+<B0Type>
+<Identifier value='INTEGER' />
+</B0Type>
+</Attributes>
+</Identifier>
+<Identifier value='smallest'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+<B0Type>
+<Identifier value='INTEGER' />
+</B0Type>
+</Attributes>
+</Identifier>
 </Expression_Comparison>
 </Condition>
 <Then>
-<Affectation_Substitution>
+<Assignement_Substitution>
 <Variables>
-<Identifier value='smallest' />
+<Identifier value='smallest'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+<B0Type>
+<Identifier value='INTEGER' />
+</B0Type>
+</Attributes>
+</Identifier>
 </Variables>
 <Values>
-<Identifier value='val' />
+<Identifier value='val'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+<B0Type>
+<Identifier value='INTEGER' />
+</B0Type>
+</Attributes>
+</Identifier>
 </Values>
-</Affectation_Substitution>
+</Assignement_Substitution>
 </Then>
 </If_Substitution>
 </Nary_Substitution>
@@ -224,7 +511,16 @@
 </Operation>
 <Operation name='upper'>
 <Output_Parameters>
-<Identifier value='res' />
+<Identifier value='res'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+<B0Type>
+<Identifier value='INTEGER' />
+</B0Type>
+</Attributes>
+</Identifier>
 </Output_Parameters>
 <Body>
 <Nary_Substitution operator=';'>
@@ -233,23 +529,59 @@
 <Identifier value='print_int' />
 </Name>
 <Input_Parameters>
-<Identifier value='largest' />
+<Identifier value='largest'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+<B0Type>
+<Identifier value='INTEGER' />
+</B0Type>
+</Attributes>
+</Identifier>
 </Input_Parameters>
 </Operation_Call>
-<Affectation_Substitution>
+<Assignement_Substitution>
 <Variables>
-<Identifier value='res' />
+<Identifier value='res'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+<B0Type>
+<Identifier value='INTEGER' />
+</B0Type>
+</Attributes>
+</Identifier>
 </Variables>
 <Values>
-<Identifier value='largest' />
+<Identifier value='largest'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+<B0Type>
+<Identifier value='INTEGER' />
+</B0Type>
+</Attributes>
+</Identifier>
 </Values>
-</Affectation_Substitution>
+</Assignement_Substitution>
 </Nary_Substitution>
 </Body>
 </Operation>
 <Operation name='lower'>
 <Output_Parameters>
-<Identifier value='res' />
+<Identifier value='res'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+<B0Type>
+<Identifier value='INTEGER' />
+</B0Type>
+</Attributes>
+</Identifier>
 </Output_Parameters>
 <Body>
 <Nary_Substitution operator=';'>
@@ -258,17 +590,44 @@
 <Identifier value='print_int' />
 </Name>
 <Input_Parameters>
-<Identifier value='smallest' />
+<Identifier value='smallest'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+<B0Type>
+<Identifier value='INTEGER' />
+</B0Type>
+</Attributes>
+</Identifier>
 </Input_Parameters>
 </Operation_Call>
-<Affectation_Substitution>
+<Assignement_Substitution>
 <Variables>
-<Identifier value='res' />
+<Identifier value='res'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+<B0Type>
+<Identifier value='INTEGER' />
+</B0Type>
+</Attributes>
+</Identifier>
 </Variables>
 <Values>
-<Identifier value='smallest' />
+<Identifier value='smallest'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+<B0Type>
+<Identifier value='INTEGER' />
+</B0Type>
+</Attributes>
+</Identifier>
 </Values>
-</Affectation_Substitution>
+</Assignement_Substitution>
 </Nary_Substitution>
 </Body>
 </Operation>

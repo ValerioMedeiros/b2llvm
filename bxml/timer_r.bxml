@@ -2,13 +2,6 @@
 <Abstraction>timer</Abstraction>
 <Sets>
 <Set>
-<Attributes>
-<TypeInfo>
-<Unary_Expression operator='POW'>
-<Identifier value='STATE' />
-</Unary_Expression>
-</TypeInfo>
-</Attributes>
 <Identifier value='STATE'>
 <Attributes>
 <TypeInfo>
@@ -16,6 +9,9 @@
 <Identifier value='STATE' />
 </Unary_Expression>
 </TypeInfo>
+<B0Type>
+<Identifier value='STATE' />
+</B0Type>
 </Attributes>
 </Identifier>
 <Enumerated_Values>
@@ -24,6 +20,9 @@
 <TypeInfo>
 <Identifier value='STATE' />
 </TypeInfo>
+<B0Type>
+<Identifier value='STATE' />
+</B0Type>
 </Attributes>
 </Identifier>
 <Identifier value='stopped'>
@@ -31,6 +30,9 @@
 <TypeInfo>
 <Identifier value='STATE' />
 </TypeInfo>
+<B0Type>
+<Identifier value='STATE' />
+</B0Type>
 </Attributes>
 </Identifier>
 </Enumerated_Values>
@@ -42,6 +44,9 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
+<B0Type>
+<Identifier value='INTEGER' />
+</B0Type>
 </Attributes>
 </Identifier>
 </Concrete_Constants>
@@ -70,7 +75,7 @@
 </Abstract_Variables>
 <Initialisation>
 <Nary_Substitution operator='||'>
-<Affectation_Substitution>
+<Assignement_Substitution>
 <Variables>
 <Identifier value='state'>
 <Attributes>
@@ -86,11 +91,14 @@
 <TypeInfo>
 <Identifier value='STATE' />
 </TypeInfo>
+<B0Type>
+<Identifier value='STATE' />
+</B0Type>
 </Attributes>
 </Identifier>
 </Values>
-</Affectation_Substitution>
-<Affectation_Substitution>
+</Assignement_Substitution>
+<Assignement_Substitution>
 <Variables>
 <Identifier value='count'>
 <Attributes>
@@ -101,16 +109,16 @@
 </Identifier>
 </Variables>
 <Values>
-<Integer_Litteral value='0'>
+<Integer_Literal value='0'>
 <Attributes>
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
 </Attributes>
-</Integer_Litteral>
+</Integer_Literal>
 </Values>
-</Affectation_Substitution>
-<Affectation_Substitution>
+</Assignement_Substitution>
+<Assignement_Substitution>
 <Variables>
 <Identifier value='overflow'>
 <Attributes>
@@ -121,21 +129,21 @@
 </Identifier>
 </Variables>
 <Values>
-<Boolean_Litteral value='FALSE'>
+<Boolean_Literal value='FALSE'>
 <Attributes>
 <TypeInfo>
 <Identifier value='BOOL' />
 </TypeInfo>
 </Attributes>
-</Boolean_Litteral>
+</Boolean_Literal>
 </Values>
-</Affectation_Substitution>
+</Assignement_Substitution>
 </Nary_Substitution>
 </Initialisation>
 <Operations>
 <Operation name='tick'>
 <Body>
-<If_Substitution>
+<If_Substitution elseif='no'>
 <Condition>
 <Nary_Predicate operator='&amp;'>
 <Expression_Comparison operator='='>
@@ -151,6 +159,9 @@
 <TypeInfo>
 <Identifier value='STATE' />
 </TypeInfo>
+<B0Type>
+<Identifier value='STATE' />
+</B0Type>
 </Attributes>
 </Identifier>
 </Expression_Comparison>
@@ -162,18 +173,18 @@
 </TypeInfo>
 </Attributes>
 </Identifier>
-<Boolean_Litteral value='FALSE'>
+<Boolean_Literal value='FALSE'>
 <Attributes>
 <TypeInfo>
 <Identifier value='BOOL' />
 </TypeInfo>
 </Attributes>
-</Boolean_Litteral>
+</Boolean_Literal>
 </Expression_Comparison>
 </Nary_Predicate>
 </Condition>
 <Then>
-<If_Substitution>
+<If_Substitution elseif='no'>
 <Condition>
 <Expression_Comparison operator='='>
 <Identifier value='count'>
@@ -188,12 +199,15 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
+<B0Type>
+<Identifier value='INTEGER' />
+</B0Type>
 </Attributes>
 </Identifier>
 </Expression_Comparison>
 </Condition>
 <Then>
-<Affectation_Substitution>
+<Assignement_Substitution>
 <Variables>
 <Identifier value='overflow'>
 <Attributes>
@@ -204,18 +218,18 @@
 </Identifier>
 </Variables>
 <Values>
-<Boolean_Litteral value='TRUE'>
+<Boolean_Literal value='TRUE'>
 <Attributes>
 <TypeInfo>
 <Identifier value='BOOL' />
 </TypeInfo>
 </Attributes>
-</Boolean_Litteral>
+</Boolean_Literal>
 </Values>
-</Affectation_Substitution>
+</Assignement_Substitution>
 </Then>
 <Else>
-<Affectation_Substitution>
+<Assignement_Substitution>
 <Variables>
 <Identifier value='count'>
 <Attributes>
@@ -239,16 +253,16 @@
 </TypeInfo>
 </Attributes>
 </Identifier>
-<Integer_Litteral value='1'>
+<Integer_Literal value='1'>
 <Attributes>
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
 </Attributes>
-</Integer_Litteral>
+</Integer_Literal>
 </Binary_Expression>
 </Values>
-</Affectation_Substitution>
+</Assignement_Substitution>
 </Else>
 </If_Substitution>
 </Then>
@@ -270,13 +284,16 @@
 <TypeInfo>
 <Identifier value='STATE' />
 </TypeInfo>
+<B0Type>
+<Identifier value='STATE' />
+</B0Type>
 </Attributes>
 </Identifier>
 </Expression_Comparison>
 </Precondition>
 <Body>
 <Nary_Substitution operator=';'>
-<Affectation_Substitution>
+<Assignement_Substitution>
 <Variables>
 <Identifier value='count'>
 <Attributes>
@@ -287,16 +304,16 @@
 </Identifier>
 </Variables>
 <Values>
-<Integer_Litteral value='0'>
+<Integer_Literal value='0'>
 <Attributes>
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
 </Attributes>
-</Integer_Litteral>
+</Integer_Literal>
 </Values>
-</Affectation_Substitution>
-<Affectation_Substitution>
+</Assignement_Substitution>
+<Assignement_Substitution>
 <Variables>
 <Identifier value='overflow'>
 <Attributes>
@@ -307,21 +324,21 @@
 </Identifier>
 </Variables>
 <Values>
-<Boolean_Litteral value='FALSE'>
+<Boolean_Literal value='FALSE'>
 <Attributes>
 <TypeInfo>
 <Identifier value='BOOL' />
 </TypeInfo>
 </Attributes>
-</Boolean_Litteral>
+</Boolean_Literal>
 </Values>
-</Affectation_Substitution>
+</Assignement_Substitution>
 </Nary_Substitution>
 </Body>
 </Operation>
 <Operation name='stop'>
 <Body>
-<If_Substitution>
+<If_Substitution elseif='no'>
 <Condition>
 <Expression_Comparison operator='='>
 <Identifier value='state'>
@@ -336,12 +353,15 @@
 <TypeInfo>
 <Identifier value='STATE' />
 </TypeInfo>
+<B0Type>
+<Identifier value='STATE' />
+</B0Type>
 </Attributes>
 </Identifier>
 </Expression_Comparison>
 </Condition>
 <Then>
-<Affectation_Substitution>
+<Assignement_Substitution>
 <Variables>
 <Identifier value='state'>
 <Attributes>
@@ -357,17 +377,20 @@
 <TypeInfo>
 <Identifier value='STATE' />
 </TypeInfo>
+<B0Type>
+<Identifier value='STATE' />
+</B0Type>
 </Attributes>
 </Identifier>
 </Values>
-</Affectation_Substitution>
+</Assignement_Substitution>
 </Then>
 </If_Substitution>
 </Body>
 </Operation>
 <Operation name='start'>
 <Body>
-<If_Substitution>
+<If_Substitution elseif='no'>
 <Condition>
 <Expression_Comparison operator='='>
 <Identifier value='state'>
@@ -382,12 +405,15 @@
 <TypeInfo>
 <Identifier value='STATE' />
 </TypeInfo>
+<B0Type>
+<Identifier value='STATE' />
+</B0Type>
 </Attributes>
 </Identifier>
 </Expression_Comparison>
 </Condition>
 <Then>
-<Affectation_Substitution>
+<Assignement_Substitution>
 <Variables>
 <Identifier value='state'>
 <Attributes>
@@ -403,10 +429,13 @@
 <TypeInfo>
 <Identifier value='STATE' />
 </TypeInfo>
+<B0Type>
+<Identifier value='STATE' />
+</B0Type>
 </Attributes>
 </Identifier>
 </Values>
-</Affectation_Substitution>
+</Assignement_Substitution>
 </Then>
 </If_Substitution>
 </Body>
@@ -418,6 +447,9 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
+<B0Type>
+<Identifier value='INTEGER' />
+</B0Type>
 </Attributes>
 </Identifier>
 <Identifier value='minutes'>
@@ -425,6 +457,9 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
+<B0Type>
+<Identifier value='INTEGER' />
+</B0Type>
 </Attributes>
 </Identifier>
 <Identifier value='seconds'>
@@ -432,11 +467,14 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
+<B0Type>
+<Identifier value='INTEGER' />
+</B0Type>
 </Attributes>
 </Identifier>
 </Output_Parameters>
 <Body>
-<If_Substitution>
+<If_Substitution elseif='no'>
 <Condition>
 <Expression_Comparison operator='='>
 <Identifier value='overflow'>
@@ -446,77 +484,86 @@
 </TypeInfo>
 </Attributes>
 </Identifier>
-<Boolean_Litteral value='TRUE'>
+<Boolean_Literal value='TRUE'>
 <Attributes>
 <TypeInfo>
 <Identifier value='BOOL' />
 </TypeInfo>
 </Attributes>
-</Boolean_Litteral>
+</Boolean_Literal>
 </Expression_Comparison>
 </Condition>
 <Then>
 <Nary_Substitution operator=';'>
-<Affectation_Substitution>
+<Assignement_Substitution>
 <Variables>
 <Identifier value='hours'>
 <Attributes>
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
+<B0Type>
+<Identifier value='INTEGER' />
+</B0Type>
 </Attributes>
 </Identifier>
 </Variables>
 <Values>
-<Integer_Litteral value='0'>
+<Integer_Literal value='0'>
 <Attributes>
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
 </Attributes>
-</Integer_Litteral>
+</Integer_Literal>
 </Values>
-</Affectation_Substitution>
-<Affectation_Substitution>
+</Assignement_Substitution>
+<Assignement_Substitution>
 <Variables>
 <Identifier value='minutes'>
 <Attributes>
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
+<B0Type>
+<Identifier value='INTEGER' />
+</B0Type>
 </Attributes>
 </Identifier>
 </Variables>
 <Values>
-<Integer_Litteral value='0'>
+<Integer_Literal value='0'>
 <Attributes>
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
 </Attributes>
-</Integer_Litteral>
+</Integer_Literal>
 </Values>
-</Affectation_Substitution>
-<Affectation_Substitution>
+</Assignement_Substitution>
+<Assignement_Substitution>
 <Variables>
 <Identifier value='seconds'>
 <Attributes>
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
+<B0Type>
+<Identifier value='INTEGER' />
+</B0Type>
 </Attributes>
 </Identifier>
 </Variables>
 <Values>
-<Integer_Litteral value='0'>
+<Integer_Literal value='0'>
 <Attributes>
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
 </Attributes>
-</Integer_Litteral>
+</Integer_Literal>
 </Values>
-</Affectation_Substitution>
+</Assignement_Substitution>
 </Nary_Substitution>
 </Then>
 <Else>
@@ -527,18 +574,24 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
+<B0Type>
+<Identifier value='INTEGER' />
+</B0Type>
 </Attributes>
 </Identifier>
 </Variables>
 <Body>
 <Nary_Substitution operator=';'>
-<Affectation_Substitution>
+<Assignement_Substitution>
 <Variables>
 <Identifier value='hours'>
 <Attributes>
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
+<B0Type>
+<Identifier value='INTEGER' />
+</B0Type>
 </Attributes>
 </Identifier>
 </Variables>
@@ -556,23 +609,26 @@
 </TypeInfo>
 </Attributes>
 </Identifier>
-<Integer_Litteral value='3600'>
+<Integer_Literal value='3600'>
 <Attributes>
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
 </Attributes>
-</Integer_Litteral>
+</Integer_Literal>
 </Binary_Expression>
 </Values>
-</Affectation_Substitution>
-<Affectation_Substitution>
+</Assignement_Substitution>
+<Assignement_Substitution>
 <Variables>
 <Identifier value='remaining_seconds'>
 <Attributes>
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
+<B0Type>
+<Identifier value='INTEGER' />
+</B0Type>
 </Attributes>
 </Identifier>
 </Variables>
@@ -590,23 +646,26 @@
 </TypeInfo>
 </Attributes>
 </Identifier>
-<Integer_Litteral value='3600'>
+<Integer_Literal value='3600'>
 <Attributes>
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
 </Attributes>
-</Integer_Litteral>
+</Integer_Literal>
 </Binary_Expression>
 </Values>
-</Affectation_Substitution>
-<Affectation_Substitution>
+</Assignement_Substitution>
+<Assignement_Substitution>
 <Variables>
 <Identifier value='minutes'>
 <Attributes>
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
+<B0Type>
+<Identifier value='INTEGER' />
+</B0Type>
 </Attributes>
 </Identifier>
 </Variables>
@@ -622,25 +681,31 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
+<B0Type>
+<Identifier value='INTEGER' />
+</B0Type>
 </Attributes>
 </Identifier>
-<Integer_Litteral value='60'>
+<Integer_Literal value='60'>
 <Attributes>
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
 </Attributes>
-</Integer_Litteral>
+</Integer_Literal>
 </Binary_Expression>
 </Values>
-</Affectation_Substitution>
-<Affectation_Substitution>
+</Assignement_Substitution>
+<Assignement_Substitution>
 <Variables>
 <Identifier value='seconds'>
 <Attributes>
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
+<B0Type>
+<Identifier value='INTEGER' />
+</B0Type>
 </Attributes>
 </Identifier>
 </Variables>
@@ -656,18 +721,21 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
+<B0Type>
+<Identifier value='INTEGER' />
+</B0Type>
 </Attributes>
 </Identifier>
-<Integer_Litteral value='60'>
+<Integer_Literal value='60'>
 <Attributes>
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
 </Attributes>
-</Integer_Litteral>
+</Integer_Literal>
 </Binary_Expression>
 </Values>
-</Affectation_Substitution>
+</Assignement_Substitution>
 </Nary_Substitution>
 </Body>
 </VAR_IN>
@@ -682,17 +750,23 @@
 <TypeInfo>
 <Identifier value='BOOL' />
 </TypeInfo>
+<B0Type>
+<Identifier value='BOOL' />
+</B0Type>
 </Attributes>
 </Identifier>
 </Output_Parameters>
 <Body>
-<Affectation_Substitution>
+<Assignement_Substitution>
 <Variables>
 <Identifier value='answer'>
 <Attributes>
 <TypeInfo>
 <Identifier value='BOOL' />
 </TypeInfo>
+<B0Type>
+<Identifier value='BOOL' />
+</B0Type>
 </Attributes>
 </Identifier>
 </Variables>
@@ -705,7 +779,7 @@
 </Attributes>
 </Identifier>
 </Values>
-</Affectation_Substitution>
+</Assignement_Substitution>
 </Body>
 </Operation>
 </Operations>
