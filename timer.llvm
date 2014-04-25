@@ -1,0 +1,492 @@
+;; -*- mode: asm -*-
+;;   file generated with b2llvm
+;;   B project settings: project.xml
+;;   B module: timer
+;;   B project directory: bxml
+;;   code generation mode: component
+;;   output file: timer.llvm
+;;   
+;;   This file contains LLVM code that implements B machine "timer".
+;;   It is registered as a developed machine.
+;;   The produced LLVM code is based on B implementation "timer_i".
+;;   
+;;1 The type declarations for state encodings of all imported modules are:
+;;1.1 The state encoding type for module "counter" is defined elsewhere:
+%counter$state$ = type opaque
+;;2 The type definitions for references to these state encodings are:
+;;2.1 The type for references to state encodings of "counter" is:
+%counter$ref$ = type %counter$state$*
+;;3 The interfaces of the directly imported modules are:
+;;3.1 The interface of "counter" is composed of:
+;;3.1.1 The declaration of the function implementing initialisation is:
+declare void @counter$init$(%counter$ref$)
+;;3.1.2 The declaration of the function implementing operation "zero" is:
+declare void @counter$zero(%counter$ref$)
+;;3.1.3 The declaration of the function implementing operation "inc" is:
+declare void @counter$inc(%counter$ref$)
+;;3.1.4 The declaration of the function implementing operation "get" is:
+declare void @counter$get(%counter$ref$, i32*)
+;;3.1.5 Declaration of function responsible for printing the state
+declare void @counter$printf$(%counter$ref$)
+;;4 The type encoding the state of "timer" is an aggregate and is defined as
+;;   (using implementation "timer_i"):
+;;4.1 Position "0" represents "hh.counter".
+;;4.2 Position "1" represents "mm.counter".
+;;4.3 Position "2" represents "ss.counter".
+;;4.4 Position "3" represents "is_running".
+;;4.5 Position "4" represents "overflow".
+%timer$state$ = type {%counter$ref$, %counter$ref$, %counter$ref$, i1, i1}
+;;5 The type for references to state encodings of "timer" is:
+%timer$ref$ = type %timer$state$*
+;;6 The function implementing initialisation for "timer" is "@timer$init$"
+;;   and has the following parameters:
+;;6.1 "%self$": address of LLVM aggregate storing state of "timer";
+;;6.2 "%arg0$": address of LLVM aggregate storing state of "hh.counter";
+;;6.3 "%arg1$": address of LLVM aggregate storing state of "mm.counter";
+;;6.4 "%arg2$": address of LLVM aggregate storing state of "ss.counter";
+define void @timer$init$(%timer$ref$ %self$, %counter$ref$ %arg0$, %counter$ref$ %arg1$, %counter$ref$ %arg2$) {
+;;6.5 The entry point of the initialisation is:
+entry:
+;;6.6 The addresses of aggregates representing components of "timer_i"
+;;     are bound to elements of aggregate representing "timer".
+;;6.6.1 This binds component "hh.counter" to aggregate element 0:
+  %0 = getelementptr %timer$ref$ %self$, i32 0, i32 0
+  store %counter$ref$ %arg0$, %counter$ref$* %0
+;;6.6.2 This binds component "mm.counter" to aggregate element 1:
+  %1 = getelementptr %timer$ref$ %self$, i32 0, i32 1
+  store %counter$ref$ %arg1$, %counter$ref$* %1
+;;6.6.3 This binds component "ss.counter" to aggregate element 2:
+  %2 = getelementptr %timer$ref$ %self$, i32 0, i32 2
+  store %counter$ref$ %arg2$, %counter$ref$* %2
+;;6.7 Each component is initialised:
+;;6.7.1 Call initialisation function for component "hh.counter".
+  call void @counter$init$(%counter$ref$ %arg0$)
+;;6.7.2 Call initialisation function for component "mm.counter".
+  call void @counter$init$(%counter$ref$ %arg1$)
+;;6.7.3 Call initialisation function for component "ss.counter".
+  call void @counter$init$(%counter$ref$ %arg2$)
+;;6.8 Execute substitutions in initialisation of "timer_i" then exits:
+;;6.8.1 Execute assignment "is_running := FALSE":
+;;6.8.1.1 Evaluate expression "FALSE".
+;;6.8.1.1.1 A Boolean literal is represented as a one-bit integer in LLVM.
+;;         The evaluation of "FALSE" is "0".
+;;6.8.1.2 Evaluate address for "is_running".
+;;6.8.1.2.1 Variable "is_running" is stored at position 3 of "%self$".
+;;           Let temporary %3 be the corresponding address:
+  %3 = getelementptr %timer$ref$ %self$, i32 0, i32 3
+;;6.8.1.3 Store value at address to achieve assignment.
+  store i1 0, i1* %3
+;;6.8.2 Execute assignment "overflow := FALSE":
+;;6.8.2.1 Evaluate expression "FALSE".
+;;6.8.2.1.1 A Boolean literal is represented as a one-bit integer in LLVM.
+;;         The evaluation of "FALSE" is "0".
+;;6.8.2.2 Evaluate address for "overflow".
+;;6.8.2.2.1 Variable "overflow" is stored at position 4 of "%self$".
+;;           Let temporary %4 be the corresponding address:
+  %4 = getelementptr %timer$ref$ %self$, i32 0, i32 4
+;;6.8.2.3 Store value at address to achieve assignment.
+  store i1 0, i1* %4
+  br label %exit
+;;6.9 The exit point of the initialisation is:
+exit:
+  ret void
+}
+;;7 The LLVM function implementing B operation "tick" in "timer_i" follows.
+define void @timer$tick(%timer$ref$ %self$) {
+entry:
+;;7.1 local variable declarations implemented as frame stack allocations
+;;7.1.1 frame stack allocation for variable hours
+  %hours = alloca i32
+;;7.1.2 frame stack allocation for variable minutes
+  %minutes = alloca i32
+;;7.1.3 frame stack allocation for variable seconds
+  %seconds = alloca i32
+;;7.2 Execute "IF is_running = TRUE ..." and branch to "exit".
+;;7.2.1 execute if branch "IF is_running = TRUE ..."
+;;7.2.2 Evaluate formula "is_running = TRUE and...", branch to "label0" if true, to "exit" otherwise.
+;;7.2.2.1 Evaluate conjunction "is_running = TRUE and...", branch to "label0" if true, to "exit" otherwise.
+;;7.2.2.1.1 Create a fresh label "label2".
+;;7.2.2.1.2 Evaluate formula "is_running = TRUE", branch to "label2" if true, to "exit" otherwise.
+;;7.2.2.1.2.1 Evaluate expression "is_running".
+;;7.2.2.1.2.1.1 State variable "is_running" is stored at position "3" of "%self$".
+;;7.2.2.1.2.1.2 Let temporary "%0" be the corresponding address.
+  %0 = getelementptr %timer$ref$ %self$, i32 0, i32 3
+  %1 = load i1* %0
+;;             The evaluation of "is_running" is "%1".
+;;7.2.2.1.2.2 Evaluate expression "TRUE".
+;;7.2.2.1.2.2.1 A Boolean literal is represented as a one-bit integer in LLVM.
+;;             The evaluation of "TRUE" is "1".
+;;7.2.2.1.2.3 Temporary "%2" gets the value of "is_running = TRUE".
+  %2 = icmp eq i1 %1, 1
+  br i1 %2, label %label2, label %exit
+label2:
+;;7.2.2.1.3 Evaluate formula "overflow = FALSE", branch to "label0" if true, to "exit" otherwise.
+;;7.2.2.1.3.1 Evaluate expression "overflow".
+;;7.2.2.1.3.1.1 State variable "overflow" is stored at position "4" of "%self$".
+;;7.2.2.1.3.1.2 Let temporary "%3" be the corresponding address.
+  %3 = getelementptr %timer$ref$ %self$, i32 0, i32 4
+  %4 = load i1* %3
+;;             The evaluation of "overflow" is "%4".
+;;7.2.2.1.3.2 Evaluate expression "FALSE".
+;;7.2.2.1.3.2.1 A Boolean literal is represented as a one-bit integer in LLVM.
+;;             The evaluation of "FALSE" is "0".
+;;7.2.2.1.3.3 Temporary "%5" gets the value of "overflow = FALSE".
+  %5 = icmp eq i1 %4, 0
+  br i1 %5, label %label0, label %exit
+label0:
+;;7.2.3 Execute operation call "hours <- hh.get".
+;;7.2.3.1 Evaluate operation arguments.
+;;7.2.3.1.1 (implicit) address of structure representing operation component
+;;7.2.3.1.2 is element 0 of %self$
+  %6 = getelementptr %timer$ref$ %self$, i32 0, i32 0
+  %7 = load %counter$ref$* %6
+;;7.2.3.1.3 Evaluate output parameter "hours".
+;;7.2.3.1.4 Evaluate address for "hours".
+;;7.2.3.1.4.1 "hours" is stored in the frame stack and represented by "%hours".
+;;7.2.3.2 Call LLVM function "@counter$get" implementing B operation "get".
+  call void @counter$get(%counter$ref$ %7, i32* %hours)
+;;7.2.4 Execute operation call "minutes <- mm.get".
+;;7.2.4.1 Evaluate operation arguments.
+;;7.2.4.1.1 (implicit) address of structure representing operation component
+;;7.2.4.1.2 is element 1 of %self$
+  %8 = getelementptr %timer$ref$ %self$, i32 0, i32 1
+  %9 = load %counter$ref$* %8
+;;7.2.4.1.3 Evaluate output parameter "minutes".
+;;7.2.4.1.4 Evaluate address for "minutes".
+;;7.2.4.1.4.1 "minutes" is stored in the frame stack and represented by "%minutes".
+;;7.2.4.2 Call LLVM function "@counter$get" implementing B operation "get".
+  call void @counter$get(%counter$ref$ %9, i32* %minutes)
+;;7.2.5 Execute operation call "seconds <- ss.get".
+;;7.2.5.1 Evaluate operation arguments.
+;;7.2.5.1.1 (implicit) address of structure representing operation component
+;;7.2.5.1.2 is element 2 of %self$
+  %10 = getelementptr %timer$ref$ %self$, i32 0, i32 2
+  %11 = load %counter$ref$* %10
+;;7.2.5.1.3 Evaluate output parameter "seconds".
+;;7.2.5.1.4 Evaluate address for "seconds".
+;;7.2.5.1.4.1 "seconds" is stored in the frame stack and represented by "%seconds".
+;;7.2.5.2 Call LLVM function "@counter$get" implementing B operation "get".
+  call void @counter$get(%counter$ref$ %11, i32* %seconds)
+;;7.2.6 Execute "IF seconds < 59 THEN ..." and branch to "label3".
+;;7.2.6.1 execute if branch "IF seconds < 59 THEN ..."
+;;7.2.6.2 Evaluate formula "seconds < 59", branch to "label4" if true, to "label5" otherwise.
+;;7.2.6.2.1 Evaluate expression "seconds".
+;;7.2.6.2.1.1 B local variable "seconds" is on the LLVM stack at address "%seconds".
+;;7.2.6.2.1.2 Temporary "%12" gets the contents from this position.
+  %12 = load i32* %seconds
+;;           The evaluation of "seconds" is "%12".
+;;7.2.6.2.2 Evaluate expression "59".
+;;7.2.6.2.2.1 An integer literal is represented as such in LLVM.
+;;           The evaluation of "59" is "59".
+;;7.2.6.2.3 Temporary "%13" gets the value of "seconds < 59".
+  %13 = icmp slt i32 %12, 59
+  br i1 %13, label %label4, label %label5
+label4:
+;;7.2.6.3 Execute operation call "ss.inc".
+;;7.2.6.3.1 Evaluate operation arguments.
+;;7.2.6.3.1.1 (implicit) address of structure representing operation component
+;;7.2.6.3.1.2 is element 2 of %self$
+  %14 = getelementptr %timer$ref$ %self$, i32 0, i32 2
+  %15 = load %counter$ref$* %14
+;;7.2.6.3.2 Call LLVM function "@counter$inc" implementing B operation "inc".
+  call void @counter$inc(%counter$ref$ %15)
+  br label %label3
+label5:
+;;7.2.6.4 execute if branch "ELSE  BEGIN    BEGIN ..."
+;;7.2.6.5 Execute operation call "ss.zero".
+;;7.2.6.5.1 Evaluate operation arguments.
+;;7.2.6.5.1.1 (implicit) address of structure representing operation component
+;;7.2.6.5.1.2 is element 2 of %self$
+  %16 = getelementptr %timer$ref$ %self$, i32 0, i32 2
+  %17 = load %counter$ref$* %16
+;;7.2.6.5.2 Call LLVM function "@counter$zero" implementing B operation "zero".
+  call void @counter$zero(%counter$ref$ %17)
+;;7.2.6.6 Execute "IF minutes < 59 THEN ..." and branch to "label6".
+;;7.2.6.6.1 execute if branch "IF minutes < 59 THEN ..."
+;;7.2.6.6.2 Evaluate formula "minutes < 59", branch to "label7" if true, to "label8" otherwise.
+;;7.2.6.6.2.1 Evaluate expression "minutes".
+;;7.2.6.6.2.1.1 B local variable "minutes" is on the LLVM stack at address "%minutes".
+;;7.2.6.6.2.1.2 Temporary "%18" gets the contents from this position.
+  %18 = load i32* %minutes
+;;             The evaluation of "minutes" is "%18".
+;;7.2.6.6.2.2 Evaluate expression "59".
+;;7.2.6.6.2.2.1 An integer literal is represented as such in LLVM.
+;;             The evaluation of "59" is "59".
+;;7.2.6.6.2.3 Temporary "%19" gets the value of "minutes < 59".
+  %19 = icmp slt i32 %18, 59
+  br i1 %19, label %label7, label %label8
+label7:
+;;7.2.6.6.3 Execute operation call "mm.inc".
+;;7.2.6.6.3.1 Evaluate operation arguments.
+;;7.2.6.6.3.1.1 (implicit) address of structure representing operation component
+;;7.2.6.6.3.1.2 is element 1 of %self$
+  %20 = getelementptr %timer$ref$ %self$, i32 0, i32 1
+  %21 = load %counter$ref$* %20
+;;7.2.6.6.3.2 Call LLVM function "@counter$inc" implementing B operation "inc".
+  call void @counter$inc(%counter$ref$ %21)
+  br label %label6
+label8:
+;;7.2.6.6.4 execute if branch "ELSE  BEGIN    BEGIN ..."
+;;7.2.6.6.5 Execute operation call "mm.zero".
+;;7.2.6.6.5.1 Evaluate operation arguments.
+;;7.2.6.6.5.1.1 (implicit) address of structure representing operation component
+;;7.2.6.6.5.1.2 is element 1 of %self$
+  %22 = getelementptr %timer$ref$ %self$, i32 0, i32 1
+  %23 = load %counter$ref$* %22
+;;7.2.6.6.5.2 Call LLVM function "@counter$zero" implementing B operation "zero".
+  call void @counter$zero(%counter$ref$ %23)
+;;7.2.6.6.6 Execute operation call "hh.inc".
+;;7.2.6.6.6.1 Evaluate operation arguments.
+;;7.2.6.6.6.1.1 (implicit) address of structure representing operation component
+;;7.2.6.6.6.1.2 is element 0 of %self$
+  %24 = getelementptr %timer$ref$ %self$, i32 0, i32 0
+  %25 = load %counter$ref$* %24
+;;7.2.6.6.6.2 Call LLVM function "@counter$inc" implementing B operation "inc".
+  call void @counter$inc(%counter$ref$ %25)
+  br label %label6
+label6:
+  br label %label3
+label3:
+  br label %exit
+exit:
+  ret void
+}
+;;8 The LLVM function implementing B operation "reset" in "timer_i" follows.
+define void @timer$reset(%timer$ref$ %self$) {
+entry:
+;;8.1 Execute operation call "hh.zero".
+;;8.1.1 Evaluate operation arguments.
+;;8.1.1.1 (implicit) address of structure representing operation component
+;;8.1.1.2 is element 0 of %self$
+  %0 = getelementptr %timer$ref$ %self$, i32 0, i32 0
+  %1 = load %counter$ref$* %0
+;;8.1.2 Call LLVM function "@counter$zero" implementing B operation "zero".
+  call void @counter$zero(%counter$ref$ %1)
+;;8.2 Execute operation call "mm.zero".
+;;8.2.1 Evaluate operation arguments.
+;;8.2.1.1 (implicit) address of structure representing operation component
+;;8.2.1.2 is element 1 of %self$
+  %2 = getelementptr %timer$ref$ %self$, i32 0, i32 1
+  %3 = load %counter$ref$* %2
+;;8.2.2 Call LLVM function "@counter$zero" implementing B operation "zero".
+  call void @counter$zero(%counter$ref$ %3)
+;;8.3 Execute operation call "ss.zero".
+;;8.3.1 Evaluate operation arguments.
+;;8.3.1.1 (implicit) address of structure representing operation component
+;;8.3.1.2 is element 2 of %self$
+  %4 = getelementptr %timer$ref$ %self$, i32 0, i32 2
+  %5 = load %counter$ref$* %4
+;;8.3.2 Call LLVM function "@counter$zero" implementing B operation "zero".
+  call void @counter$zero(%counter$ref$ %5)
+;;8.4 Execute assignment "overflow := FALSE":
+;;8.4.1 Evaluate expression "FALSE".
+;;8.4.1.1 A Boolean literal is represented as a one-bit integer in LLVM.
+;;       The evaluation of "FALSE" is "0".
+;;8.4.2 Evaluate address for "overflow".
+;;8.4.2.1 Variable "overflow" is stored at position 4 of "%self$".
+;;         Let temporary %6 be the corresponding address:
+  %6 = getelementptr %timer$ref$ %self$, i32 0, i32 4
+;;8.4.3 Store value at address to achieve assignment.
+  store i1 0, i1* %6
+  br label %exit
+exit:
+  ret void
+}
+;;9 The LLVM function implementing B operation "stop" in "timer_i" follows.
+define void @timer$stop(%timer$ref$ %self$) {
+entry:
+;;9.1 Execute "IF is_running = TRUE ..." and branch to "exit".
+;;9.1.1 execute if branch "IF is_running = TRUE ..."
+;;9.1.2 Evaluate formula "is_running = TRUE", branch to "label0" if true, to "exit" otherwise.
+;;9.1.2.1 Evaluate expression "is_running".
+;;9.1.2.1.1 State variable "is_running" is stored at position "3" of "%self$".
+;;9.1.2.1.2 Let temporary "%0" be the corresponding address.
+  %0 = getelementptr %timer$ref$ %self$, i32 0, i32 3
+  %1 = load i1* %0
+;;         The evaluation of "is_running" is "%1".
+;;9.1.2.2 Evaluate expression "TRUE".
+;;9.1.2.2.1 A Boolean literal is represented as a one-bit integer in LLVM.
+;;         The evaluation of "TRUE" is "1".
+;;9.1.2.3 Temporary "%2" gets the value of "is_running = TRUE".
+  %2 = icmp eq i1 %1, 1
+  br i1 %2, label %label0, label %exit
+label0:
+;;9.1.3 Execute assignment "is_running := FALSE":
+;;9.1.3.1 Evaluate expression "FALSE".
+;;9.1.3.1.1 A Boolean literal is represented as a one-bit integer in LLVM.
+;;         The evaluation of "FALSE" is "0".
+;;9.1.3.2 Evaluate address for "is_running".
+;;9.1.3.2.1 Variable "is_running" is stored at position 3 of "%self$".
+;;           Let temporary %3 be the corresponding address:
+  %3 = getelementptr %timer$ref$ %self$, i32 0, i32 3
+;;9.1.3.3 Store value at address to achieve assignment.
+  store i1 0, i1* %3
+  br label %exit
+exit:
+  ret void
+}
+;;10 The LLVM function implementing B operation "start" in "timer_i" follows.
+define void @timer$start(%timer$ref$ %self$) {
+entry:
+;;10.1 Execute "IF is_running = FALSE..." and branch to "exit".
+;;10.1.1 execute if branch "IF is_running = FALSE..."
+;;10.1.2 Evaluate formula "is_running = FALSE", branch to "label0" if true, to "exit" otherwise.
+;;10.1.2.1 Evaluate expression "is_running".
+;;10.1.2.1.1 State variable "is_running" is stored at position "3" of "%self$".
+;;10.1.2.1.2 Let temporary "%0" be the corresponding address.
+  %0 = getelementptr %timer$ref$ %self$, i32 0, i32 3
+  %1 = load i1* %0
+;;          The evaluation of "is_running" is "%1".
+;;10.1.2.2 Evaluate expression "FALSE".
+;;10.1.2.2.1 A Boolean literal is represented as a one-bit integer in LLVM.
+;;          The evaluation of "FALSE" is "0".
+;;10.1.2.3 Temporary "%2" gets the value of "is_running = FALSE".
+  %2 = icmp eq i1 %1, 0
+  br i1 %2, label %label0, label %exit
+label0:
+;;10.1.3 Execute assignment "is_running := TRUE":
+;;10.1.3.1 Evaluate expression "TRUE".
+;;10.1.3.1.1 A Boolean literal is represented as a one-bit integer in LLVM.
+;;          The evaluation of "TRUE" is "1".
+;;10.1.3.2 Evaluate address for "is_running".
+;;10.1.3.2.1 Variable "is_running" is stored at position 3 of "%self$".
+;;            Let temporary %3 be the corresponding address:
+  %3 = getelementptr %timer$ref$ %self$, i32 0, i32 3
+;;10.1.3.3 Store value at address to achieve assignment.
+  store i1 1, i1* %3
+  br label %exit
+exit:
+  ret void
+}
+;;11 The LLVM function implementing B operation "elapsed" in "timer_i" follows.
+define void @timer$elapsed(%timer$ref$ %self$, i32* %hours, i32* %minutes, i32* %seconds) {
+entry:
+;;11.1 Execute "IF overflow = TRUE TH..." and branch to "exit".
+;;11.1.1 execute if branch "IF overflow = TRUE TH..."
+;;11.1.2 Evaluate formula "overflow = TRUE", branch to "label0" if true, to "label1" otherwise.
+;;11.1.2.1 Evaluate expression "overflow".
+;;11.1.2.1.1 State variable "overflow" is stored at position "4" of "%self$".
+;;11.1.2.1.2 Let temporary "%0" be the corresponding address.
+  %0 = getelementptr %timer$ref$ %self$, i32 0, i32 4
+  %1 = load i1* %0
+;;          The evaluation of "overflow" is "%1".
+;;11.1.2.2 Evaluate expression "TRUE".
+;;11.1.2.2.1 A Boolean literal is represented as a one-bit integer in LLVM.
+;;          The evaluation of "TRUE" is "1".
+;;11.1.2.3 Temporary "%2" gets the value of "overflow = TRUE".
+  %2 = icmp eq i1 %1, 1
+  br i1 %2, label %label0, label %label1
+label0:
+;;11.1.3 Execute assignment "hours := 0":
+;;11.1.3.1 Evaluate expression "0".
+;;11.1.3.1.1 An integer literal is represented as such in LLVM.
+;;          The evaluation of "0" is "0".
+;;11.1.3.2 Evaluate address for "hours".
+;;11.1.3.2.1 "hours" is stored in the frame stack and represented by "%hours".
+;;11.1.3.3 Store value at address to achieve assignment.
+  store i32 0, i32* %hours
+;;11.1.4 Execute assignment "minutes := 0":
+;;11.1.4.1 Evaluate expression "0".
+;;11.1.4.1.1 An integer literal is represented as such in LLVM.
+;;          The evaluation of "0" is "0".
+;;11.1.4.2 Evaluate address for "minutes".
+;;11.1.4.2.1 "minutes" is stored in the frame stack and represented by "%minutes".
+;;11.1.4.3 Store value at address to achieve assignment.
+  store i32 0, i32* %minutes
+;;11.1.5 Execute assignment "seconds := 0":
+;;11.1.5.1 Evaluate expression "0".
+;;11.1.5.1.1 An integer literal is represented as such in LLVM.
+;;          The evaluation of "0" is "0".
+;;11.1.5.2 Evaluate address for "seconds".
+;;11.1.5.2.1 "seconds" is stored in the frame stack and represented by "%seconds".
+;;11.1.5.3 Store value at address to achieve assignment.
+  store i32 0, i32* %seconds
+  br label %exit
+label1:
+;;11.1.6 execute if branch "ELSE  BEGIN    hours ..."
+;;11.1.7 Execute operation call "hours <- hh.get".
+;;11.1.7.1 Evaluate operation arguments.
+;;11.1.7.1.1 (implicit) address of structure representing operation component
+;;11.1.7.1.2 is element 0 of %self$
+  %3 = getelementptr %timer$ref$ %self$, i32 0, i32 0
+  %4 = load %counter$ref$* %3
+;;11.1.7.1.3 Evaluate output parameter "hours".
+;;11.1.7.1.4 Evaluate address for "hours".
+;;11.1.7.1.4.1 "hours" is stored in the frame stack and represented by "%hours".
+;;11.1.7.2 Call LLVM function "@counter$get" implementing B operation "get".
+  call void @counter$get(%counter$ref$ %4, i32* %hours)
+;;11.1.8 Execute operation call "minutes <- mm.get".
+;;11.1.8.1 Evaluate operation arguments.
+;;11.1.8.1.1 (implicit) address of structure representing operation component
+;;11.1.8.1.2 is element 1 of %self$
+  %5 = getelementptr %timer$ref$ %self$, i32 0, i32 1
+  %6 = load %counter$ref$* %5
+;;11.1.8.1.3 Evaluate output parameter "minutes".
+;;11.1.8.1.4 Evaluate address for "minutes".
+;;11.1.8.1.4.1 "minutes" is stored in the frame stack and represented by "%minutes".
+;;11.1.8.2 Call LLVM function "@counter$get" implementing B operation "get".
+  call void @counter$get(%counter$ref$ %6, i32* %minutes)
+;;11.1.9 Execute operation call "seconds <- ss.get".
+;;11.1.9.1 Evaluate operation arguments.
+;;11.1.9.1.1 (implicit) address of structure representing operation component
+;;11.1.9.1.2 is element 2 of %self$
+  %7 = getelementptr %timer$ref$ %self$, i32 0, i32 2
+  %8 = load %counter$ref$* %7
+;;11.1.9.1.3 Evaluate output parameter "seconds".
+;;11.1.9.1.4 Evaluate address for "seconds".
+;;11.1.9.1.4.1 "seconds" is stored in the frame stack and represented by "%seconds".
+;;11.1.9.2 Call LLVM function "@counter$get" implementing B operation "get".
+  call void @counter$get(%counter$ref$ %8, i32* %seconds)
+  br label %exit
+exit:
+  ret void
+}
+;;12 The LLVM function implementing B operation "has_overflown" in "timer_i" follows.
+define void @timer$has_overflown(%timer$ref$ %self$, i1* %answer) {
+entry:
+;;12.1 Execute assignment "answer := overflow":
+;;12.1.1 Evaluate expression "overflow".
+;;12.1.1.1 State variable "overflow" is stored at position "4" of "%self$".
+;;12.1.1.2 Let temporary "%0" be the corresponding address.
+  %0 = getelementptr %timer$ref$ %self$, i32 0, i32 4
+  %1 = load i1* %0
+;;        The evaluation of "overflow" is "%1".
+;;12.1.2 Evaluate address for "answer".
+;;12.1.2.1 "answer" is stored in the frame stack and represented by "%answer".
+;;12.1.3 Store value at address to achieve assignment.
+  store i1 %1, i1* %answer
+  br label %exit
+exit:
+  ret void
+}
+;;13 Definition of function responsible for printing the state,
+;;    its generation was activated by option --emit-printer.
+define void @timer$printf$(%timer$ref$ %self$) {
+entry:
+  call void @$b2llvm.print.ldelim()
+  %0 = getelementptr %timer$ref$ %self$, i32 0, i32 0
+  %1 = load %counter$ref$* %0
+  call void @counter$printf$(%counter$ref$ %1)
+  call void @$b2llvm.print.space()
+  %2 = getelementptr %timer$ref$ %self$, i32 0, i32 1
+  %3 = load %counter$ref$* %2
+  call void @counter$printf$(%counter$ref$ %3)
+  call void @$b2llvm.print.space()
+  %4 = getelementptr %timer$ref$ %self$, i32 0, i32 2
+  %5 = load %counter$ref$* %4
+  call void @counter$printf$(%counter$ref$ %5)
+  call void @$b2llvm.print.space()
+  %6 = getelementptr %timer$ref$ %self$, i32 0, i32 3
+  %7 = load i1* %6
+  call void @$b2llvm.print.i1(i1 %7)
+  call void @$b2llvm.print.space()
+  %8 = getelementptr %timer$ref$ %self$, i32 0, i32 4
+  %9 = load i1* %8
+  call void @$b2llvm.print.i1(i1 %9)
+  call void @$b2llvm.print.rdelim()
+  ret void
+}
+declare void @$b2llvm.print.ldelim()
+declare void @$b2llvm.print.rdelim()
+declare void @$b2llvm.print.space()
+declare void @$b2llvm.print.i1(i1)

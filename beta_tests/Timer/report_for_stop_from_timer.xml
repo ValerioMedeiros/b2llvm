@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-suite>
+    <machine-name>timer</machine-name>
+    <machine-invariant>
+        <invariant-clause>0 &lt;= count</invariant-clause>
+        <invariant-clause>count : INT</invariant-clause>
+        <invariant-clause>count &lt;= capacity</invariant-clause>
+        <invariant-clause>overflow : BOOL</invariant-clause>
+        <invariant-clause>state : STATE</invariant-clause>
+    </machine-invariant>
+    <operation-under-test>stop</operation-under-test>
+    <partition-strategy>Boundary Values</partition-strategy>
+    <combinatorial-criteria>All-Combinations</combinatorial-criteria>
+    <oracle-strategy>
+        <state-variables>true</state-variables>
+        <return-variables>true</return-variables>
+        <invariant-ok>true</invariant-ok>
+    </oracle-strategy>
+    <test-cases>
+        <test-case>
+            <id>1</id>
+            <formula>state : STATE &amp; not(state = running)</formula>
+            <state-variables>
+                <variable>
+                    <identifier>count</identifier>
+                    <values>
+                        <value/>
+                    </values>
+                </variable>
+                <variable>
+                    <identifier>overflow</identifier>
+                    <values>
+                        <value/>
+                    </values>
+                </variable>
+                <variable>
+                    <identifier>state</identifier>
+                    <values>
+                        <value>stopped</value>
+                    </values>
+                </variable>
+            </state-variables>
+            <operation-parameters/>
+            <return-variables/>
+        </test-case>
+        <test-case>
+            <id>2</id>
+            <formula>state : STATE &amp; state = running</formula>
+            <state-variables>
+                <variable>
+                    <identifier>count</identifier>
+                    <values>
+                        <value/>
+                    </values>
+                </variable>
+                <variable>
+                    <identifier>overflow</identifier>
+                    <values>
+                        <value/>
+                    </values>
+                </variable>
+                <variable>
+                    <identifier>state</identifier>
+                    <values>
+                        <value>running</value>
+                    </values>
+                </variable>
+            </state-variables>
+            <operation-parameters/>
+            <return-variables/>
+        </test-case>
+    </test-cases>
+</test-suite>

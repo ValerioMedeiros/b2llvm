@@ -1,0 +1,47 @@
+;; -*- mode: asm -*-
+;;   file generated with b2llvm
+;;   B project settings: project.xml
+;;   B module: wd
+;;   B project directory: bxml
+;;   code generation mode: project
+;;   output file: init-wd.llvm
+;;   Preamble
+;;   
+;;   This file instantiates B machine "wd", and all its components,
+;;   and a function to initialise this instantiation.
+;;   
+;;1 These are the types encoding the state of each module,
+;;2 and the corresponding pointer types.
+;;2.1 The type encoding the state of "counter" is an aggregate and is defined as
+;;     (using implementation "counter_i"):
+;;2.1.1 Position "0" represents "value".
+;;2.1.2 Position "1" represents "error".
+%counter$state$ = type {i32, i1}
+;;2.2 The type for references to state encodings of "counter" is:
+%counter$ref$ = type %counter$state$*
+;;2.3 The type encoding the state of "wd" is an aggregate and is defined as
+;;     (using implementation "wd_i"):
+;;2.3.1 Position "0" represents "counter".
+%wd$state$ = type {%counter$ref$}
+;;2.4 The type for references to state encodings of "wd" is:
+%wd$ref$ = type %wd$state$*
+;;3 Variables representing instances of components forming "wd".
+;;3.1 Variable representing to wd
+@$wd = common global %wd$state$ zeroinitializer
+;;3.2 Variable representing to counter
+@$counter = common global %counter$state$ zeroinitializer
+;;4 The declaration of the function implementing initialisation is:
+declare void @wd$init$(%wd$ref$, %counter$ref$)
+;;5 The declaration of the function implementing operation "start" is:
+declare void @wd$start(%wd$ref$)
+;;6 The declaration of the function implementing operation "tick" is:
+declare void @wd$tick(%wd$ref$)
+;;7 The declaration of the function implementing operation "expired" is:
+declare void @wd$expired(%wd$ref$, i1*)
+;;8 Definition of the function to initialise instance "@$wd" of "wd".
+define void @$init$() {
+entry:
+;;8.1 Call to initialisation function of "wd".
+  call void @wd$init$(%wd$ref$ @$wd, %counter$ref$ @$counter)
+  ret void
+}

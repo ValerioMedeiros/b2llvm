@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-suite>
+    <machine-name>enumeration</machine-name>
+    <machine-invariant>
+        <invariant-clause>count : 0..1</invariant-clause>
+        <invariant-clause>count : INT</invariant-clause>
+    </machine-invariant>
+    <operation-under-test>read</operation-under-test>
+    <partition-strategy>Boundary Values</partition-strategy>
+    <combinatorial-criteria>All-Combinations</combinatorial-criteria>
+    <oracle-strategy>
+        <state-variables>true</state-variables>
+        <return-variables>true</return-variables>
+        <invariant-ok>true</invariant-ok>
+    </oracle-strategy>
+    <test-cases>
+        <test-case>
+            <id>1</id>
+            <formula>count : INT &amp; count : 0..1 &amp; count = 0</formula>
+            <state-variables>
+                <variable>
+                    <identifier>count</identifier>
+                    <values>
+                        <value>0</value>
+                    </values>
+                </variable>
+            </state-variables>
+            <operation-parameters/>
+            <return-variables>
+                <variable>
+                    <identifier>res</identifier>
+                </variable>
+            </return-variables>
+        </test-case>
+        <test-case>
+            <id>2</id>
+            <formula>count : INT &amp; count : 0..1 &amp; not(count = 0)</formula>
+            <state-variables>
+                <variable>
+                    <identifier>count</identifier>
+                    <values>
+                        <value>1</value>
+                    </values>
+                </variable>
+            </state-variables>
+            <operation-parameters/>
+            <return-variables>
+                <variable>
+                    <identifier>res</identifier>
+                </variable>
+            </return-variables>
+        </test-case>
+    </test-cases>
+</test-suite>

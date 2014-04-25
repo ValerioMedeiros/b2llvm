@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-suite>
+    <machine-name>storemax</machine-name>
+    <machine-invariant>
+        <invariant-clause>numbers : POW(INT)</invariant-clause>
+    </machine-invariant>
+    <operation-under-test>lower</operation-under-test>
+    <partition-strategy>Boundary Values</partition-strategy>
+    <combinatorial-criteria>All-Combinations</combinatorial-criteria>
+    <oracle-strategy>
+        <state-variables>true</state-variables>
+        <return-variables>true</return-variables>
+        <invariant-ok>true</invariant-ok>
+    </oracle-strategy>
+    <test-cases>
+        <test-case>
+            <id>1</id>
+            <formula>numbers : POW(INT) &amp; not(numbers /= {})</formula>
+            <state-variables>
+                <variable>
+                    <identifier>numbers</identifier>
+                    <values>
+                        <value>{-}</value>
+                    </values>
+                </variable>
+            </state-variables>
+            <operation-parameters/>
+            <return-variables>
+                <variable>
+                    <identifier>res</identifier>
+                </variable>
+            </return-variables>
+        </test-case>
+        <test-case>
+            <id>2</id>
+            <formula>numbers : POW(INT) &amp; numbers /= {}</formula>
+            <state-variables>
+                <variable>
+                    <identifier>numbers</identifier>
+                    <values>
+                        <value>-1</value>
+                    </values>
+                </variable>
+            </state-variables>
+            <operation-parameters/>
+            <return-variables>
+                <variable>
+                    <identifier>res</identifier>
+                </variable>
+            </return-variables>
+        </test-case>
+    </test-cases>
+</test-suite>
