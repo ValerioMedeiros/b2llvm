@@ -20,11 +20,10 @@ Federal Institute of Education Science and Technology of Rio Grande do Norte\\
  Natal (Brazil)}
 
 \date{March 2014}
-\definecolor{bg}{rgb}{0.95,0.95,0.95}
+\definecolor{bg}{rgb}{0.93,0.93,0.93}
+\definecolor{white}{rgb}{1,1,1}
 \newminted{llvm}{frame=single,firstnumber=1,linenos=true,fontsize=\scriptsize,bgcolor=bg}
-\newminted{pascal}{frame=single,firstnumber=1,linenos=true,fontsize=\scriptsize,bgcolor=bg}
-\newminted{c}{frame=single,firstnumber=1,linenos=true,fontsize=\scriptsize,bgcolor=bg}
-
+\newminted{pascal}{frame=single,firstnumber=1,linenos=true,fontsize=\scriptsize,bgcolor=white}
 
 \newcommand{\trad}[2]{\ensuremath{\lVert \textsf{#1} \rVert^{\textit{#2}}}}
 \newcommand{\nl}[0]{\ensuremath{\downarrow}}
@@ -681,8 +680,6 @@ Setting a record field to a variable:
   \textcolor{gray}{xx :=}  \underbrace{accountRecord'balance}_{RecField} 
 \]
 
-
-
 \item[arrays] In LLVM, an array type is defined by its size and the type of its
   elements, the main issues in encoding a B array type into LLVM being to
   determine the size of the array and multi-dimensionality.
@@ -690,21 +687,30 @@ Declaring an array type:
 \[
 \textcolor{gray}{arr \in} \underbrace{( \underbrace{(0..99) \times (0..99)}_{seq\ Set} \to \underbrace{0..1000}_{Set})}_{ArrayType}
 \]
-Initializing an array:
+
+There are three attributions cases related to array.
+\subitem\textbf{Case 1.1} - Initializing an unique value to an array:
 \[
-\textcolor{gray}{arr :=} \underbrace{\{\underbrace{1 \mapsto  100,2 \mapsto 101}_{seq\ Map}\}}_{Array}
+\textcolor{gray}{arr :=} \underbrace{\{\underbrace{\underbrace{0..2 \times 0..2  }_{seq\ Exp} \times \underbrace{\{1\}}_{Exp} }_{Product}\}}_{Array}
 \]
+\subitem\textbf{Case 1.2} - Initializing different values to an array:
 \[
-\textcolor{gray}{arr :=} \underbrace{\{\underbrace{\underbrace{0..100 \times 0..100  \times}_{seq\ Exp} \underbrace{\{1\}}_{Exp} }_{Product}\}}_{Array}
+\textcolor{gray}{arr:=} \underbrace{\{\underbrace{(0 \mapsto 0) \mapsto  100,(0 \mapsto 1) \mapsto  101}_{seq\ Map}\}}_{Array}
 \]
 
-Updating a selected element from array by a value of variable:
-\[  \underbrace{\underbrace{arr}_{Array}(\underbrace{1+ii}_{seq\ Exp})}_{ArrayItem} \textcolor{gray}{:= xx}
+\subitem\textbf{Case 2.1} - Updating a selected element from array by a value of variable:
+\[  \underbrace{\underbrace{arr}_{Array}(\underbrace{1+ii,1+ii}_{seq\ Exp})}_{ArrayItem} \textcolor{gray}{:= xx}
 \]
 
-Setting a selected element from array to a variable:
+\subitem\textbf{Case 2.2} - Setting a selected element from array to a variable:
 \[ 
-\textcolor{gray}{xx :=} \underbrace{\underbrace{arr}_{Array}(\underbrace{1+ii}_{seq\ Exp})}_{ArrayItem} \]
+\textcolor{gray}{xx :=} \underbrace{\underbrace{arr}_{Array}(\underbrace{1+ii,1+ii}_{seq\ Exp})}_{ArrayItem}
+\]
+
+\subitem\textbf{Case 3} - Attribution between arrays:
+\[
+\underbrace{arr1}_{Array} := \underbrace{arr2}_{Array} 
+\]
 \end{description}
 
 The current specification of the code generator does not handle deferred sets.
