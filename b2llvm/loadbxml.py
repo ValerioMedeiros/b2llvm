@@ -462,7 +462,7 @@ def load_sub(elem, symast, symimp):
         astnode = load_assert_substitution(elem)
     elif elem.tag == "If_Substitution":
         astnode = load_if_substitution(elem, symast, symimp)
-    elif elem.tag == "Affectation_Substitution":
+    elif elem.tag == "Assignement_Substitution":
         astnode = load_becomes_eq(elem, symast)
     elif elem.tag == "Case_Substitution":
         astnode = load_case_substitution(elem, symast, symimp)
@@ -510,9 +510,9 @@ def load_if_substitution(elem, symast, symimp):
     """Load an XML element for a IF substitution to an AST node."""
     global _LOG
     assert elem.tag == "If_Substitution"
-    if elem.get("elseif") != None:
-        _LOG.error("unrecognized elseif attribute in IF substitution")
-        return ast.make_skip()
+    #if elem.get("elseif") != None:
+    #    _LOG.error("unrecognized elseif attribute in IF substitution")
+    #    return ast.make_skip()
     xmlcond = elem.find("./Condition")
     xmlthen = elem.find("./Then")
     xmlelse = elem.find("./Else")
@@ -529,7 +529,7 @@ def load_if_substitution(elem, symast, symimp):
 def load_becomes_eq(elem, symast):
     """Load an XML element for a becomes equal substitution to an AST node."""
     global _LOG
-    assert elem.tag == "Affectation_Substitution"
+    assert elem.tag == "Assignement_Substitution"
     lhs = elem.findall("./Variables/*")
     rhs = elem.findall("./Values/*")
     if len(lhs) != 1 or len(rhs) != 1:
@@ -672,9 +672,9 @@ def load_exp(node, symast):
         pynode = load_nary_expression(node, symast)
     elif node.tag == "Unary_Expression":
         pynode = load_unary_expression(node, symast)
-    elif node.tag == "Boolean_Litteral":
+    elif node.tag == "Boolean_Literal":
         pynode = load_boolean_literal(node)
-    elif node.tag == "Integer_Litteral":
+    elif node.tag == "Integer_Literal":
         pynode = load_integer_literal(node)
     elif node.tag == "Identifier":
         pynode = load_identifier(node, symast)
@@ -696,7 +696,7 @@ def load_identifier(node, symast):
 def load_boolean_literal(node):
     """Load an XML element for an Boolean literal to an AST node."""
     global _LOG
-    assert node.tag == "Boolean_Litteral"
+    assert node.tag == "Boolean_Literal"
     if value(node) == "TRUE":
         return ast.TRUE
     elif value(node) == "FALSE":
@@ -706,7 +706,7 @@ def load_boolean_literal(node):
 
 def load_integer_literal(node):
     """Load an XML element for an integer literal to an AST node."""
-    assert node.tag == "Integer_Litteral"
+    assert node.tag == "Integer_Literal"
     return ast.make_intlit(int(value(node)))
 
 def setup_expression(node, handlers):
