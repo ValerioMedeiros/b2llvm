@@ -19,10 +19,22 @@ types showed in section~\ref{sec:data}.
 The structure declaration defines a list of variables to be placed under one 
 name, allowing several variables to be accessed by one base name. This example  
 initializes a structure, and gets and sets one value of xx'balance. 
- 
+
+Initializing a record with a sequence of expressions:
+\[
+  \textcolor{gray}{accountRecord :=}  \underbrace{rec(\underbrace{name:xx’name, balance:(xx’balance - amt)}_{seq\ Exp})}_{Record}
+\]
+
+Setting a record field to a variable:
+\[
+  \textcolor{gray}{xx :=}  \underbrace{accountRecord'balance}_{RecField} 
+\]
+
+A B code example:
+
 \begin{pascalcode}
 xx := rec(id:1, balance:10);
-xx'balance := xx'balance -1;
+xx'balance := xx'balance-1;
 \end{pascalcode}
 
 The lines 1 and 2 are represented in translation in LLVM code:
@@ -48,10 +60,16 @@ respectively the position and type of $n$ element in the structure.
 \begin{align*}
 \begin{split}
   \trad{n}{\B{RecField}} \isdef \\
-   & \IF \B{n.type} \mbox{ is \B{BOOL or NAT or INT} } \THEN \\
-   &\quad  \LET \ell = \lbl  \AND  \PH{t} = n.type \AND \PH{v} = n.element \IN\\
-   &\quad  \llvm{"\PH{\ell} = getelementptr \PH{t}* \PH{v}, i32 0, i32  \SBPos(\B{n})\nl"} \\
-   &\quad  \sep  \ell  \sep \SBType(\B{n})\\
+   &\LET \ell = \lbl  \AND  t = n.type \AND v = \B{head}(n.element) \AND\\
+   &code \BE \llvm{"\PH{\ell} = getelementptr \PH{t}* \PH{v}, i32 0, i32  \SBPos(\B{n})\nl"} \IN \\
+   &\IF \B{n.base.type} \mbox{ is \B{BOOL or NAT or INT} \AND n.element.length=1}\\
+   &\quad \THEN  code \sep  \ell  \sep \SBType(\B{n})\\
+   &\IF \B{n.base.type} \mbox{ is \B{RecField} }  \THEN \\
+   &\LET \ell2 = \lbl  \AND  t = n.type \AND v = \B{tail}(n.element) \AND \\
+   &\quad n2.base  \BE ?? \AND n2.element = \B{head}(n.element) \AND a, b, c = \trad{n2}{RecField}
+\IN\\
+   &\quad  code \conc  \llvm{"\PH{\ell2} = getelementptr \PH{t}* \PH{\ell}, i32 0, i32  \SBPos(\B{n})\nl"} \\
+   &\quad \sep  \ell2  \sep \SBType(\B{n})\\
 \end{split}
 \end{align*}
 
@@ -68,34 +86,140 @@ corresponds to the first element and the highest address to the last element.
 In B, a concrete array is a total function where the domain indexes the range 
 elements. 
 
+%[[ Write a text here to define the rule for it]]
 
-%TODO Attributions and initializations 
+There are three attributions cases related to array.
+\begin{description}
+
+\item[Case 1.1] - Initializing an unique value to an array:
+\[
+\textcolor{gray}{arr :=} \underbrace{\{\underbrace{\underbrace{0..2 \times 0..2 \times 0..3  }_{seq\ Exp} \times \underbrace{\{5\}}_{Exp} }_{Product}\}}_{Array}
+\]
+\item[Case 1.2] - Initializing different values to an array\footnote{B0 definition requires the declaration of all values.}:
+\[
+\textcolor{gray}{arr:=} \underbrace{\{\underbrace{(\underbrace{(0 \mapsto 0) \mapsto  0)}_{seq Exp} \mapsto \underbrace{5}_{Exp} , ... ,
+(\underbrace{(2 \mapsto 2) \mapsto  3)}_{seq\ Exp} \mapsto \underbrace{5}_{Exp} }_{seq\ Map}\}}_{Array}
+\]
+
+Theses cases use a declared constant that is attributed to the variable:
+\begin{llvmcode}
+@array = global [3 x [3 x [4 x i32]]] 
+[[3 x [4 x i32]] 
+	[[4 x i32] [i32 5, i32 5, i32 5, i32 5], 
+	 [4 x i32] [i32 5, i32 5, i32 5, i32 5], 
+	 [4 x i32] [i32 5, i32 5, i32 5, i32 5]], 
+ [3 x [4 x i32]] 
+	[[4 x i32] [i32 5, i32 5, i32 5, i32 5],
+	 [4 x i32] [i32 5, i32 5, i32 5, i32 5],
+ 	 [4 x i32] [i32 5, i32 5, i32 5, i32 5]],
+ [3 x [4 x i32]] 
+	[[4 x i32] [i32 5, i32 5, i32 5, i32 5],
+	 [4 x i32] [i32 5, i32 5, i32 5, i32 5], 
+	 [4 x i32] [i32 5, i32 5, i32 5, i32 5]]], align 16
+\end{llvmcode}
+
+
+The rule for declare array constants:
+
+
+\begin{align*}
+\begin{split}
+  \trad{array}{\B{Type}} \isdef \\
+   & \LET \quad \IF \B{array} \mbox{ is \B{Product} } \THEN \\
+   & \quad \quad  dec = \trad{\llvm{"i32"}, array.arg1, array.arg2}{\B{Product}}\\
+   & \quad \ELSIF array \mbox{ is \B{Map} } \THEN\\
+   & \quad \quad  dec = \trad{\llvm{"i32"}, array.arg1, array.arg2}{\B{Map}} \\
+   & \quad \IN \llvm{" global \PH{dec}"}\\
+\end{split}
+\end{align*}
+\VGM{Alguma sugestão com relação as funções:head, tail.}
+
+\begin{align*}
+\begin{split}
+  \trad{type, seqIntl, value}{\B{Product}} \isdef \\
+   &\LET \B{h = head(seqIntl)} \AND\\
+   & \B{times = h.end - h.start + 1} \AND\\
+   & values = \trad{times,type,value}{\B{TV}} \IN\\
+   & \IF \B{seqIntl.length} == 1 \THEN  \\
+   & \llvm{"[\PH{times} x \PH{type}] [\PH{values}]"}  \\
+   & \ELSE \LET \\
+   &  tvalues = \trad{type,tail(seqIntl),values}{\B{Product}} \\
+   & \IN \\
+   & \llvm{"[\PH{times} x \PH{type}]  \PH{tvalues}"}  \\
+\end{split}
+\end{align*}
+
+\begin{align*}
+\begin{split}
+  \trad{times, type, value}{\B{TV}} \isdef \\
+   &\LET res1 = \llvm{" \PH{type} \PH{value} "} \IN\\
+   & \IF times == 1 \THEN \llvm{"\PH{res1}"} \\
+   & \ELSE \LET   res2 =   \trad{times-1,type,value}{\B{TV}}  \IN  \\
+   & \llvm{"\PH{res1} , \PH{res2}"} \\
+\end{split}
+\end{align*}
+
+
+
+The ``head'' function returns the first element from sequence.
+The ``tail'' function returns the given sequence without its first element.
+
+
+
+\begin{comment}
+\$VarName = global [size X type] X [(type value,)^+]
+
+|array|Type = LET
+				  IF array is Product THEN dec = |array.arg1, array.arg2 |CProduct  ( Quebrando o padrão?)
+				  ELSEIF array is seq Map THEN dec = |array.Map |Map
+				IN	  
+					" global "^ dec
+				END
+|sIntl, value |CProduct = 
+    	IF sIntl is  empty THEN  ""
+	ELSE THEN
+		LET sizeType = |sIntl, "i32"|PrintSizeType &
+		 tailSizeType=|sIntl.tail,"i32"|PrintSizeType & 
+		 values= |tailSizeType,values|CProduct IN
+		"[sizeType]  [ tailSizeType  values ]"		
+		END
+	END
+	
+|sIntl,t| PrintSizeType =
+    	IF sIntl.size == 1  THEN  "t"
+	ELSE THEN
+		LET size = sIntl.head.size()  &
+			type = |sIntl.tail,t| PrintSizeType    &
+		"[size X type ]"		
+		END
+	END
+
+|array|Type = IF t is Map THEN ...
+\end{comment}
+
+
+
+
+\item[Case 2.1] - Updating a selected element from array by a value of variable:
+\[  \underbrace{\underbrace{arr}_{Array}(\underbrace{1+ii,1+jj,1+xx}_{seq\ Exp})}_{ArrayItem} \textcolor{gray}{:= xx}
+\]
+\item[Case 2.2] - Setting a selected element from array to a variable:
+\[ 
+\textcolor{gray}{xx :=} \underbrace{\underbrace{arr}_{Array}(\underbrace{1+ii,1+jj,1+xx}_{seq\ Exp})}_{ArrayItem}
+\]
+\item[Case 3] - Attribution between arrays\footnote{B0 definition requires the same type.}:
+\[
+\underbrace{arr1}_{Array} := \underbrace{arr2}_{Array} 
+\]
+\end{description}
+
 
 
 \subsubsection{Relation arrays B0 and LLVM}
 
 The arrays in B0 are represented by functions where an index points to an 
-element. By default, the element of index not initialized has a zero value. 
-
-This section shows the relation between arrays B0 and LLVM. The sequence of
-elements are defining an array, getting an element and setting an
-element. The white code block and gray code block are respectively B code and LLVM code.
-
-\subsubsection{Declaring an array}
-
-
-The essential elements of the array are its name, size and type. 
-The size of ``e'' array with the indexes (i1,...,in) are defined according 
-to the formula:\\
- $size(e) = (e.i1\_end - e.i1\_star+1) * ... * (e.in\_end - e.in\_start+1)$.
-
-
-The following code declares a multidimensional global array called ``Array2'' 
-with 16 (2*2*4) integer numbers with 32 bits.
-
-\begin{llvmcode}
-@array2 = internal global [2 x [2 x [4 x i32]]]
-\end{llvmcode}
+element. By default, the element of index not initialized has a zero value.
+The different ways to evaluate an array are described as follow:
 
 \subsubsection{Initialing an array}
 The following two attribution commands have the same semantic effect.
@@ -117,7 +241,8 @@ An alternative way to represent these attributions cannot be using sequential at
 
 \begin{pascalcode}
 array2(0,0,0) := 5;
-// A sequence of attributions ...
+array2(0,0,1) := 5;
+// ... - A sequence of attributions
 array2(1,1,3) := 5;
 \end{pascalcode}
 
@@ -129,7 +254,7 @@ following code then the value of ``array2(0,0,1)'' is ``2''.
 
 \begin{pascalcode}
  array2 := ( (0..1) * (0..1) * (0..3) * {1});
- array2 := { 0|->0|->0|->2 , 0|->0|->1|->(a3d(0,0,0)+1), ...  };
+ array2 := { 0|->0|->0|->2 , 0|->0|->1|->(array2(0,0,0)+1), ...  };
 \end{pascalcode}
 
 The LLVM instruction \textit{getelementptr} is used to select an element in
@@ -154,7 +279,7 @@ and its translation to LLVM.
 
 \begin{pascalcode} 
 VAR xx, yy, zz IN
-	xx=0;
+	xx=1;
 	yy=1;
 	zz=3;
 	array2(x,y,z):=7
@@ -162,7 +287,7 @@ END
 \end{pascalcode}
 
 This example is translated in four steps. First, the variables \%x, \%y, \%z 
-are allocated. Second, the respective values 2, 3, 4 are stored in variables. 
+are allocated. Second, the respective values 0, 1, 3 are stored in variables. 
 Third, the variables are loaded to local variables and converted to 64 bits. 
 Finally, the address of array is calculated in local variable \%7 and the value 
 7 is stored in it.  
@@ -171,7 +296,7 @@ Finally, the address of array is calculated in local variable \%7 and the value
 %xx = alloca i32
 %yy = alloca i32
 %zz = alloca i32
-store i32 0, i32* %xx
+store i32 1, i32* %xx
 store i32 1, i32* %yy
 store i32 3, i32* %zz
 %1 = load i32* %zz
@@ -188,11 +313,17 @@ store i32 7, i32* %7         ;setting an element
 
 \subsubsection{Rules for support array}
 
+\paragraph{Product} declares all address and a unique value from array, it is represented by \textbf{case 1.1}.
+
+\paragraph{seq Map} declares every address and values from array, it is represented by \textbf{case 1.2}.
+
+
 
 \paragraph{Array item} selects an item in expressions as ``$a(n1,...,n_{n})$'', 
 where $a$ is $n.base$ and $n1,...,n_{n}$ is a sequence of indexes that 
 calculates the address of element. This rule also supports to translate 
-expressions of arrays.
+expressions of arrays. This rule is used to support array attributions 
+from \textbf{cases} \textbf{2.1} and \textbf{2.2}.
 
 \begin{align*}
 \lefteqn{\trad{n}{ArrayItem} \isdef} \\
@@ -205,7 +336,7 @@ expressions of arrays.
 A list of type and variable is generated by the following rule.
 \begin{align*}
 &\trad{n}{LRExp} \isdef \LET p \sep v \sep t  = \trad{n}{ShiftExp}  \IN  \llvm{",\PH{t} \PH{v} "} \sep p\\
-&\trad{n l}{LRExp} \isdef \LET r_1 \sep p_1 = \trad{n}{LRExp} \AND 
+&\trad{n l}{LRExp} \isdef \LET r_1 \sep p_1 = \trad{n}{LRExp} \AND
  \LET r_2 \sep p_2 = \trad{l}{LRExp} \IN\\
 & \quad  \llvm{"\PH{r_1} \PH{r_2}"} \sep \llvm{"\PH{p_1} \PH{p_2}"}\\
 \end{align*}
@@ -221,7 +352,7 @@ index.} makes the shift for each index of array. \VGM{TODO: The function TSymbol
 returns the ``start'', ``end'' and type of the one index.}
 
 \begin{align*}
-&\trad{n}{ShiftExp} \isdef \LET p \sep v \sep t  = \trad{n}{Exp} \AND \\ \\
+&\trad{n}{ShiftExp} \isdef \LET p \sep v \sep t  = \trad{n}{Exp} \AND \\
 &\quad iStart \sep iEnd \sep iType = \trad{n}{TSymbol}  \AND  \PH{\ell} = \lbl \IN \\
 &\quad \IF ( iStart == 0 ) \THEN  \llvm{",\PH{t} \PH{v} "} \sep p \\
 &\quad \ELSE \LET  p' \sep v \sep v' \sep t'  = \trad{t,v,itype,istart}{Cast} \IN \\
@@ -239,16 +370,9 @@ The \trad{}{ShiftExp} rule does a subtraction and this operation must have opera
 &\quad \quad \llvm{"\PH{\ell}= bitcast \PH{t'} \PH{v'} , \PH{t}\nl"} \sep v \sep l \sep t \\ 
 \end{align*}
 
-\paragraph{Restriction on array:} The translation of direct attribution
- between arrays is not yet supported, for example:
-
-\begin{pascalcode}
- array1 := array2;
-\end{pascalcode}
 
 
-%TODO Describe here the restrictions of declarations arrays
-\paragraph{Relevant restrictions of work:}
+\paragraph{Relevant translation restrictions:}
 \begin{itemize}
 \item  B0 definition - An array must be initialized declaring all values 
 to avoid no determinism.

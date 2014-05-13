@@ -8,6 +8,7 @@
 \usepackage{xspace,framed,here,keystroke}
 \usepackage{graphicx}
 \usepackage{color}
+\usepackage{verbatim}
 \usepackage{minted}
 \usepackage{array} 
 
@@ -19,7 +20,7 @@
 Federal Institute of Education Science and Technology of Rio Grande do Norte\\
  Natal (Brazil)}
 
-\date{March 2014}
+\date{May 2014}
 \definecolor{bg}{rgb}{0.93,0.93,0.93}
 \definecolor{white}{rgb}{1,1,1}
 \newminted{llvm}{frame=single,firstnumber=1,linenos=true,fontsize=\scriptsize,bgcolor=bg}
@@ -84,7 +85,8 @@ Federal Institute of Education Science and Technology of Rio Grande do Norte\\
 We detail here the constructs that are considered in the compilation to the
 LLVM. This description introduces the notations used in the definition of the
 translation. The elements of the B language are denoted using a \B{sans serif}
-font.
+font, when used the code block so white code block and gray code block means
+respectively B code and LLVM code.
 
 Figure~\ref{tab:node-attr} summarizes the structure
 of the abstract syntax that is relevant in the definition of the proposed
@@ -306,7 +308,7 @@ Note that the translation presented in this paper only considers types \B{INT}
 	\hline
   	\multicolumn{3}{|c|}{Cartesian product : \B{Product}} \\
         \hline
-	\B{arg1} & : & seq \B{Exp}\\ 
+	\B{arg1} & : & seq \B{Interval}\\ 
 	\B{arg2} & : & \B{Exp}\\ 	
 	\hline
 	\multicolumn{3}{|c|}{Access array : \B{ArrayItem}} \\
@@ -322,7 +324,7 @@ Note that the translation presented in this paper only considers types \B{INT}
 	\hline
 	\multicolumn{3}{|c|}{B0 interval : \B{Interval}} \\
 	\hline
-	\B{start}, \B{end} & : & \B{Exp} \\
+	\multicolumn{3}{c}{ \B{start}, \B{end} : \B{Exp} } \\
 	\hline
 	\multicolumn{3}{|c|}{Literal : \B{Lit}} \\
 	\hline
@@ -657,61 +659,94 @@ $$\trad{\{e1 ... en\}}{\B{Type}} \isdef \LET w \BE \log_2 \B{n} \IN \llvm{i\PH{w
 
 The data types \textbf{structures} and \textbf{arrays} require detailed 
 representation in the abstract syntax structure from the table \ref{tab:node-attr}.
+
 The section \ref{sec:StructArray} also presents other examples and rules for these derived data types.
  
-The following examples relate the B code and their abstract syntax representation. The \textcolor{gray}{gray elements} are not related to their abstract syntax tree to simplify the examples. 
+The following examples relate the B code and their abstract syntax representation. 
+The \textcolor{gray}{gray elements} are not related to their abstract syntax tree to simplify the examples. 
 
 \begin{description}
-
 \item[structures] The structure types of B are naturally encoded as structure
   types in LLVM.
 
-Declaring an structure type:
+Declaring a structure variable and nested structure type:
+%\[
+%  \textcolor{gray}{accountRecord \in} \underbrace{struct( \underbrace{name \in ID, balance \in \mathbb{N} }_{seq\ Field} )}_{Struct} 
+%\] 
 \[
-  \textcolor{gray}{accountRecord \in} \underbrace{struct( \underbrace{name \in ID, balance \in \mathbb{N} }_{seq\ Field} )}_{Struct} 
-\]
-Initializing a record with a sequence of expressions:
-\[
-  \textcolor{gray}{accountRecord :=}  \underbrace{rec(\underbrace{name:xx’name, balance:(xx’balance - amt)}_{seq\ Exp})}_{Record}
+\textcolor{gray}{T_1 =} \underbrace{struct( \underbrace{num1 \in \mathbb{Z}, num2 \in  \mathbb{Z} }_{seq\ Field} )}_{Struct};\\
+  \textcolor{gray}{name1 \in} \ T_1;
 \]
 
-Setting a record field to a variable:
-\[
-  \textcolor{gray}{xx :=}  \underbrace{accountRecord'balance}_{RecField} 
+\[  
+  \textcolor{gray}{name2 \in} \underbrace{struct( \underbrace{num1 \in \mathbb{Z}, elem \in  T_1 }_{seq\ Field} )}_{Struct}
 \]
+The simplified LLVM translation is:
+
+\begin{llvmcode}
+%struct.T_1 = type { i32, i32 }
+%struct.T_2 = type { i32, %struct.T_1 }
+%struct.state = type { %struct.T_1, %struct.T_2 }
+
+@name2 =  global %struct.T_2 zeroinitializer
+@name1 =  global %struct.T_1 zeroinitializer
+\end{llvmcode}
+
+
+The rules to declare the structure type are:
+\begin{align*}
+\trad{Structure}{\B{Type}} \isdef \LET tps \BE \trad{Structure.elements}{\ListOf{\B{TField}}} \AND\\
+ l \BE \local(\B{Structure.elements})  \IN  \llvm{"\PH{l}= type \{\PH{tps}\}\nl"}
+\end{align*}
+$$\trad{t}{\B{TField}} \isdef \LET res \BE  \trad{t.type}{\B{Type}} \IN \llvm{"\PH{res},"}$$
+
+The records types are initialized in the initializing function of the module.\\
+
+\begin{comment}
+The following rule is invoked in the initializing function of the module.
+\begin{align*}
+\trad{instanceModule,Structure}{\B{InitDerivedType}} \isdef \\
+\LET name \BE \Global(\B{instanceModule,Structure.elements}) \AND\\
+tlabel \BE \local(Structure.elements) \IN\\
+\llvm{"\PH{name} = global \PH{tlabel} zeroinitializer\nl"}\\
+\end{align*}
+\end{comment}
 
 \item[arrays] In LLVM, an array type is defined by its size and the type of its
   elements, the main issues in encoding a B array type into LLVM being to
   determine the size of the array and multi-dimensionality.
 Declaring an array type:
 \[
-\textcolor{gray}{arr \in} \underbrace{( \underbrace{(0..99) \times (0..99)}_{seq\ Set} \to \underbrace{0..1000}_{Set})}_{ArrayType}
-\]
-
-There are three attributions cases related to array.
-\subitem\textbf{Case 1.1} - Initializing an unique value to an array:
-\[
-\textcolor{gray}{arr :=} \underbrace{\{\underbrace{\underbrace{0..2 \times 0..2  }_{seq\ Exp} \times \underbrace{\{1\}}_{Exp} }_{Product}\}}_{Array}
-\]
-\subitem\textbf{Case 1.2} - Initializing different values to an array:
-\[
-\textcolor{gray}{arr:=} \underbrace{\{\underbrace{(0 \mapsto 0) \mapsto  100,(0 \mapsto 1) \mapsto  101}_{seq\ Map}\}}_{Array}
-\]
-
-\subitem\textbf{Case 2.1} - Updating a selected element from array by a value of variable:
-\[  \underbrace{\underbrace{arr}_{Array}(\underbrace{1+ii,1+ii}_{seq\ Exp})}_{ArrayItem} \textcolor{gray}{:= xx}
-\]
-
-\subitem\textbf{Case 2.2} - Setting a selected element from array to a variable:
-\[ 
-\textcolor{gray}{xx :=} \underbrace{\underbrace{arr}_{Array}(\underbrace{1+ii,1+ii}_{seq\ Exp})}_{ArrayItem}
-\]
-
-\subitem\textbf{Case 3} - Attribution between arrays:
-\[
-\underbrace{arr1}_{Array} := \underbrace{arr2}_{Array} 
+\textcolor{gray}{arr \in} \underbrace{( \underbrace{(0..1) \times (0..1) \times (0..3)}_{seq\ Set} \to \underbrace{0..1000}_{Set})}_{ArrayType}
 \]
 \end{description}
+
+
+Declaring an array: the essential elements of the array are its name, size and type. 
+The following code declares a multidimensional global array called ``Arr'' 
+with 16 (2*2*4) integer numbers with 32 bits.
+
+\begin{llvmcode}
+%struct.state = type { ... , [2 x [2 x [4 x i32]]],.. }
+\end{llvmcode}
+
+The function ArrayType returns the type for a declared variable array in 
+structure state, for example:
+
+\begin{align*}
+\trad{Array}{\B{Type}} \isdef \\
+& \trad{Array.dom , Array.ran.type}{ArrayType}\\
+\trad{seqSet,type}{\B{ArrayType}} \isdef \\
+& \LET h \BE \B{head}(seqSet) \AND\\
+& times \BE h.end - h.start + 1 \IN\\
+& \IF seqSet.length == 1 \THEN\\
+& \llvm{"[\PH{times} x \PH{type}] \nl"} \\
+& \ELSE \\
+& \LET res \BE \trad{tail(seqSet),type}{ArrayType} \IN \\
+& \llvm{"[\PH{times} x \PH{res}] \nl"} \\
+\end{align*}
+
+[[ TODO: Write about the initialization (Structure and Array) unsing the concept of module/instance]]
 
 The current specification of the code generator does not handle deferred sets.
 These data types and logic/math operators compose expressions that is in 
@@ -732,7 +767,7 @@ and $t$ represents the LLVM type of the expression. In the case of composed
 predicates, though, the evaluation is different as boolean operations need to be
 implemented with conditional and unconditional jumps.
 
-To facilitate the defintiion of rules that apply to similar cases, we introduce
+To facilitate the definition of rules that apply to similar cases, we introduce
 mapping $\opmap$, that associates B operators to corresponding LLVM keywords:
 $$\opmap = \{
 \begin{array}[t]{l}
