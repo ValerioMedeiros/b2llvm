@@ -11,9 +11,6 @@
 <TypeInfo>
 <Identifier value='BOOL' />
 </TypeInfo>
-<B0Type>
-<Identifier value='BOOL' />
-</B0Type>
 </Attributes>
 </Identifier>
 <Identifier value='largest'>
@@ -21,9 +18,6 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
 </Attributes>
 </Identifier>
 <Identifier value='smallest'>
@@ -31,9 +25,6 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
 </Attributes>
 </Identifier>
 </Concrete_Variables>
@@ -45,9 +36,6 @@
 <TypeInfo>
 <Identifier value='BOOL' />
 </TypeInfo>
-<B0Type>
-<Identifier value='BOOL' />
-</B0Type>
 </Attributes>
 </Identifier>
 <Identifier value='BOOL'>
@@ -57,12 +45,6 @@
 <Identifier value='BOOL' />
 </Unary_Expression>
 </TypeInfo>
-<B0Type>
-<Binary_Expression operator='..'>
-<Integer_Literal value='0' />
-<Integer_Literal value='1' />
-</Binary_Expression>
-</B0Type>
 </Attributes>
 </Identifier>
 </Expression_Comparison>
@@ -72,9 +54,6 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
 </Attributes>
 </Identifier>
 <Identifier value='INT'>
@@ -84,12 +63,6 @@
 <Identifier value='INTEGER' />
 </Unary_Expression>
 </TypeInfo>
-<B0Type>
-<Binary_Expression operator='..'>
-<Identifier value='MININT' />
-<Identifier value='MAXINT' />
-</Binary_Expression>
-</B0Type>
 </Attributes>
 </Identifier>
 </Expression_Comparison>
@@ -99,9 +72,6 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
 </Attributes>
 </Identifier>
 <Identifier value='INT'>
@@ -111,12 +81,6 @@
 <Identifier value='INTEGER' />
 </Unary_Expression>
 </TypeInfo>
-<B0Type>
-<Binary_Expression operator='..'>
-<Identifier value='MININT' />
-<Identifier value='MAXINT' />
-</Binary_Expression>
-</B0Type>
 </Attributes>
 </Identifier>
 </Expression_Comparison>
@@ -127,9 +91,6 @@
 <TypeInfo>
 <Identifier value='BOOL' />
 </TypeInfo>
-<B0Type>
-<Identifier value='BOOL' />
-</B0Type>
 </Attributes>
 </Identifier>
 <Boolean_Literal value='FALSE'>
@@ -147,9 +108,6 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
 </Attributes>
 </Identifier>
 <Unary_Expression operator='max'>
@@ -175,9 +133,6 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
 </Attributes>
 </Identifier>
 <Unary_Expression operator='min'>
@@ -211,9 +166,6 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
 </Attributes>
 </Identifier>
 </Variables>
@@ -234,9 +186,6 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
 </Attributes>
 </Identifier>
 </Variables>
@@ -257,9 +206,6 @@
 <TypeInfo>
 <Identifier value='BOOL' />
 </TypeInfo>
-<B0Type>
-<Identifier value='BOOL' />
-</B0Type>
 </Attributes>
 </Identifier>
 </Variables>
@@ -286,9 +232,6 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
 </Attributes>
 </Identifier>
 </Variables>
@@ -304,9 +247,6 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
 </Attributes>
 </Identifier>
 </Output_Parameters>
@@ -319,9 +259,6 @@
 <TypeInfo>
 <Identifier value='BOOL' />
 </TypeInfo>
-<B0Type>
-<Identifier value='BOOL' />
-</B0Type>
 </Attributes>
 </Identifier>
 <Boolean_Literal value='TRUE'>
@@ -342,9 +279,6 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
 </Attributes>
 </Identifier>
 </Variables>
@@ -354,9 +288,6 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
 </Attributes>
 </Identifier>
 </Values>
@@ -368,9 +299,6 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
 </Attributes>
 </Identifier>
 </Variables>
@@ -380,9 +308,6 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
 </Attributes>
 </Identifier>
 </Values>
@@ -400,9 +325,6 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
 </Attributes>
 </Identifier>
 <Identifier value='largest'>
@@ -410,9 +332,6 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
 </Attributes>
 </Identifier>
 </Expression_Comparison>
@@ -425,9 +344,6 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
 </Attributes>
 </Identifier>
 </Variables>
@@ -437,9 +353,6 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
 </Attributes>
 </Identifier>
 </Values>
@@ -454,9 +367,6 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
 </Attributes>
 </Identifier>
 <Identifier value='smallest'>
@@ -464,9 +374,6 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
 </Attributes>
 </Identifier>
 </Expression_Comparison>
@@ -479,9 +386,6 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
 </Attributes>
 </Identifier>
 </Variables>
@@ -491,9 +395,6 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
 </Attributes>
 </Identifier>
 </Values>
@@ -516,9 +417,6 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
 </Attributes>
 </Identifier>
 </Output_Parameters>
@@ -534,9 +432,6 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
 </Attributes>
 </Identifier>
 </Input_Parameters>
@@ -548,9 +443,6 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
 </Attributes>
 </Identifier>
 </Variables>
@@ -560,9 +452,6 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
 </Attributes>
 </Identifier>
 </Values>
@@ -577,9 +466,6 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
 </Attributes>
 </Identifier>
 </Output_Parameters>
@@ -595,9 +481,6 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
 </Attributes>
 </Identifier>
 </Input_Parameters>
@@ -609,9 +492,6 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
 </Attributes>
 </Identifier>
 </Variables>
@@ -621,9 +501,6 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
 </Attributes>
 </Identifier>
 </Values>
