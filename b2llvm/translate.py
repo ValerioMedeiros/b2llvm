@@ -20,6 +20,7 @@ import b2llvm.printer as printer
 from b2llvm.strutils import commas, nconc, SP, NL, TB, TB2
 from b2llvm.bproject import BProject
 from b2llvm.opcode import *
+from b2llvm.c_translate import generate_header_skeleton 
 
 #
 # Main entry point for this module
@@ -53,6 +54,7 @@ def translate_bxml(bmodule, outfile, buf, mode='comp', dir='bxml', settings='pro
         translate_mode_comp(buf, ast, emit_printer)
     else:
         translate_mode_proj(buf, ast, emit_printer)
+        generate_header_skeleton(ast,bmodule)
     llvm = open(outfile, 'w')
     llvm.write(buf.contents())
     llvm.close()
