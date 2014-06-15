@@ -52,9 +52,9 @@ def translate_bxml(bmodule, outfile, buf, mode='comp', dir='bxml', settings='pro
     buf.trace.outu("output file: "+outfile)
     if mode == 'comp':
         translate_mode_comp(buf, ast, emit_printer)
+        generate_header_skeleton(ast,bmodule)
     else:
         translate_mode_proj(buf, ast, emit_printer)
-        generate_header_skeleton(ast,bmodule)
     llvm = open(outfile, 'w')
     llvm.write(buf.contents())
     llvm.close()

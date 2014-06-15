@@ -1,13 +1,12 @@
 """Module responsible for translate B implementation to C header skeleton.
-
-This file uses components from LLVM translation.
+   It allows to integrate C source code to llvm code.
 
 """
 import math
 
 from b2llvm.opcode import *
 import b2llvm.codebuf as codebuf
-from b2llvm.strutils import commas, nconc, SP, NL, TB, TB2
+from b2llvm.strutils import semicolon, commas, nconc, SP, NL, TB, TB2
 
 def generate_header_skeleton(ast,bmodule):
     '''
@@ -24,9 +23,8 @@ def generate_header_skeleton(ast,bmodule):
     buf_header.code(IFNDEF, bmodule)
     buf_header.code(INCLUDE, "<stdint.h>")
     buf_header.code(INCLUDE, "<stdbool.h>"+NL)
-    
+
     # The state reference is declared below:
-    
     root = transLLVM.Comp([], ast)
     comps = [root] + transLLVM.comp_indirect(ast)
     # emit the type definitions corresponding to the instantiated modules
@@ -38,28 +36,25 @@ def generate_header_skeleton(ast,bmodule):
     buf_header.trace.tab()
     for q in comps:
         if q.mach["id"] not in acc:
-            if transLLVM.is_stateful(q.mach):
-                section_typedef(buf_header, q.mach)
-                
-                #transLLVM.state_ref_typedef(buf_header, q.mach)
+            #if transLLVM.is_stateful(q.mach):
+            if True:
+                transLLVM.check_kind(q.mach, {"Machine"})
+                section_typedef_impl(buf_header, transLLVM.implementation(q.mach), q.mach)
                 buf_header.trace.out("The type for references to state encodings of \""+ast["id"]+"\" is:")
-                buf_header.code(TYPE, transLLVM.state_r_name(ast), transLLVM.state_t_name(ast)+"*")
             else:
                 buf_header.trace.outu("Module "+q.mach["id"]+ " is stateless and has no associated encoding type.")
             acc.add(q.mach["id"])
     acc.clear()
     buf_header.trace.untab()
     
-    
-    buf_header.code(TYPEDEF, "int32 value" )
-    
     #section_interface_init(buf_header, ast)
     comp = list()
     buf_header.trace.out("The declaration of the function implementing initialisation is:")
-    if transLLVM.is_stateful(ast):
-        comp.append(ast)
+    #if transLLVM.is_stateful(ast):
+    comp.append(ast)
     comp.extend([x.mach for x in transLLVM.comp_indirect(ast)])
-    args = commas([transLLVM.state_r_name(x) for x in comp if transLLVM.is_stateful(x)])
+    #args = commas([c_state_r_name(x)+" self" for x in comp if transLLVM.is_stateful(x)])
+    args = commas([c_state_r_name(x)+" self" for x in comp ])
     buf_header.code(EXTFNDEC, transLLVM.init_name(ast)[1:], args)
     
     
@@ -68,55 +63,21 @@ def generate_header_skeleton(ast,bmodule):
         # compute in tl the list of arguments types
         buf_header.trace.out("The declaration of the function implementing operation \""+op["id"]+"\" is:")
         tl = list()
-        if transLLVM.is_stateful(ast):
-            tl.append(transLLVM.state_r_name(ast))
-        tl.extend([ transLLVM.x_type(i["type"]) for i in op["inp"] ])
-        tl.extend([ transLLVM.x_type(o["type"])+"*" for o in op["out"] ])
+        # if transLLVM.is_stateful(ast):
+        tl.append(c_state_r_name(ast)+" self")
+        tl.extend([ cx_type(i["type"])+" "+i["id"] for i in op["inp"] ])
+        tl.extend([ cx_type(o["type"])+"*"+" "+o["id"] for o in op["out"] ])
         buf_header.code(EXTFNDEC, transLLVM.op_name(op)[1:], commas(tl))
 
-    
-    #buf_header.trace.out("Declaration of function responsible for printing the state")
-    #buf_header.code(EXTFNDEC, print_name(ast), state_r_name(ast))
     buf_header.code(ENDIFNDEF, bmodule)
     
     header = open(bmodule+".h", 'w')
     header.write(buf_header.contents())
     header.close()
 
-def section_typedef(buf, m):
-    '''
-    Generates the definition of the state type machine m.
-
-    Inputs:
-      - buf: a CodeBuffer object where the generated code is stored
-      - m: AST root node of a machine
-      - trace: a Tracer object
-
-    Text of LLVM definitions for the types associated with the state of machine
-    m is appended to text. If the machine is stateful, one type is created: an
-    aggregate type encoding the state of n (or its implementation if it is a
-    developed machine). Otherwise, nothing is generated.
-    '''
-    import b2llvm.translate as transLLVM
-    global NL
-    transLLVM.check_kind(m, {"Machine"})
-    if transLLVM.is_developed(m):
-        section_typedef_impl(buf, transLLVM.implementation(m), m)
-    else:
-        assert transLLVM.is_base(m)
-        if transLLVM.is_stateful(m):
-            variables = m["variables"]
-            buf.trace.out(m["id"] + ": definition of type coding the state")
-            buf.trace.tab()
-            for i in range(len(variables)):
-                buf.trace.out("Position \"" + str(i) + "\" represents \"" +
-                              v["id"] + "\".")
-            args = [transLLVM.x_type(v["type"]) for v in m["variables"]]
-            buf.code(TYPE, transLLVM.state_t_name(m), "{" + commas(args) + "}")
-
 def section_typedef_impl(buf, i, m):
     '''
-    Generates the section implementation of the translation to LLVM.
+    Generates the section implementation of the translation to C.
 
     Inputs:
       - buf: a CodeBuffer object where the generated code is stored
@@ -129,7 +90,8 @@ def section_typedef_impl(buf, i, m):
     import b2llvm.translate as transLLVM
     transLLVM.check_kind(i, {"Impl"})
     transLLVM.check_kind(m, {"Machine"})
-    if transLLVM.is_stateful(i):
+    #if transLLVM.is_stateful(i):
+    if True:
         buf.trace.out("The type encoding the state of \""+m["id"] + "\" is an aggregate and is defined as")
         buf.trace.outu("(using implementation \""+i["id"]+"\"):")
         buf.trace.tab()
@@ -145,7 +107,59 @@ def section_typedef_impl(buf, i, m):
                           var["id"] + "\".")
             pos = pos + 1
         buf.trace.untab()
-        imports = [transLLVM.state_r_name(imp["mach"]) for imp in i["imports"] 
+        imports = [c_state_r_name(imp["mach"]) for imp in i["imports"] 
                    if transLLVM.is_stateful(imp["mach"])]
-        variables = [transLLVM.x_type(var["type"]) for var in i["variables"]]
-        buf.code(TYPE, transLLVM.state_t_name(m), "{" + commas(imports + variables) +"}")
+        variables = [ cx_type(var["type"])+" "+var["id"] for var in i["variables"]]
+        buf.code(TYPEDEFR,  "struct {" + semicolon(imports + variables) +" }  ", c_state_t_name(m))
+        buf.code(TYPEDEFR,   c_state_t_name(m)+" *", c_state_r_name(m))
+
+### C IDENTIFIER GENERATION ###
+
+def c_state_t_name(n):
+    '''
+    - Input:
+      n: A node representing a B machine
+    - Output:
+      A string for the name of the C type representing the state of
+      (the implementation) of n.
+    '''
+    import b2llvm.translate as transLLVM
+    transLLVM.check_kind(n, {"Machine", "Impl"})
+    if n["kind"] == "Machine":
+        return n["id"]+"$state$"
+    else:
+        return c_state_r_name(transLLVM.machine(n))
+    
+def c_state_r_name(n):
+    '''
+    - Input:
+      n: A node representing a B machine
+    - Output:
+      A string for the name of the C type representing a reference to
+      the state of (the implementation) of n.
+    '''
+    import b2llvm.translate as transLLVM
+    transLLVM.check_kind(n, { "Machine", "Impl" })
+    if n["kind"] == "Machine":
+        return n["id"]+"$ref$"
+    else:
+        return c_state_r_name(transLLVM.machine(n))
+
+def cx_type(t):
+    '''
+    This function is responsible for translation B0 type names to C types
+    Input:
+     - t : a node object that represent the type
+    
+    '''
+    import b2llvm.translate as transLLVM
+    transLLVM.check_kind(t, {"Integer", "Bool", "Enumeration", "arrayType"})
+    if (t == transLLVM.ast.INTEGER):
+        return "int32_t" 
+    if (t == transLLVM.ast.BOOL):
+        return "bool"
+    if (t["kind"] == "Enumeration"):
+        return "i"+str(transLLVM.bit_width(len(t["elements"])))
+    if (t.get("kind")== "arrayType"):
+        return transLLVM.x_arrayType(t)
+    
