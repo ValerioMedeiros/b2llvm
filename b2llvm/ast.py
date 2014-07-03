@@ -155,6 +155,10 @@ def make_prod(term1, term2):
     """Creates an AST node for a B product expression."""
     return make_term("*", [term1, term2])
 
+def make_mod(term1, term2):
+    """Creates an AST node for a B mod expression."""
+    return make_term("mod", [term1, term2])
+
 def make_comp(operator, arg1, arg2):
     """Creates an AST node for a B comparison."""
     return { "kind": "Comp", "op": operator, "arg1": arg1, "arg2": arg2 }
