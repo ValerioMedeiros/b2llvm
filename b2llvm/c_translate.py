@@ -53,8 +53,8 @@ def generate_header_skeleton(ast,bmodule):
     #if transLLVM.is_stateful(ast):
     comp.append(ast)
     comp.extend([x.mach for x in transLLVM.comp_indirect(ast)])
-    #args = commas([c_state_r_name(x)+" self" for x in comp if transLLVM.is_stateful(x)])
-    args = commas([c_state_r_name(x)+" self" for x in comp ])
+    args = commas([c_state_r_name(x)+" self" for x in comp if transLLVM.is_stateful(x)])
+    #args = commas([c_state_r_name(x)+" self" for x in comp ])
     buf_header.code(EXTFNDEC, transLLVM.init_name(ast)[1:], args)
     
     
@@ -63,8 +63,9 @@ def generate_header_skeleton(ast,bmodule):
         # compute in tl the list of arguments types
         buf_header.trace.out("The declaration of the function implementing operation \""+op["id"]+"\" is:")
         tl = list()
-        # if transLLVM.is_stateful(ast):
-        tl.append(c_state_r_name(ast)+" self")
+        #TODO: 
+        if transLLVM.is_stateful(ast):
+            tl.append(c_state_r_name(ast)+" self")
         tl.extend([ cx_type(i["type"])+" "+i["id"] for i in op["inp"] ])
         tl.extend([ cx_type(o["type"])+"*"+" "+o["id"] for o in op["out"] ])
         buf_header.code(EXTFNDEC, transLLVM.op_name(op)[1:], commas(tl))
@@ -90,8 +91,8 @@ def section_typedef_impl(buf, i, m):
     import b2llvm.translate as transLLVM
     transLLVM.check_kind(i, {"Impl"})
     transLLVM.check_kind(m, {"Machine"})
-    #if transLLVM.is_stateful(i):
-    if True:
+    if transLLVM.is_stateful(i):
+    #if True:
         buf.trace.out("The type encoding the state of \""+m["id"] + "\" is an aggregate and is defined as")
         buf.trace.outu("(using implementation \""+i["id"]+"\"):")
         buf.trace.tab()
