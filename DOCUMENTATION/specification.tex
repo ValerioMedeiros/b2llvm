@@ -538,6 +538,10 @@ instances transitively imported from implementation $\B{n}$.
   for sequences.
 \end{itemize}
 
+There are also functions to manipulate the sequences: the $\B{``head''}$ function 
+returns the first element from sequence; the $\B{``tail''}$ function returns 
+the given sequence without its first element.
+
 \section{Translation: Modularity Aspects}
 \label{sec:module}
 
@@ -658,9 +662,9 @@ $$\trad{\{e1 ... en\}}{\B{Type}} \isdef \LET w \BE \log_2 \B{n} \IN \llvm{i\PH{w
 \subsection{Derived Data Types}
 
 The data types \textbf{structures} and \textbf{arrays} require detailed 
-representation in the abstract syntax structure from the table \ref{tab:node-attr}.
+representation in the abstract syntax structure from the Table \ref{tab:node-attr}.
 
-The section \ref{sec:StructArray} also presents other examples and rules for these derived data types.
+Section \ref{sec:StructArray} also presents other examples and rules for these derived data types.
  
 The following examples relate the B code and their abstract syntax representation. 
 The \textcolor{gray}{gray elements} are not related to their abstract syntax tree to simplify the examples. 
@@ -695,10 +699,11 @@ The simplified LLVM translation is:
 
 The rules to declare the structure type are:
 \begin{align*}
-\trad{Structure}{\B{Type}} \isdef \LET tps \BE \trad{Structure.elements}{\ListOf{\B{TField}}} \AND\\
- l \BE \local(\B{Structure.elements})  \IN  \llvm{"\PH{l}= type \{\PH{tps}\}\nl"}
+\trad{Structure}{\B{Type}} \isdef \LET tps \BE \trad{Structure.elements}{\ListOf{\B{Field}}}\\
+%\AND l \BE \local(\B{Structure.elements})  \IN  \llvm{"\PH{l}= type \{\PH{tps}\}\nl"}
+  \\IN  \llvm{" type \{\PH{tps}\}\nl"}
 \end{align*}
-$$\trad{t}{\B{TField}} \isdef \LET res \BE  \trad{t.type}{\B{Type}} \IN \llvm{"\PH{res},"}$$
+$$\trad{t}{\B{Field}} \isdef \LET res \BE  \trad{t.type}{\B{Type}} \IN \llvm{"\PH{res},"}$$
 
 The records types are initialized in the initializing function of the module.\\
 
@@ -746,11 +751,12 @@ structure state, for example:
 & \llvm{"[\PH{times} x \PH{res}] \nl"} \\
 \end{align*}
 
-[[ TODO: Write about the initialization (Structure and Array) unsing the concept of module/instance]]
+%TODO
+\VGM{[[ TODO: Write about the initialization (Structure and Array) unsing the concept of module/instance]]}
 
 The current specification of the code generator does not handle deferred sets.
-These data types and logic/math operators compose expressions that is in 
-the next section.
+These data types and logic/math operators compose expressions that are explained
+in the next section.
 
 \section{Translation Expressions}
 \label{sec:expr}
@@ -1049,7 +1055,7 @@ holding the result, and its type $t$. }
 \begin{align*}
 \begin{split}
   \trad{a}{\B{Beq}} \isdef
-  & \LET l \sep p \sep t'= \trad{a.lhs}{lvalue} \AND r \sep v \sep t = \trad{a.rhs}{\B{Exp}} \IN \\
+  & \LET l \sep p \sep t'= \trad{a.lhs}{lvalue} \AND r \sep v \sep t = \trad{a.rhs}{\B{ValueItem}} \IN \\
   & \llvm{"\PH{l}} \\
   & \llvm{\PH{r}} \\
   & \llvm{store \PH{t} \PH{v}, \PH{t'} \PH{p} \nl"}
@@ -1068,7 +1074,7 @@ The rule lvalue is:
 & \quad \quad \quad \llvm{i32 0, i32 \PH{\idx(\B{n})} \nl"} \sep v \sep t
 \end{align*}
 
-\textcolor{blue}{ The expressions have elements represented by pointers that need a special 
+\textcolor{blue}{The expressions have elements represented by pointers that need a special 
 care. The attributions between these elements are made  directly by the memory 
 address.  However, the expression resolution are made by parts, where the 
 partial results are stored to temporary variables. Therefore, the expression 
@@ -1078,11 +1084,15 @@ partial results. This translation is represented by $ValueItem$.}
 \begin{align*}
 \begin{split}
   \trad{n}{\B{ValueItem}} \isdef \\
-   & \LET \ell = \lbl  \IN\\
-   & \IF \B{n} \mbox{ is \B{RecField}} \THEN p' \sep v' \sep t' = \trad{\B{n}}{\B{RecField}} \\
+   & \LET \ell \BE \lbl  \IN\\
+   & \IF \B{n} \mbox{ is \B{RecField}} \THEN \LET p' \sep v' \sep t' = \trad{\B{n}}{\B{RecField}} \IN \\
+   & \llvm{"\PH{p'} \PH{\ell}  = load  \PH{t'}* \PH{v'} \nl"} \sep  \ell  \sep t'\\
+   & \ELSIF \B{n} \mbox{ is \B{Record}} \THEN p' \sep v' \sep t' = \trad{\B{n}}{\B{Record}} \\
    & \ELSIF \B{n} \mbox{ is \B{ArrayItem}} \THEN p' \sep v' \sep t' = \trad{\B{n}}{\B{ArrayItem}} \\
-   & \llvm{"\PH{p'} \PH{\ell}  = load  \PH{t'}* \PH{v'} \nl"} \\
-   & \sep  \ell  \sep t'\\
+   & \llvm{"\PH{p'} \PH{\ell}  = load  \PH{t'}* \PH{v'} \nl"} \sep  \ell  \sep t'\\
+   & \ELSIF \B{n} \mbox{ is \B{Array}} \THEN p' \sep v' \sep t' = \trad{\B{n}}{\B{Array}} \\
+   & code \sep  \ell  \sep t'\\
+   & \ELSE  p' \sep v' \sep t' = \trad{\B{n}}{\B{Exp}}
 \end{split}
 \end{align*}
 
