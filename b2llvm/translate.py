@@ -363,7 +363,7 @@ def section_implementation(buf, m, emit_printer):
         i = implementation(m)
         x_init(buf, m, i)
         for op in i["operations"]:
-            x_operation(buf, op)
+            x_operation(buf, m, op)
         if emit_printer:
             x_printer(buf, m, i)
 
@@ -436,7 +436,9 @@ def x_init(buf, m, i):
             lexicon[q] = "%arg"+str(count)+"$"
             count += 1
     # 1.2 generate parameter type, name list
-    arg_list = [ tm+SP+"%self$" ]
+    arg_list = []
+    if is_stateful(m) : 
+                arg_list = [ tm+SP+"%self$" ]
     for q in comp_indirect(m):
         if is_stateful(q.mach):
             arg_list.append(state_r_name(q.mach)+SP+lexicon[q])
@@ -562,7 +564,7 @@ def x_printer(buf, m, i):
 
 ### TRANSLATION OF OPERATIONS
 
-def x_operation(buf, n):
+def x_operation(buf, mod, n):
     '''
     Code generation for B operations.
 
@@ -574,7 +576,10 @@ def x_operation(buf, n):
     check_kind(n, {"Oper"})
     names.reset()
     buf.trace.out("The LLVM function implementing B operation \""+n["id"]+"\" in \""+n["root"]["id"]+"\" follows.")
-    args = commas([state_r_name(n["root"])+SP+"%self$"]+
+    arg1 = []
+    if is_stateful(mod) : 
+                arg1 = [state_r_name(n["root"])+SP+"%self$"]
+    args = commas( arg1+
                   [x_type(i["type"])+SP+"%"+i["id"] for i in n["inp"]]+
                   [x_type(o["type"])+"*"+SP+"%"+o["id"] for o in n["out"]])
     buf.code(FNDEF, op_name(n), args)
@@ -896,9 +901,10 @@ def x_while(buf, n, lbl):
     lbl1 = names.new_label()
     buf.code(GOTO, lbl1)
     buf.code(LABEL, lbl1)
-    v = x_pred(buf, n["cond"])
     lbl2 = names.new_label()
-    buf.code(CGOTO, v, lbl2, lbl)
+        #v = x_pred(buf, n["cond"])
+    x_formula(buf,n["cond"],lbl2, lbl) 
+        #buf.code(CGOTO, v, lbl2, lbl)
     buf.trace.out("Execute loop body \""+ellipse(printer.subst_l(0, n["body"]))+"\".")
     buf.code(LABEL, lbl2)
     x_inst_list_label(buf, n["body"], lbl1)
@@ -1169,7 +1175,10 @@ def x_not(buf, n, lbl1, lbl2):
 def x_pred(buf, n):
     if n["kind"] == "Comp":
         return x_comp(buf, n)
+    #if n["kind"] == "Form":
+    #    return x_formula(buf, n, lbl1, lbl2) #comp(buf, n)
     else:
+        print("error: predicate " + n["kind"] + " not translated")
         return ""
 
 ### TRANSLATION OF EXPRESSIONS ###
