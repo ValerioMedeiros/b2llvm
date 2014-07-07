@@ -1,0 +1,21 @@
+IMPLEMENTATION
+   DivisionImplWrongCondition
+REFINES		Division
+DEFINITIONS SET_PREF_MAXINT == 5; SET_PREF_MAX_OPERATIONS == 30
+
+OPERATIONS
+   qq, rr <-- div(aa, bb) = 
+	/* PRE	a : NAT & b : NAT1 */
+	BEGIN	
+		rr := aa;
+		qq := 0;
+		WHILE 		rr > bb
+		DO		qq := qq+1;
+				rr := rr-bb
+		INVARIANT	rr : NAT & 
+				qq : NAT &
+				rr+(qq*bb) = aa
+		VARIANT		rr
+		END
+	END	
+END

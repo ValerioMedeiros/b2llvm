@@ -1,5 +1,38 @@
 <project>
   <developed>
+    <machine>Division</machine>
+    <implementation>DivisionImplOk</implementation>
+    <NOimplementation>DivisionImplWrongCondition</NOimplementation>
+  </developed>	
+
+  <developed>
+    <machine>Prime</machine>
+    <implementation>PrimeImp</implementation>
+  </developed>	
+
+  <developed>
+    <machine>Rooms</machine>
+    <implementation>Roomsi</implementation>
+  </developed>	
+
+
+  <developed>
+    <machine>Calculator</machine>
+    <implementation>Calculator_i</implementation>
+  </developed>	
+  <developed>
+    <machine>Multiplication</machine>
+    <implementation>MultiplicationI</implementation>
+  </developed>
+  <developed>
+    <machine>Body</machine>
+    <implementation>Body_i</implementation>
+  </developed>
+   <developed>
+    <machine>storemax</machine>
+    <implementation>storemax_i</implementation>
+  </developed>
+  <developed>
     <machine>enumeration</machine>
     <implementation>enumeration_i</implementation>
   </developed>
