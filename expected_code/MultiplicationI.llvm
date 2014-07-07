@@ -1,0 +1,42 @@
+;; -*- mode: asm -*-
+%Body$state$ = type opaque
+%Body$ref$ = type %Body$state$*
+declare void @Body$init$(%Body$ref$)
+declare void @Body$body(%Body$ref$, i32, i32, i32*)
+declare void @Body$value(%Body$ref$, i32*)
+%Multiplication$state$ = type {%Body$ref$}
+%Multiplication$ref$ = type %Multiplication$state$*
+define void @Multiplication$init$(%Multiplication$ref$ %self$, %Body$ref$ %arg0$) {
+entry:
+  %0 = getelementptr %Multiplication$ref$ %self$, i32 0, i32 0
+  store %Body$ref$ %arg0$, %Body$ref$* %0
+  call void @Body$init$(%Body$ref$ %arg0$)
+  br label %exit
+exit:
+  ret void
+}
+define void @Multiplication$mult(%Multiplication$ref$ %self$, i32 %mm) {
+entry:
+  %ii = alloca i32
+  %rr = alloca i32
+  store i32 1, i32* %ii
+  %0 = getelementptr %Multiplication$ref$ %self$, i32 0, i32 0
+  %1 = load %Body$ref$* %0
+  call void @Body$value(%Body$ref$ %1, i32* %rr)
+  br label %label1
+label1:
+  %2 = load i32* %ii
+  %3 = icmp slt i32 %2, %mm
+  br i1 %3, label %label2, label %label0
+label2:
+  %4 = getelementptr %Multiplication$ref$ %self$, i32 0, i32 0
+  %5 = load %Body$ref$* %4
+  %6 = load i32* %rr
+  %7 = load i32* %ii
+  call void @Body$body(%Body$ref$ %5, i32 %6, i32 %7, i32* %ii)
+  br label %label1
+label0:
+  br label %exit
+exit:
+  ret void
+}

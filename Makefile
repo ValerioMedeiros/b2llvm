@@ -1,6 +1,6 @@
 B2LLVM = ./b2llvm.py
-LLVM_AS = llvm-as-mp-3.1
-LLVM_LINK = llvm-link-mp-3.1
+LLVM_AS = llvm-as-mp-3.5
+LLVM_LINK = llvm-link-mp-3.5
 
 %.llvm : bxml/%.bxml
 	$(B2LLVM) $* $@ bxml project.xml
@@ -38,4 +38,4 @@ timer: counter.bc timer.bc init-timer.bc scaffold-timer.bc
 all: counter wd timer
 
 clean:
-	rm *.bc
+	rm *.bc expected_code/*.diff 

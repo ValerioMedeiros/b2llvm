@@ -1,0 +1,37 @@
+;; -*- mode: asm -*-
+%enumeration$state$ = type {i1}
+%enumeration$ref$ = type %enumeration$state$*
+define void @enumeration$init$(%enumeration$ref$ %self$) {
+entry:
+  %0 = getelementptr %enumeration$ref$ %self$, i32 0, i32 0
+  store i1 0, i1* %0
+  br label %exit
+exit:
+  ret void
+}
+define void @enumeration$tick(%enumeration$ref$ %self$) {
+entry:
+  %0 = getelementptr %enumeration$ref$ %self$, i32 0, i32 0
+  %1 = getelementptr i1* %0, i32 0
+  %2 = icmp eq i1 %1, 0
+  br i1 %2, label %label0, label %label1
+label0:
+  %3 = getelementptr %enumeration$ref$ %self$, i32 0, i32 0
+  store i1 1, i1* %3
+  br label %exit
+label1:
+  %4 = getelementptr %enumeration$ref$ %self$, i32 0, i32 0
+  store i1 0, i1* %4
+  br label %exit
+exit:
+  ret void
+}
+define void @enumeration$read(%enumeration$ref$ %self$, i1* %res) {
+entry:
+  %0 = getelementptr %enumeration$ref$ %self$, i32 0, i32 0
+  %1 = getelementptr i1* %0, i32 0
+  store i1 %1, i1* %res
+  br label %exit
+exit:
+  ret void
+}

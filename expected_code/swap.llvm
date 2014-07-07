@@ -1,0 +1,52 @@
+;; -*- mode: asm -*-
+%swap$state$ = type {i32, i32}
+%swap$ref$ = type %swap$state$*
+define void @swap$init$(%swap$ref$ %self$) {
+entry:
+  %0 = getelementptr %swap$ref$ %self$, i32 0, i32 0
+  store i32 0, i32* %0
+  %1 = getelementptr %swap$ref$ %self$, i32 0, i32 1
+  store i32 1, i32* %1
+  br label %exit
+exit:
+  ret void
+}
+define void @swap$step(%swap$ref$ %self$) {
+entry:
+  %tmp = alloca i32
+  %0 = getelementptr %swap$ref$ %self$, i32 0, i32 0
+  %1 = load i32* %0
+  store i32 %1, i32* %tmp
+  %2 = getelementptr %swap$ref$ %self$, i32 0, i32 1
+  %3 = load i32* %2
+  %4 = getelementptr %swap$ref$ %self$, i32 0, i32 0
+  store i32 %3, i32* %4
+  %5 = load i32* %tmp
+  %6 = getelementptr %swap$ref$ %self$, i32 0, i32 1
+  store i32 %5, i32* %6
+  br label %exit
+exit:
+  ret void
+}
+define void @swap$set(%swap$ref$ %self$, i32 %av1, i32 %av2) {
+entry:
+  %0 = getelementptr %swap$ref$ %self$, i32 0, i32 0
+  store i32 %av1, i32* %0
+  %1 = getelementptr %swap$ref$ %self$, i32 0, i32 1
+  store i32 %av2, i32* %1
+  br label %exit
+exit:
+  ret void
+}
+define void @swap$get(%swap$ref$ %self$, i32* %r1, i32* %r2) {
+entry:
+  %0 = getelementptr %swap$ref$ %self$, i32 0, i32 0
+  %1 = load i32* %0
+  store i32 %1, i32* %r1
+  %2 = getelementptr %swap$ref$ %self$, i32 0, i32 1
+  %3 = load i32* %2
+  store i32 %3, i32* %r2
+  br label %exit
+exit:
+  ret void
+}

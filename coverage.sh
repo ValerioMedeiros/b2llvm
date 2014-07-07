@@ -53,5 +53,5 @@ echo "Coverage report is now available."
 
 
 echo "Generating diff report "
-for file in *.h *.llvm; do diff "$file" "expected_code/${file##*/}">expected_code/REPORT; echo "Diff for ${file##*/}:"; cat expected_code/REPORT;   done
+for file in *.h *.llvm; do diff "$file" "expected_code/${file##*/}">expected_code/REPORT_"$file".diff; echo "Diff for ${file##*/}:"; cat expected_code/REPORT_"$file".diff;   done
 echo "Report generated"

@@ -1,0 +1,13 @@
+;; -*- mode: asm -*-
+%counter$state$ = type {i32, i1}
+%counter$ref$ = type %counter$state$*
+@$counter = common global %counter$state$ zeroinitializer
+declare void @counter$init$(%counter$ref$)
+declare void @counter$zero(%counter$ref$)
+declare void @counter$inc(%counter$ref$)
+declare void @counter$get(%counter$ref$, i32*)
+define void @$init$() {
+entry:
+  call void @counter$init$(%counter$ref$ @$counter)
+  ret void
+}

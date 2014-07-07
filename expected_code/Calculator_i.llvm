@@ -1,0 +1,72 @@
+;; -*- mode: asm -*-
+define void @Calculator$init$(%Calculator$ref$ %self$) {
+entry:
+  br label %exit
+exit:
+  ret void
+}
+define void @Calculator$add(%Calculator$ref$ %self$, i32 %numberA, i32 %numberB, i32* %result) {
+entry:
+  %0 = add i32 %numberA, %numberB
+  store i32 %0, i32* %result
+  br label %exit
+exit:
+  ret void
+}
+define void @Calculator$mult(%Calculator$ref$ %self$, i32 %numberA, i32 %numberB, i32* %result) {
+entry:
+  %0 = mul i32 %numberA, %numberB
+  store i32 %0, i32* %result
+  br label %exit
+exit:
+  ret void
+}
+define void @Calculator$pow(%Calculator$ref$ %self$, i32 %numberA, i32 %numberB, i32* %result) {
+entry:
+  %ii = alloca i32
+  %exp = alloca i32
+  %0 = icmp sge i32 %numberB, 0
+  br i1 %0, label %label0, label %exit
+label0:
+  %1 = icmp eq i32 %numberB, 0
+  br i1 %1, label %label1, label %label2
+label1:
+  store i32 1, i32* %result
+  br label %exit
+label2:
+  %2 = icmp eq i32 %numberB, 1
+  br i1 %2, label %label3, label %label4
+label3:
+  store i32 %numberA, i32* %result
+  br label %exit
+label4:
+  store i32 1, i32* %ii
+  store i32 %numberA, i32* %exp
+  br label %label6
+label6:
+  %3 = load i32* %ii
+  %4 = icmp slt i32 %3, %numberB
+  br i1 %4, label %label7, label %label5
+label7:
+  %5 = load i32* %exp
+  %6 = mul i32 %5, %numberA
+  store i32 %6, i32* %exp
+  %7 = load i32* %ii
+  %8 = add i32 %7, 1
+  store i32 %8, i32* %ii
+  br label %label6
+label5:
+  %9 = load i32* %exp
+  store i32 %9, i32* %result
+  br label %exit
+exit:
+  ret void
+}
+define void @Calculator$sub(%Calculator$ref$ %self$, i32 %numberA, i32 %numberB, i32* %result) {
+entry:
+  %0 = sub i32 %numberA, %numberB
+  store i32 %0, i32* %result
+  br label %exit
+exit:
+  ret void
+}

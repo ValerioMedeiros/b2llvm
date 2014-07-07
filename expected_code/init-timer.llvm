@@ -1,0 +1,21 @@
+;; -*- mode: asm -*-
+%counter$state$ = type {i32, i1}
+%counter$ref$ = type %counter$state$*
+%timer$state$ = type {%counter$ref$, %counter$ref$, %counter$ref$, i1, i1}
+%timer$ref$ = type %timer$state$*
+@$timer = common global %timer$state$ zeroinitializer
+@hh$counter = common global %counter$state$ zeroinitializer
+@mm$counter = common global %counter$state$ zeroinitializer
+@ss$counter = common global %counter$state$ zeroinitializer
+declare void @timer$init$(%timer$ref$, %counter$ref$, %counter$ref$, %counter$ref$)
+declare void @timer$tick(%timer$ref$)
+declare void @timer$reset(%timer$ref$)
+declare void @timer$stop(%timer$ref$)
+declare void @timer$start(%timer$ref$)
+declare void @timer$elapsed(%timer$ref$, i32*, i32*, i32*)
+declare void @timer$has_overflown(%timer$ref$, i1*)
+define void @$init$() {
+entry:
+  call void @timer$init$(%timer$ref$ @$timer, %counter$ref$ @hh$counter, %counter$ref$ @mm$counter, %counter$ref$ @ss$counter)
+  ret void
+}

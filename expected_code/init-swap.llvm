@@ -1,0 +1,13 @@
+;; -*- mode: asm -*-
+%swap$state$ = type {i32, i32}
+%swap$ref$ = type %swap$state$*
+@$swap = common global %swap$state$ zeroinitializer
+declare void @swap$init$(%swap$ref$)
+declare void @swap$step(%swap$ref$)
+declare void @swap$set(%swap$ref$, i32, i32)
+declare void @swap$get(%swap$ref$, i32*, i32*)
+define void @$init$() {
+entry:
+  call void @swap$init$(%swap$ref$ @$swap)
+  ret void
+}
