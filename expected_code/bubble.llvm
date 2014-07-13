@@ -1,0 +1,78 @@
+;; -*- mode: asm -*-
+%bubble$state$ = type {[ 100 x i32], i32}
+%bubble$ref$ = type %bubble$state$*
+define void @bubble$init$(%bubble$ref$ %self$) {
+entry:
+  %0 = getelementptr %bubble$ref$ %self$, i32 0, i32 0
+  %1 = getelementptr [ 100 x i32]* %0, i32 0
+  %2 = getelementptr [ 100 x i32]* %1, i32 0, i32 0
+  store i32 0, i32* %2
+  %3 = getelementptr %bubble$ref$ %self$, i32 0, i32 1
+  store i32 0, i32* %3
+  br label %exit
+exit:
+  ret void
+}
+define void @bubble$op_sort(%bubble$ref$ %self$) {
+entry:
+  %nn = alloca i32
+  %swapped = alloca i32
+  %ii = alloca i32
+  %tmp = alloca i32
+  %vi = alloca i32
+  %vi2 = alloca i32
+  store i32 1, i32* %swapped
+  store i32 100, i32* %nn
+  store i32 0, i32* %ii
+  br label %label1
+label1:
+  %0 = load i32* %swapped
+  %1 = icmp eq i32 %0, 1
+  br i1 %1, label %label2, label %label0
+label2:
+  store i32 0, i32* %swapped
+  store i32 0, i32* %ii
+  %2 = load i32* %nn
+  %3 = sub i32 %2, 1
+  store i32 %3, i32* %nn
+  br label %label4
+label4:
+  %4 = load i32* %ii
+  %5 = load i32* %nn
+  %6 = icmp sle i32 %4, %5
+  br i1 %6, label %label5, label %label3
+label5:
+  store  , * %vi
+  store  , * %vi2
+  %7 = load i32* %vi
+  %8 = load i32* %vi2
+  %9 = icmp sgt i32 %7, %8
+  br i1 %9, label %label7, label %label6
+label7:
+  store  , * %tmp
+  %10 = getelementptr %bubble$ref$ %self$, i32 0, i32 0
+  %11 = getelementptr [ 100 x i32]* %10, i32 0
+  %12 = load i32* %ii
+  %13 = add i32 %12, 1
+  %14 = getelementptr [ 100 x i32]* %11, i32 0, i32 %13
+  store  , * %14
+  %15 = load i32* %tmp
+  %16 = getelementptr %bubble$ref$ %self$, i32 0, i32 0
+  %17 = getelementptr [ 100 x i32]* %16, i32 0
+  %18 = load i32* %ii
+  %19 = getelementptr [ 100 x i32]* %17, i32 0, i32 %18
+  store i32 %15, i32* %19
+  store i32 1, i32* %swapped
+  br label %label6
+label6:
+  %20 = load i32* %ii
+  %21 = add i32 %20, 1
+  store i32 %21, i32* %ii
+  br label %label4
+label3:
+  br label %label1
+label0:
+  br label %exit
+exit:
+  ret void
+}

@@ -18,3 +18,11 @@ translation.pdf
 .coverage
 
 coverage_html
+b2llvm/typecheck/COPYING
+b2llvm/typecheck/README.md
+b2llvm/typecheck/annotation/__init__.py
+b2llvm/typecheck/annotation/overload.py
+b2llvm/typecheck/annotation/typed.py
+b2llvm/typecheck/tests/__init__.py
+b2llvm/typecheck/tests/test_annontations.py
+b2llvm/typecheck/tests/test_overload.py

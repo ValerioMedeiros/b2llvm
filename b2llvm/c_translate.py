@@ -66,8 +66,8 @@ def generate_header_skeleton(ast,bmodule):
         #TODO: 
         if transLLVM.is_stateful(ast):
             tl.append(c_state_r_name(ast)+" self")
-        tl.extend([ cx_type(i["type"])+" "+i["id"] for i in op["inp"] ])
-        tl.extend([ cx_type(o["type"])+"*"+" "+o["id"] for o in op["out"] ])
+        tl.extend([ cx_type_name_dec(False, i["type"], i["id"]) for i in op["inp"] ])
+        tl.extend([ cx_type_name_dec(True, o["type"], o["id"]) for o in op["out"] ])
         buf_header.code(EXTFNDEC, transLLVM.op_name(op)[1:], commas(tl))
 
     buf_header.code(ENDIFNDEF, bmodule)
@@ -110,7 +110,7 @@ def section_typedef_impl(buf, i, m):
         buf.trace.untab()
         imports = [c_state_r_name(imp["mach"]) for imp in i["imports"] 
                    if transLLVM.is_stateful(imp["mach"])]
-        variables = [ cx_type(var["type"])+" "+var["id"] for var in i["variables"]]
+        variables = [ cx_type_name_dec(False,var["type"], var["id"]) for var in i["variables"]]
         buf.code(TYPEDEFR,  "struct {" + semicolon(imports + variables) +" }  ", c_state_t_name(m))
         buf.code(TYPEDEFR,   c_state_t_name(m)+" *", c_state_r_name(m))
 
@@ -146,21 +146,35 @@ def c_state_r_name(n):
     else:
         return c_state_r_name(transLLVM.machine(n))
 
-def cx_type(t):
+
+def cx_type_name_dec(is_pointer, t, name):
     '''
     This function is responsible for translation B0 type names to C types
     Input:
+     - is_pointer : a boolean that indicates when it is a pointer 
      - t : a node object that represent the type
+     -name : a node object that represent the id 
     
     '''
     import b2llvm.translate as transLLVM
     transLLVM.check_kind(t, {"Integer", "Bool", "Enumeration", "arrayType"})
+    p=" "
+    if (is_pointer):
+        p = "* "
     if (t == transLLVM.ast.INTEGER):
-        return "int32_t" 
+        return "int32_t" +p+ name
     if (t == transLLVM.ast.BOOL):
-        return "bool"
+        return "bool" +p+ name
     if (t["kind"] == "Enumeration"):
-        return "i"+str(transLLVM.bit_width(len(t["elements"])))
+        return "i"+str(transLLVM.bit_width(len(t["elements"])))+ " "+name
     if (t.get("kind")== "arrayType"):
-        return transLLVM.x_arrayType(t)
+        if (True) :
+            ranType = "int32_t" #TODO: needs support new types of ran
+        tl =""
+        domain = t.get("dom")
+        for elem in domain:
+            size =int(elem.get("end")) - int(elem.get("start"))+1
+            tl += "["+str(size)+"]"
+        return  ranType +p+ name + tl  
+
     

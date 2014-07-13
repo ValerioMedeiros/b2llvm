@@ -27,7 +27,7 @@ def term(n):
     elif kind == "Cons":
         return n["id"]
     elif kind == "arrayItem":
-        return (SP + term(n["base"])+"("+ term(n["index"])+ ")")
+        return (SP + term(n["base"])+"("+ term(n["indexes"])+ ")")
     elif kind == "Vari":
         return n["id"]
     elif kind == "Enumerated":

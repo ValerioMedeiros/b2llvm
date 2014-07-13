@@ -951,28 +951,7 @@ def x_lvalue(buf, n):
     buf.trace.out("Evaluate address for \""+printer.term(n)+"\".")
     t = x_type(n["type"]) + "*"
     if n["kind"] == "arrayItem": 
-        buf.trace.tab()
-        v1,t1 = x_expression(buf, n["base"])
-        buf.trace.out("Variable array (base) \""+n["base"]["id"]+"\" is stored at position "+v1+" of \"%self$\". (arrayItem)")
-        buf.trace.untab()
-        
-        #TODO: Add the index to be loaded
-        #TODO: Create the function LRExp to getting a sequence of selected elements.
-        #commas([ term(x) for x in n["lhs"]])
-        
-        buf.trace.tab() 
-        #for elem in n["index"]:
-        vi,ti = x_expression(buf, n["index"])
-        v = names.new_local()
-        buf.code(LOADI,v,t1+"*",v1,vi)
-        t  = "i32"
-        buf.trace.out("Variable array (index) \""+printer.term(n["index"])+"\" is stored at position "+vi+" of \"%self$\". (arrayItem)")
-        buf.trace.untab()
-        
-        #TODO: Adjust the size o vector to size=(b-a+1)
-        #TODO: Add suport to interval position(p) = (p-a)
-        return (v, t)  
-
+        return x_arrayItem(buf, n)
     elif n["scope"] == "Impl":
         pos=state_position(n)
         v = names.new_local()
@@ -990,6 +969,7 @@ def x_lvalue(buf, n):
     else:
         print("error: unknown scope for variable " + v["id"])
         return ("UNKNOWN", "UNKNOWN")
+
 
 ### TRANSLATION OF CALL INSTRUCTIONS
 
@@ -1210,7 +1190,15 @@ def x_expression(buf, n):
         res = x_term(buf, n)
     elif n["kind"] == "Cons":
         res = x_expression(buf, n["value"])
+    elif n["kind"] == "arrayItem": 
+        p,_ = x_arrayItem(buf, n)
+        v1 = names.new_local()
+        buf.code(LOADD, v1, _ , p)
+        res = (v1,_)
     else:
+        print("error: unknown expression kind")
+        buf.code("<error inserted by b2llvm>")
+        assert False, "error: unknown expression kind"
         res = ("","")
     buf.trace.untab()
     buf.trace.outu("The evaluation of \""+ellipse(printer.term(n))+"\" is \""+res[0]+"\".")
@@ -1260,6 +1248,40 @@ def x_enumerated(buf, n):
     buf.trace.out("An enumerated value is represented as an integer literal.")
     t = n["type"]
     return (str(t["elements"].index(n)), x_type(t))
+
+def x_arrayItem(buf, n):
+    '''
+    Generates LLVM code to evaluate an item from array.
+
+    Input:
+      - buf: a CodeBuffer object where the generated code is stored
+      - n: an AST node representing a B enumerated value.
+    Output:
+      A pair containing a string for the temporal value, and a string
+      for the type corresponding to an array item.
+    '''
+    check_kind(n, {"arrayItem"}) 
+    buf.trace.tab()
+    v1,t1 = x_expression(buf, n["base"])
+    buf.trace.out("Variable array (base) \""+n["base"]["id"]+"\" is stored at position "+v1+" of \"%self$\". (arrayItem)")
+    buf.trace.untab()
+    
+    #TODO: Add the indexes to be loaded
+    #TODO: Create the function LRExp to getting a sequence of selected elements.
+    #commas([ term(x) for x in n["lhs"]])
+    
+    buf.trace.tab() 
+    #for elem in n["indexes"]:
+    vi,ti = x_expression(buf, n["indexes"])
+    v = names.new_local()
+    buf.code(LOADI,v,t1+"*",v1,vi) #GETPT
+    t  = "i32"
+    buf.trace.out("Variable array (indexes) \""+printer.term(n["indexes"])+"\" is stored at position "+vi+" of \"%self$\". (arrayItem)")
+    buf.trace.untab()
+    
+    #TODO: Adjust the size o vector to size=(b-a+1)
+    #TODO: Add suport to interval position(p) = (p-a)
+    return (v, t)  
 
 def x_name(buf, n):
     '''

@@ -19,6 +19,11 @@ $COV_RUN ./b2llvm.py -m proj Division init-Division.llvm bxml project.xml
 $COV_RUN ./b2llvm.py -m comp  Prime Prime.llvm bxml project.xml
 $COV_RUN ./b2llvm.py --trace --verbose  -m proj Prime init-Prime.llvm bxml project.xml
 
+echo "Generating bubble example"
+$COV_RUN ./b2llvm.py -m comp  bubble bubble.llvm bxml project.xml
+$COV_RUN ./b2llvm.py --trace --verbose  -m proj bubble init-bubble.llvm bxml project.xml
+echo "Generated code!"
+
 #$COV_RUN ./b2llvm.py -m comp Rooms  Rooms.llvm bxml project.xml
 #$COV_RUN ./b2llvm.py -m proj Rooms init-Rooms.llvm bxml project.xml
 
@@ -54,4 +59,8 @@ echo "Coverage report is now available."
 
 echo "Generating diff report "
 for file in *.h *.llvm; do diff "$file" "expected_code/${file##*/}">expected_code/REPORT_"$file".diff; echo "Diff for ${file##*/}:"; cat expected_code/REPORT_"$file".diff;   done
+find expected_code -size -1c -name "*.diff" -exec rm -f {} \;
 echo "Report generated"
+
+
+

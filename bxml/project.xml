@@ -15,6 +15,13 @@
     <implementation>Roomsi</implementation>
   </developed>	
 
+  <developed>
+    <machine>bubble</machine>
+    <implementation>bubble_i</implementation>
+  </developed>	
+
+
+
 
   <developed>
     <machine>Calculator</machine>

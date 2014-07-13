@@ -94,11 +94,10 @@ ZERO = make_intlit(0)
 ONE = make_intlit(1)
 MAXINT = make_intlit(2147483647)
 
-#VGM - TODO: move this functions ?
 def make_sset(node):
     """Creates an AST node for a B simple set."""
     if (node.get("operator") == ".."):
-        res = make_interval(node[0].get("value"),node[1].get("value"))
+        res = make_interval(node[1].get("value"),node[2].get("value"))
     elif (node.get("operator") == "*"):
         res = become_list(make_sset(node[0]))
         res += become_list(make_sset(node[1]))
@@ -124,9 +123,9 @@ def make_arrayType(domxml, ranxml):
     assert dom != None and ran != None
     return { "kind" : "arrayType", "dom": dom, "ran" : ran}
 
-def make_arrayItem(base,index):
+def make_arrayItem(base,indexes):
     """Creates an AST node for a B arrayType."""
-    return { "base": base, "index": index, 
+    return { "base": base, "indexes": indexes, 
             "kind":"arrayItem", "type": INTEGER} #TODO: change it support other typer different of INTEGER 
 
 ### COMPOSED EXPRESSIONS ###

@@ -1,0 +1,35 @@
+;; -*- mode: asm -*-
+;;   file generated with b2llvm
+;;   B project settings: project.xml
+;;   B module: bubble
+;;   B project directory: bxml
+;;   code generation mode: project
+;;   output file: init-bubble.llvm
+;;   Preamble
+;;   
+;;   This file instantiates B machine "bubble", and all its components,
+;;   and a function to initialise this instantiation.
+;;   
+;;1 These are the types encoding the state of each module,
+;;2 and the corresponding pointer types.
+;;2.1 The type encoding the state of "bubble" is an aggregate and is defined as
+;;     (using implementation "bubble_i"):
+;;2.1.1 Position "0" represents "vec1".
+;;2.1.2 Position "1" represents "sort1".
+%bubble$state$ = type {[ 100 x i32], i32}
+;;2.2 The type for references to state encodings of "bubble" is:
+%bubble$ref$ = type %bubble$state$*
+;;3 Variables representing instances of components forming "bubble".
+;;3.1 Variable representing to bubble
+@$bubble = common global %bubble$state$ zeroinitializer
+;;4 The declaration of the function implementing initialisation is:
+declare void @bubble$init$(%bubble$ref$)
+;;5 The declaration of the function implementing operation "op_sort" is:
+declare void @bubble$op_sort(%bubble$ref$)
+;;6 Definition of the function to initialise instance "@$bubble" of "bubble".
+define void @$init$() {
+entry:
+;;6.1 Call to initialisation function of "bubble".
+  call void @bubble$init$(%bubble$ref$ @$bubble)
+  ret void
+}

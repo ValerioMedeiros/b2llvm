@@ -2,9 +2,9 @@
  * Author: valerio
  */
 IMPLEMENTATION
-   Bubble_i
+   bubble_i
 REFINES
-   Bubble
+   bubble
 CONCRETE_VARIABLES
    vec1,sort1
 INVARIANT

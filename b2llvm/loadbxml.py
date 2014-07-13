@@ -251,6 +251,7 @@ def load_implementation(dirname, project, loaded, module):
     symast = SymbolTable()
     symast.add("BOOL", ast.BOOL)
     symast.add("INTEGER", ast.INTEGER)
+    #symast.add("ARRAY", ast.ARRAY)
     symimp = SymbolTable()
     _LOADING.add(module)
     tree = ET.parse(path(dirname, module))
@@ -758,7 +759,7 @@ def load_binary_expression(node, symast):
     return load_binary(node, symast, "Binary_Expression",
                        {"+":ast.make_sum, "-":ast.make_diff,
                         "*":ast.make_prod,"(":ast.make_arrayItem,
-                        "mod":ast.make_mod})
+                        "mod":ast.make_mod,"..":ast.make_interval})
 
 def load_nary_expression(node, symast):
     """Load an XML element for a nary expression to an AST node."""
@@ -933,8 +934,8 @@ def get_inv_type(xmlid, xmlinv):
     function = elem[1]
     
     if (function.get("operator")=="-->"):
-        domxml = function[0] 
-        ranxml = function[1]
+        domxml = function[1] 
+        ranxml = function[2]
         res = ast.make_arrayType(domxml,ranxml)
     assert res != None
     return res   
@@ -950,7 +951,19 @@ def load_type(xmlid, symast):
     - Assumes that the XML attribute TypeInfo exists and
     is an identifier with the name of the type.
     '''
-    return symast.get(value(xmlid.find("./Attributes/TypeInfo/Identifier")))
+    node = xmlid.find("./Attributes/TypeInfo/Identifier")
+    if node != None : 
+        return symast.get(value(node))
+    else : 
+        return None
+
+def load_derivedTypes(node):
+    assert node != None 
+    if (node.get("operator") == "-->") :
+        return  ast.make_arrayType(node[0], node[1])
+    else :
+        return
+    
 
 def discard_attributes(exp):
     '''
