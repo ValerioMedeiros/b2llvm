@@ -385,17 +385,17 @@ def bit_width(n):
 #
 def x_type(t):
     """Returns the type for declaration."""
-    check_kind(t, {"Integer", "Bool", "Enumeration", "arrayType"})
+    check_kind(t, {"Integer", "Bool", "Enumeration", "ArrayType"})
     if (t == ast.INTEGER):
         return "i32" 
     if (t == ast.BOOL):
         return "i1"
     if (t["kind"] == "Enumeration"):
         return "i"+str(bit_width(len(t["elements"])))
-    if (t.get("kind")== "arrayType"):
-        return x_arrayType(t)
+    if (t.get("kind")== "ArrayType"):
+        return x_array_type(t)
 
-def x_arrayType(t):
+def x_array_type(t):
     """Returns the type for declaration of Array."""
     if (True) :
         ranType = "i32" #TODO: needs support new types of ran
@@ -721,7 +721,7 @@ def x_inst_label(buf, n, lbl):
         print("error: instruction type unknown")
 
 def x_inst(buf, n):
-    check_kind(n, {"Beq", "Call", "VarD"})
+    check_kind(n, {"Beq", "Call", "VarD","Skip"})
     if n["kind"] == "Beq":
         x_beq(buf, n)
     elif n["kind"] == "Call":
@@ -947,11 +947,11 @@ def x_lvalue(buf, n):
       Currently limited to simple identifiers.
     '''
     global TB, NL
-    check_kind(n, {"Vari","arrayItem"}) 
+    check_kind(n, {"Vari","ArrayItem"}) 
     buf.trace.out("Evaluate address for \""+printer.term(n)+"\".")
     t = x_type(n["type"]) + "*"
-    if n["kind"] == "arrayItem": 
-        return x_arrayItem(buf, n)
+    if n["kind"] == "ArrayItem": 
+        return x_arrayitem(buf, n)
     elif n["scope"] == "Impl":
         pos=state_position(n)
         v = names.new_local()
@@ -1175,7 +1175,7 @@ def x_expression(buf, n):
       of the expression, and the LLVM type of this temporary variable.
     '''
     check_kind(n, {"IntegerLit", "BooleanLit", "Enumerated", 
-                   "Vari", "Term", "Cons"})
+                   "Vari", "Term", "Cons","ArrayItem"})
     buf.trace.out("Evaluate expression \""+ellipse(printer.term(n))+"\".")
     buf.trace.tab()
     if n["kind"] == "IntegerLit":
@@ -1190,8 +1190,8 @@ def x_expression(buf, n):
         res = x_term(buf, n)
     elif n["kind"] == "Cons":
         res = x_expression(buf, n["value"])
-    elif n["kind"] == "arrayItem": 
-        p,_ = x_arrayItem(buf, n)
+    elif n["kind"] == "ArrayItem": 
+        p,_ = x_arrayitem(buf, n)
         v1 = names.new_local()
         buf.code(LOADD, v1, _ , p)
         res = (v1,_)
@@ -1249,7 +1249,7 @@ def x_enumerated(buf, n):
     t = n["type"]
     return (str(t["elements"].index(n)), x_type(t))
 
-def x_arrayItem(buf, n):
+def x_arrayitem(buf, n):
     '''
     Generates LLVM code to evaluate an item from array.
 
@@ -1260,10 +1260,10 @@ def x_arrayItem(buf, n):
       A pair containing a string for the temporal value, and a string
       for the type corresponding to an array item.
     '''
-    check_kind(n, {"arrayItem"}) 
+    check_kind(n, {"ArrayItem"}) 
     buf.trace.tab()
     v1,t1 = x_expression(buf, n["base"])
-    buf.trace.out("Variable array (base) \""+n["base"]["id"]+"\" is stored at position "+v1+" of \"%self$\". (arrayItem)")
+    buf.trace.out("Variable array (base) \""+n["base"]["id"]+"\" is stored at position "+v1+" of \"%self$\". (ArrayItem)")
     buf.trace.untab()
     
     #TODO: Add the indexes to be loaded
@@ -1276,7 +1276,7 @@ def x_arrayItem(buf, n):
     v = names.new_local()
     buf.code(LOADI,v,t1+"*",v1,vi) #GETPT
     t  = "i32"
-    buf.trace.out("Variable array (indexes) \""+printer.term(n["indexes"])+"\" is stored at position "+vi+" of \"%self$\". (arrayItem)")
+    buf.trace.out("Variable array (indexes) \""+printer.term(n["indexes"])+"\" is stored at position "+vi+" of \"%self$\". (ArrayItem)")
     buf.trace.untab()
     
     #TODO: Adjust the size o vector to size=(b-a+1)

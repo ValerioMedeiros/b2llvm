@@ -114,19 +114,19 @@ def make_interval(start,end):
     """Creates an AST node for a B simple interval set."""
     return { "kind" : "set_interval" , "start" : start, "end" : end }
 
-def make_arrayType(domxml, ranxml):
-    """Creates an AST node for a B arrayType."""
+def make_array_type(domxml, ranxml):
+    """Creates an AST node for a B ArrayType."""
     #TODO: create support to INT type and NAT
     #TODO: support a list of indices in domain
     dom = become_list(make_sset(domxml))
     ran = make_sset(ranxml)
     assert dom != None and ran != None
-    return { "kind" : "arrayType", "dom": dom, "ran" : ran}
+    return { "kind" : "ArrayType", "dom": dom, "ran" : ran}
 
-def make_arrayItem(base,indexes):
-    """Creates an AST node for a B arrayType."""
+def make_array_item(base,indexes):
+    """Creates an AST node for a B ArrayItem."""
     return { "base": base, "indexes": indexes, 
-            "kind":"arrayItem", "type": INTEGER} #TODO: change it support other typer different of INTEGER 
+            "kind":"ArrayItem", "type": INTEGER} #TODO: change it support other typer different of INTEGER 
 
 ### COMPOSED EXPRESSIONS ###
 

@@ -157,7 +157,7 @@ def cx_type_name_dec(is_pointer, t, name):
     
     '''
     import b2llvm.translate as transLLVM
-    transLLVM.check_kind(t, {"Integer", "Bool", "Enumeration", "arrayType"})
+    transLLVM.check_kind(t, {"Integer", "Bool", "Enumeration", "ArrayType"})
     p=" "
     if (is_pointer):
         p = "* "
@@ -166,8 +166,8 @@ def cx_type_name_dec(is_pointer, t, name):
     if (t == transLLVM.ast.BOOL):
         return "bool" +p+ name
     if (t["kind"] == "Enumeration"):
-        return "i"+str(transLLVM.bit_width(len(t["elements"])))+ " "+name
-    if (t.get("kind")== "arrayType"):
+        return "i"+str(transLLVM.bit_width(len(t["elements"])))+ p+ name
+    if (t.get("kind")== "ArrayType"):
         if (True) :
             ranType = "int32_t" #TODO: needs support new types of ran
         tl =""

@@ -758,7 +758,7 @@ def load_binary_expression(node, symast):
     """Load an XML element for a binary expression to an AST node."""
     return load_binary(node, symast, "Binary_Expression",
                        {"+":ast.make_sum, "-":ast.make_diff,
-                        "*":ast.make_prod,"(":ast.make_arrayItem,
+                        "*":ast.make_prod,"(":ast.make_array_item,
                         "mod":ast.make_mod,"..":ast.make_interval})
 
 def load_nary_expression(node, symast):
@@ -936,7 +936,7 @@ def get_inv_type(xmlid, xmlinv):
     if (function.get("operator")=="-->"):
         domxml = function[1] 
         ranxml = function[2]
-        res = ast.make_arrayType(domxml,ranxml)
+        res = ast.make_array_type(domxml,ranxml)
     assert res != None
     return res   
   
@@ -960,7 +960,7 @@ def load_type(xmlid, symast):
 def load_derivedTypes(node):
     assert node != None 
     if (node.get("operator") == "-->") :
-        return  ast.make_arrayType(node[0], node[1])
+        return  ast.make_array_type(node[0], node[1])
     else :
         return
     
