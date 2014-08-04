@@ -1,0 +1,8 @@
+;; -*- mode: asm -*-
+declare void @Division$init$()
+declare void @Division$div(i32, i32, i32*, i32*)
+define void @$init$() {
+entry:
+  call void @Division$init$(%Division$ref$ @$Division)
+  ret void
+}

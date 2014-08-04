@@ -1,0 +1,27 @@
+;; -*- mode: asm -*-
+;;   file generated with b2llvm
+;;   B project settings: project.xml
+;;   B module: Prime
+;;   B project directory: bxml
+;;   code generation mode: project
+;;   output file: init-Prime.llvm
+;;   Preamble
+;;   
+;;   This file instantiates B machine "Prime", and all its components,
+;;   and a function to initialise this instantiation.
+;;   
+;;1 These are the types encoding the state of each module,
+;;2 and the corresponding pointer types.
+;;     Module Prime is stateless and has no associated encoding type.
+;;3 Variables representing instances of components forming "Prime".
+;;4 The declaration of the function implementing initialisation is:
+declare void @Prime$init$()
+;;5 The declaration of the function implementing operation "IsPrime" is:
+declare void @Prime$IsPrime(i32, i1*)
+;;6 Definition of the function to initialise instance "@$Prime" of "Prime".
+define void @$init$() {
+entry:
+;;6.1 Call to initialisation function of "Prime".
+  call void @Prime$init$(%Prime$ref$ @$Prime)
+  ret void
+}

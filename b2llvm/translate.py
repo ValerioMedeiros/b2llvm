@@ -20,6 +20,7 @@ import b2llvm.printer as printer
 from b2llvm.strutils import commas, nconc, SP, NL, TB, TB2
 from b2llvm.bproject import BProject
 from b2llvm.opcode import *
+from b2llvm.c_translate import generate_header_skeleton 
 
 #
 # Main entry point for this module
@@ -51,6 +52,7 @@ def translate_bxml(bmodule, outfile, buf, mode='comp', dir='bxml', settings='pro
     buf.trace.outu("output file: "+outfile)
     if mode == 'comp':
         translate_mode_comp(buf, ast, emit_printer)
+        generate_header_skeleton(ast,bmodule)
     else:
         translate_mode_proj(buf, ast, emit_printer)
     llvm = open(outfile, 'w')
@@ -361,7 +363,7 @@ def section_implementation(buf, m, emit_printer):
         i = implementation(m)
         x_init(buf, m, i)
         for op in i["operations"]:
-            x_operation(buf, op)
+            x_operation(buf, m, op)
         if emit_printer:
             x_printer(buf, m, i)
 
@@ -383,17 +385,17 @@ def bit_width(n):
 #
 def x_type(t):
     """Returns the type for declaration."""
-    check_kind(t, {"Integer", "Bool", "Enumeration", "arrayType"})
+    check_kind(t, {"Integer", "Bool", "Enumeration", "ArrayType"})
     if (t == ast.INTEGER):
         return "i32" 
     if (t == ast.BOOL):
         return "i1"
     if (t["kind"] == "Enumeration"):
         return "i"+str(bit_width(len(t["elements"])))
-    if (t.get("kind")== "arrayType"):
-        return x_arrayType(t)
+    if (t.get("kind")== "ArrayType"):
+        return x_array_type(t)
 
-def x_arrayType(t):
+def x_array_type(t):
     """Returns the type for declaration of Array."""
     if (True) :
         ranType = "i32" #TODO: needs support new types of ran
@@ -434,7 +436,9 @@ def x_init(buf, m, i):
             lexicon[q] = "%arg"+str(count)+"$"
             count += 1
     # 1.2 generate parameter type, name list
-    arg_list = [ tm+SP+"%self$" ]
+    arg_list = []
+    if is_stateful(m) : 
+                arg_list = [ tm+SP+"%self$" ]
     for q in comp_indirect(m):
         if is_stateful(q.mach):
             arg_list.append(state_r_name(q.mach)+SP+lexicon[q])
@@ -560,7 +564,7 @@ def x_printer(buf, m, i):
 
 ### TRANSLATION OF OPERATIONS
 
-def x_operation(buf, n):
+def x_operation(buf, mod, n):
     '''
     Code generation for B operations.
 
@@ -572,7 +576,10 @@ def x_operation(buf, n):
     check_kind(n, {"Oper"})
     names.reset()
     buf.trace.out("The LLVM function implementing B operation \""+n["id"]+"\" in \""+n["root"]["id"]+"\" follows.")
-    args = commas([state_r_name(n["root"])+SP+"%self$"]+
+    arg1 = []
+    if is_stateful(mod) : 
+                arg1 = [state_r_name(n["root"])+SP+"%self$"]
+    args = commas( arg1+
                   [x_type(i["type"])+SP+"%"+i["id"] for i in n["inp"]]+
                   [x_type(o["type"])+"*"+SP+"%"+o["id"] for o in n["out"]])
     buf.code(FNDEF, op_name(n), args)
@@ -714,7 +721,7 @@ def x_inst_label(buf, n, lbl):
         print("error: instruction type unknown")
 
 def x_inst(buf, n):
-    check_kind(n, {"Beq", "Call", "VarD"})
+    check_kind(n, {"Beq", "Call", "VarD","Skip"})
     if n["kind"] == "Beq":
         x_beq(buf, n)
     elif n["kind"] == "Call":
@@ -894,9 +901,10 @@ def x_while(buf, n, lbl):
     lbl1 = names.new_label()
     buf.code(GOTO, lbl1)
     buf.code(LABEL, lbl1)
-    v = x_pred(buf, n["cond"])
     lbl2 = names.new_label()
-    buf.code(CGOTO, v, lbl2, lbl)
+        #v = x_pred(buf, n["cond"])
+    x_formula(buf,n["cond"],lbl2, lbl) 
+        #buf.code(CGOTO, v, lbl2, lbl)
     buf.trace.out("Execute loop body \""+ellipse(printer.subst_l(0, n["body"]))+"\".")
     buf.code(LABEL, lbl2)
     x_inst_list_label(buf, n["body"], lbl1)
@@ -939,32 +947,11 @@ def x_lvalue(buf, n):
       Currently limited to simple identifiers.
     '''
     global TB, NL
-    check_kind(n, {"Vari","arrayItem"}) 
+    check_kind(n, {"Vari","ArrayItem"}) 
     buf.trace.out("Evaluate address for \""+printer.term(n)+"\".")
     t = x_type(n["type"]) + "*"
-    if n["kind"] == "arrayItem": 
-        buf.trace.tab()
-        v1,t1 = x_expression(buf, n["base"])
-        buf.trace.out("Variable array (base) \""+n["base"]["id"]+"\" is stored at position "+v1+" of \"%self$\". (arrayItem)")
-        buf.trace.untab()
-        
-        #TODO: Add the index to be loaded
-        #TODO: Create the function LRExp to getting a sequence of selected elements.
-        #commas([ term(x) for x in n["lhs"]])
-        
-        buf.trace.tab() 
-        #for elem in n["index"]:
-        vi,ti = x_expression(buf, n["index"])
-        v = names.new_local()
-        buf.code(LOADI,v,t1+"*",v1,vi)
-        t  = "i32"
-        buf.trace.out("Variable array (index) \""+printer.term(n["index"])+"\" is stored at position "+vi+" of \"%self$\". (arrayItem)")
-        buf.trace.untab()
-        
-        #TODO: Adjust the size o vector to size=(b-a+1)
-        #TODO: Add suport to interval position(p) = (p-a)
-        return (v, t)  
-
+    if n["kind"] == "ArrayItem": 
+        return x_arrayitem(buf, n)
     elif n["scope"] == "Impl":
         pos=state_position(n)
         v = names.new_local()
@@ -982,6 +969,7 @@ def x_lvalue(buf, n):
     else:
         print("error: unknown scope for variable " + v["id"])
         return ("UNKNOWN", "UNKNOWN")
+
 
 ### TRANSLATION OF CALL INSTRUCTIONS
 
@@ -1167,7 +1155,10 @@ def x_not(buf, n, lbl1, lbl2):
 def x_pred(buf, n):
     if n["kind"] == "Comp":
         return x_comp(buf, n)
+    #if n["kind"] == "Form":
+    #    return x_formula(buf, n, lbl1, lbl2) #comp(buf, n)
     else:
+        print("error: predicate " + n["kind"] + " not translated")
         return ""
 
 ### TRANSLATION OF EXPRESSIONS ###
@@ -1184,7 +1175,7 @@ def x_expression(buf, n):
       of the expression, and the LLVM type of this temporary variable.
     '''
     check_kind(n, {"IntegerLit", "BooleanLit", "Enumerated", 
-                   "Vari", "Term", "Cons"})
+                   "Vari", "Term", "Cons","ArrayItem"})
     buf.trace.out("Evaluate expression \""+ellipse(printer.term(n))+"\".")
     buf.trace.tab()
     if n["kind"] == "IntegerLit":
@@ -1199,7 +1190,15 @@ def x_expression(buf, n):
         res = x_term(buf, n)
     elif n["kind"] == "Cons":
         res = x_expression(buf, n["value"])
+    elif n["kind"] == "ArrayItem": 
+        p,_ = x_arrayitem(buf, n)
+        v1 = names.new_local()
+        buf.code(LOADD, v1, _ , p)
+        res = (v1,_)
     else:
+        print("error: unknown expression kind")
+        buf.code("<error inserted by b2llvm>")
+        assert False, "error: unknown expression kind"
         res = ("","")
     buf.trace.untab()
     buf.trace.outu("The evaluation of \""+ellipse(printer.term(n))+"\" is \""+res[0]+"\".")
@@ -1249,6 +1248,40 @@ def x_enumerated(buf, n):
     buf.trace.out("An enumerated value is represented as an integer literal.")
     t = n["type"]
     return (str(t["elements"].index(n)), x_type(t))
+
+def x_arrayitem(buf, n):
+    '''
+    Generates LLVM code to evaluate an item from array.
+
+    Input:
+      - buf: a CodeBuffer object where the generated code is stored
+      - n: an AST node representing a B enumerated value.
+    Output:
+      A pair containing a string for the temporal value, and a string
+      for the type corresponding to an array item.
+    '''
+    check_kind(n, {"ArrayItem"}) 
+    buf.trace.tab()
+    v1,t1 = x_expression(buf, n["base"])
+    buf.trace.out("Variable array (base) \""+n["base"]["id"]+"\" is stored at position "+v1+" of \"%self$\". (ArrayItem)")
+    buf.trace.untab()
+    
+    #TODO: Add the indexes to be loaded
+    #TODO: Create the function LRExp to getting a sequence of selected elements.
+    #commas([ term(x) for x in n["lhs"]])
+    
+    buf.trace.tab() 
+    #for elem in n["indexes"]:
+    vi,ti = x_expression(buf, n["indexes"])
+    v = names.new_local()
+    buf.code(LOADI,v,t1+"*",v1,vi) #GETPT
+    t  = "i32"
+    buf.trace.out("Variable array (indexes) \""+printer.term(n["indexes"])+"\" is stored at position "+vi+" of \"%self$\". (ArrayItem)")
+    buf.trace.untab()
+    
+    #TODO: Adjust the size o vector to size=(b-a+1)
+    #TODO: Add suport to interval position(p) = (p-a)
+    return (v, t)  
 
 def x_name(buf, n):
     '''

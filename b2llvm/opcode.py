@@ -29,3 +29,11 @@ SWEND = _TB + "]" + _NL
 SWEXP = _TB + "switch {0} {1}, label %{2} [" + _NL
 SWVAL = 2*_TB + "{0} {1}, label %{3}" + _NL
 TYPE = "{0} = type {1}" + _NL
+
+# C opcodes 
+
+EXTFNDEC = "extern void {0}({1});" + _NL
+INCLUDE = "#include {0}" + _NL
+IFNDEF = "#ifndef _{0}_h"+ _NL + "#define _{0}_h"+_NL+_NL
+ENDIFNDEF = "#endif /* _{0}_h */"+_NL
+TYPEDEFR = "typedef {0} {1};" + _NL

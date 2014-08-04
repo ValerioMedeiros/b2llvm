@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<test-suite>
+    <machine-name>wd</machine-name>
+    <machine-invariant>
+        <invariant-clause>ticker : INT</invariant-clause>
+        <invariant-clause>ticker &gt;= 0</invariant-clause>
+        <invariant-clause>timeout &gt;= ticker</invariant-clause>
+    </machine-invariant>
+    <operation-under-test>expired</operation-under-test>
+    <partition-strategy>Boundary Values</partition-strategy>
+    <combinatorial-criteria>All-Combinations</combinatorial-criteria>
+    <oracle-strategy>
+        <state-variables>true</state-variables>
+        <return-variables>true</return-variables>
+        <invariant-ok>true</invariant-ok>
+    </oracle-strategy>
+    <test-cases>
+        <test-case>
+            <id>1</id>
+            <formula>not(ticker = 0) &amp; timeout &gt;= ticker &amp; ticker &gt;= 0 &amp; ticker : INT</formula>
+            <state-variables>
+                <variable>
+                    <identifier>ticker</identifier>
+                    <values>
+                        <value>1</value>
+                    </values>
+                </variable>
+            </state-variables>
+            <operation-parameters/>
+            <return-variables>
+                <variable>
+                    <identifier>res</identifier>
+                </variable>
+            </return-variables>
+        </test-case>
+        <test-case>
+            <id>2</id>
+            <formula>ticker = 0 &amp; timeout &gt;= ticker &amp; ticker &gt;= 0 &amp; ticker : INT</formula>
+            <state-variables>
+                <variable>
+                    <identifier>ticker</identifier>
+                    <values>
+                        <value>0</value>
+                    </values>
+                </variable>
+            </state-variables>
+            <operation-parameters/>
+            <return-variables>
+                <variable>
+                    <identifier>res</identifier>
+                </variable>
+            </return-variables>
+        </test-case>
+    </test-cases>
+</test-suite>

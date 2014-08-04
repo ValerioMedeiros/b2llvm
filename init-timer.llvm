@@ -1,0 +1,61 @@
+;; -*- mode: asm -*-
+;;   file generated with b2llvm
+;;   B project settings: project.xml
+;;   B module: timer
+;;   B project directory: bxml
+;;   code generation mode: project
+;;   output file: init-timer.llvm
+;;   Preamble
+;;   
+;;   This file instantiates B machine "timer", and all its components,
+;;   and a function to initialise this instantiation.
+;;   
+;;1 These are the types encoding the state of each module,
+;;2 and the corresponding pointer types.
+;;2.1 The type encoding the state of "counter" is an aggregate and is defined as
+;;     (using implementation "counter_i"):
+;;2.1.1 Position "0" represents "value".
+;;2.1.2 Position "1" represents "error".
+%counter$state$ = type {i32, i1}
+;;2.2 The type for references to state encodings of "counter" is:
+%counter$ref$ = type %counter$state$*
+;;2.3 The type encoding the state of "timer" is an aggregate and is defined as
+;;     (using implementation "timer_i"):
+;;2.3.1 Position "0" represents "hh.counter".
+;;2.3.2 Position "1" represents "mm.counter".
+;;2.3.3 Position "2" represents "ss.counter".
+;;2.3.4 Position "3" represents "is_running".
+;;2.3.5 Position "4" represents "overflow".
+%timer$state$ = type {%counter$ref$, %counter$ref$, %counter$ref$, i1, i1}
+;;2.4 The type for references to state encodings of "timer" is:
+%timer$ref$ = type %timer$state$*
+;;3 Variables representing instances of components forming "timer".
+;;3.1 Variable representing to timer
+@$timer = common global %timer$state$ zeroinitializer
+;;3.2 Variable representing to hh.counter
+@hh$counter = common global %counter$state$ zeroinitializer
+;;3.3 Variable representing to mm.counter
+@mm$counter = common global %counter$state$ zeroinitializer
+;;3.4 Variable representing to ss.counter
+@ss$counter = common global %counter$state$ zeroinitializer
+;;4 The declaration of the function implementing initialisation is:
+declare void @timer$init$(%timer$ref$, %counter$ref$, %counter$ref$, %counter$ref$)
+;;5 The declaration of the function implementing operation "tick" is:
+declare void @timer$tick(%timer$ref$)
+;;6 The declaration of the function implementing operation "reset" is:
+declare void @timer$reset(%timer$ref$)
+;;7 The declaration of the function implementing operation "stop" is:
+declare void @timer$stop(%timer$ref$)
+;;8 The declaration of the function implementing operation "start" is:
+declare void @timer$start(%timer$ref$)
+;;9 The declaration of the function implementing operation "elapsed" is:
+declare void @timer$elapsed(%timer$ref$, i32*, i32*, i32*)
+;;10 The declaration of the function implementing operation "has_overflown" is:
+declare void @timer$has_overflown(%timer$ref$, i1*)
+;;11 Definition of the function to initialise instance "@$timer" of "timer".
+define void @$init$() {
+entry:
+;;11.1 Call to initialisation function of "timer".
+  call void @timer$init$(%timer$ref$ @$timer, %counter$ref$ @hh$counter, %counter$ref$ @mm$counter, %counter$ref$ @ss$counter)
+  ret void
+}

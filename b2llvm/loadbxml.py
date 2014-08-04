@@ -251,6 +251,7 @@ def load_implementation(dirname, project, loaded, module):
     symast = SymbolTable()
     symast.add("BOOL", ast.BOOL)
     symast.add("INTEGER", ast.INTEGER)
+    #symast.add("ARRAY", ast.ARRAY)
     symimp = SymbolTable()
     _LOADING.add(module)
     tree = ET.parse(path(dirname, module))
@@ -462,7 +463,7 @@ def load_sub(elem, symast, symimp):
         astnode = load_assert_substitution(elem)
     elif elem.tag == "If_Substitution":
         astnode = load_if_substitution(elem, symast, symimp)
-    elif elem.tag == "Affectation_Substitution":
+    elif elem.tag == "Assignement_Substitution":
         astnode = load_becomes_eq(elem, symast)
     elif elem.tag == "Case_Substitution":
         astnode = load_case_substitution(elem, symast, symimp)
@@ -510,9 +511,9 @@ def load_if_substitution(elem, symast, symimp):
     """Load an XML element for a IF substitution to an AST node."""
     global _LOG
     assert elem.tag == "If_Substitution"
-    if elem.get("elseif") != None:
-        _LOG.error("unrecognized elseif attribute in IF substitution")
-        return ast.make_skip()
+    #if elem.get("elseif") != None:
+    #    _LOG.error("unrecognized elseif attribute in IF substitution")
+    #    return ast.make_skip()
     xmlcond = elem.find("./Condition")
     xmlthen = elem.find("./Then")
     xmlelse = elem.find("./Else")
@@ -529,7 +530,7 @@ def load_if_substitution(elem, symast, symimp):
 def load_becomes_eq(elem, symast):
     """Load an XML element for a becomes equal substitution to an AST node."""
     global _LOG
-    assert elem.tag == "Affectation_Substitution"
+    assert elem.tag == "Assignement_Substitution"
     lhs = elem.findall("./Variables/*")
     rhs = elem.findall("./Values/*")
     if len(lhs) != 1 or len(rhs) != 1:
@@ -672,9 +673,9 @@ def load_exp(node, symast):
         pynode = load_nary_expression(node, symast)
     elif node.tag == "Unary_Expression":
         pynode = load_unary_expression(node, symast)
-    elif node.tag == "Boolean_Litteral":
+    elif node.tag == "Boolean_Literal":
         pynode = load_boolean_literal(node)
-    elif node.tag == "Integer_Litteral":
+    elif node.tag == "Integer_Literal":
         pynode = load_integer_literal(node)
     elif node.tag == "Identifier":
         pynode = load_identifier(node, symast)
@@ -696,7 +697,7 @@ def load_identifier(node, symast):
 def load_boolean_literal(node):
     """Load an XML element for an Boolean literal to an AST node."""
     global _LOG
-    assert node.tag == "Boolean_Litteral"
+    assert node.tag == "Boolean_Literal"
     if value(node) == "TRUE":
         return ast.TRUE
     elif value(node) == "FALSE":
@@ -706,7 +707,7 @@ def load_boolean_literal(node):
 
 def load_integer_literal(node):
     """Load an XML element for an integer literal to an AST node."""
-    assert node.tag == "Integer_Litteral"
+    assert node.tag == "Integer_Literal"
     return ast.make_intlit(int(value(node)))
 
 def setup_expression(node, handlers):
@@ -757,7 +758,8 @@ def load_binary_expression(node, symast):
     """Load an XML element for a binary expression to an AST node."""
     return load_binary(node, symast, "Binary_Expression",
                        {"+":ast.make_sum, "-":ast.make_diff,
-                        "*":ast.make_prod,"(":ast.make_arrayItem})
+                        "*":ast.make_prod,"(":ast.make_array_item,
+                        "mod":ast.make_mod,"..":ast.make_interval})
 
 def load_nary_expression(node, symast):
     """Load an XML element for a nary expression to an AST node."""
@@ -932,9 +934,9 @@ def get_inv_type(xmlid, xmlinv):
     function = elem[1]
     
     if (function.get("operator")=="-->"):
-        domxml = function[0] 
-        ranxml = function[1]
-        res = ast.make_arrayType(domxml,ranxml)
+        domxml = function[1] 
+        ranxml = function[2]
+        res = ast.make_array_type(domxml,ranxml)
     assert res != None
     return res   
   
@@ -949,7 +951,19 @@ def load_type(xmlid, symast):
     - Assumes that the XML attribute TypeInfo exists and
     is an identifier with the name of the type.
     '''
-    return symast.get(value(xmlid.find("./Attributes/TypeInfo/Identifier")))
+    node = xmlid.find("./Attributes/TypeInfo/Identifier")
+    if node != None : 
+        return symast.get(value(node))
+    else : 
+        return None
+
+def load_derivedTypes(node):
+    assert node != None 
+    if (node.get("operator") == "-->") :
+        return  ast.make_array_type(node[0], node[1])
+    else :
+        return
+    
 
 def discard_attributes(exp):
     '''

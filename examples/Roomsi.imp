@@ -1,0 +1,35 @@
+IMPLEMENTATION    Roomsi
+
+REFINES           Rooms
+
+//PROPERTIES        ROOM = 1..124 & 
+//    small <: ROOM & 
+//    !(xx).( xx : small => xx mod 2 =1 ) 
+    //small =  {nn | nn : 1..124 & nn mod 2 = 1} & defaultprice = 70
+
+VALUES
+    ROOM = 1..124 ;
+    price = ROOM * {10};
+    small = 1..123; // It is simplified type
+    defaultprice = 70
+
+OPERATIONS
+
+ss <-- sizequery(rr) = 
+  VAR tmp IN
+      tmp := rr mod 2;  
+     IF tmp = 1
+     THEN ss := little
+     ELSE ss := big
+     END
+  END;
+
+pp <-- pricequery(rr) =
+  VAR tmp IN
+      tmp:= rr mod 2;
+     IF tmp  = 1
+     THEN pp := defaultprice
+     ELSE pp := defaultprice * 3 / 2
+     END
+  END
+END

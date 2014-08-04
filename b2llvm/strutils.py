@@ -14,6 +14,15 @@ def commas(string_list):
     '''
     return ", ".join(string_list)
 
+def semicolon(string_list):
+    '''
+    Returns a comma-separated string of the given strings.
+    '''
+    if (string_list.__len__()>1):
+        return  "; ".join(string_list)+";"
+    else:
+        return  "; ".join(string_list)
+
 def nconc(string_list):
     '''
     Concateantes the given strings.

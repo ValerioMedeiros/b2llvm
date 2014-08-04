@@ -94,11 +94,10 @@ ZERO = make_intlit(0)
 ONE = make_intlit(1)
 MAXINT = make_intlit(2147483647)
 
-#VGM - TODO: move this functions ?
 def make_sset(node):
     """Creates an AST node for a B simple set."""
     if (node.get("operator") == ".."):
-        res = make_interval(node[0].get("value"),node[1].get("value"))
+        res = make_interval(node[1].get("value"),node[2].get("value"))
     elif (node.get("operator") == "*"):
         res = become_list(make_sset(node[0]))
         res += become_list(make_sset(node[1]))
@@ -115,19 +114,19 @@ def make_interval(start,end):
     """Creates an AST node for a B simple interval set."""
     return { "kind" : "set_interval" , "start" : start, "end" : end }
 
-def make_arrayType(domxml, ranxml):
-    """Creates an AST node for a B arrayType."""
+def make_array_type(domxml, ranxml):
+    """Creates an AST node for a B ArrayType."""
     #TODO: create support to INT type and NAT
     #TODO: support a list of indices in domain
     dom = become_list(make_sset(domxml))
     ran = make_sset(ranxml)
     assert dom != None and ran != None
-    return { "kind" : "arrayType", "dom": dom, "ran" : ran}
+    return { "kind" : "ArrayType", "dom": dom, "ran" : ran}
 
-def make_arrayItem(base,index):
-    """Creates an AST node for a B arrayType."""
-    return { "base": base, "index": index, 
-            "kind":"arrayItem", "type": INTEGER} #TODO: change it support other typer different of INTEGER 
+def make_array_item(base,indexes):
+    """Creates an AST node for a B ArrayItem."""
+    return { "base": base, "indexes": indexes, 
+            "kind":"ArrayItem", "type": INTEGER} #TODO: change it support other typer different of INTEGER 
 
 ### COMPOSED EXPRESSIONS ###
 
@@ -154,6 +153,10 @@ def make_diff(term1, term2):
 def make_prod(term1, term2):
     """Creates an AST node for a B product expression."""
     return make_term("*", [term1, term2])
+
+def make_mod(term1, term2):
+    """Creates an AST node for a B mod expression."""
+    return make_term("mod", [term1, term2])
 
 def make_comp(operator, arg1, arg2):
     """Creates an AST node for a B comparison."""

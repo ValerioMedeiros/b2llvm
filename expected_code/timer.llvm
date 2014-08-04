@@ -1,0 +1,164 @@
+;; -*- mode: asm -*-
+%counter$state$ = type opaque
+%counter$ref$ = type %counter$state$*
+declare void @counter$init$(%counter$ref$)
+declare void @counter$zero(%counter$ref$)
+declare void @counter$inc(%counter$ref$)
+declare void @counter$get(%counter$ref$, i32*)
+%timer$state$ = type {%counter$ref$, %counter$ref$, %counter$ref$, i1, i1}
+%timer$ref$ = type %timer$state$*
+define void @timer$init$(%timer$ref$ %self$, %counter$ref$ %arg0$, %counter$ref$ %arg1$, %counter$ref$ %arg2$) {
+entry:
+  %0 = getelementptr %timer$ref$ %self$, i32 0, i32 0
+  store %counter$ref$ %arg0$, %counter$ref$* %0
+  %1 = getelementptr %timer$ref$ %self$, i32 0, i32 1
+  store %counter$ref$ %arg1$, %counter$ref$* %1
+  %2 = getelementptr %timer$ref$ %self$, i32 0, i32 2
+  store %counter$ref$ %arg2$, %counter$ref$* %2
+  call void @counter$init$(%counter$ref$ %arg0$)
+  call void @counter$init$(%counter$ref$ %arg1$)
+  call void @counter$init$(%counter$ref$ %arg2$)
+  %3 = getelementptr %timer$ref$ %self$, i32 0, i32 3
+  store i1 0, i1* %3
+  %4 = getelementptr %timer$ref$ %self$, i32 0, i32 4
+  store i1 0, i1* %4
+  br label %exit
+exit:
+  ret void
+}
+define void @timer$tick(%timer$ref$ %self$) {
+entry:
+  %hours = alloca i32
+  %minutes = alloca i32
+  %seconds = alloca i32
+  %0 = getelementptr %timer$ref$ %self$, i32 0, i32 3
+  %1 = load i1* %0
+  %2 = icmp eq i1 %1, 1
+  br i1 %2, label %label2, label %exit
+label2:
+  %3 = getelementptr %timer$ref$ %self$, i32 0, i32 4
+  %4 = load i1* %3
+  %5 = icmp eq i1 %4, 0
+  br i1 %5, label %label0, label %exit
+label0:
+  %6 = getelementptr %timer$ref$ %self$, i32 0, i32 0
+  %7 = load %counter$ref$* %6
+  call void @counter$get(%counter$ref$ %7, i32* %hours)
+  %8 = getelementptr %timer$ref$ %self$, i32 0, i32 1
+  %9 = load %counter$ref$* %8
+  call void @counter$get(%counter$ref$ %9, i32* %minutes)
+  %10 = getelementptr %timer$ref$ %self$, i32 0, i32 2
+  %11 = load %counter$ref$* %10
+  call void @counter$get(%counter$ref$ %11, i32* %seconds)
+  %12 = load i32* %seconds
+  %13 = icmp slt i32 %12, 59
+  br i1 %13, label %label4, label %label5
+label4:
+  %14 = getelementptr %timer$ref$ %self$, i32 0, i32 2
+  %15 = load %counter$ref$* %14
+  call void @counter$inc(%counter$ref$ %15)
+  br label %label3
+label5:
+  %16 = getelementptr %timer$ref$ %self$, i32 0, i32 2
+  %17 = load %counter$ref$* %16
+  call void @counter$zero(%counter$ref$ %17)
+  %18 = load i32* %minutes
+  %19 = icmp slt i32 %18, 59
+  br i1 %19, label %label7, label %label8
+label7:
+  %20 = getelementptr %timer$ref$ %self$, i32 0, i32 1
+  %21 = load %counter$ref$* %20
+  call void @counter$inc(%counter$ref$ %21)
+  br label %label6
+label8:
+  %22 = getelementptr %timer$ref$ %self$, i32 0, i32 1
+  %23 = load %counter$ref$* %22
+  call void @counter$zero(%counter$ref$ %23)
+  %24 = getelementptr %timer$ref$ %self$, i32 0, i32 0
+  %25 = load %counter$ref$* %24
+  call void @counter$inc(%counter$ref$ %25)
+  br label %label6
+label6:
+  br label %label3
+label3:
+  br label %exit
+exit:
+  ret void
+}
+define void @timer$reset(%timer$ref$ %self$) {
+entry:
+  %0 = getelementptr %timer$ref$ %self$, i32 0, i32 0
+  %1 = load %counter$ref$* %0
+  call void @counter$zero(%counter$ref$ %1)
+  %2 = getelementptr %timer$ref$ %self$, i32 0, i32 1
+  %3 = load %counter$ref$* %2
+  call void @counter$zero(%counter$ref$ %3)
+  %4 = getelementptr %timer$ref$ %self$, i32 0, i32 2
+  %5 = load %counter$ref$* %4
+  call void @counter$zero(%counter$ref$ %5)
+  %6 = getelementptr %timer$ref$ %self$, i32 0, i32 4
+  store i1 0, i1* %6
+  br label %exit
+exit:
+  ret void
+}
+define void @timer$stop(%timer$ref$ %self$) {
+entry:
+  %0 = getelementptr %timer$ref$ %self$, i32 0, i32 3
+  %1 = load i1* %0
+  %2 = icmp eq i1 %1, 1
+  br i1 %2, label %label0, label %exit
+label0:
+  %3 = getelementptr %timer$ref$ %self$, i32 0, i32 3
+  store i1 0, i1* %3
+  br label %exit
+exit:
+  ret void
+}
+define void @timer$start(%timer$ref$ %self$) {
+entry:
+  %0 = getelementptr %timer$ref$ %self$, i32 0, i32 3
+  %1 = load i1* %0
+  %2 = icmp eq i1 %1, 0
+  br i1 %2, label %label0, label %exit
+label0:
+  %3 = getelementptr %timer$ref$ %self$, i32 0, i32 3
+  store i1 1, i1* %3
+  br label %exit
+exit:
+  ret void
+}
+define void @timer$elapsed(%timer$ref$ %self$, i32* %hours, i32* %minutes, i32* %seconds) {
+entry:
+  %0 = getelementptr %timer$ref$ %self$, i32 0, i32 4
+  %1 = load i1* %0
+  %2 = icmp eq i1 %1, 1
+  br i1 %2, label %label0, label %label1
+label0:
+  store i32 0, i32* %hours
+  store i32 0, i32* %minutes
+  store i32 0, i32* %seconds
+  br label %exit
+label1:
+  %3 = getelementptr %timer$ref$ %self$, i32 0, i32 0
+  %4 = load %counter$ref$* %3
+  call void @counter$get(%counter$ref$ %4, i32* %hours)
+  %5 = getelementptr %timer$ref$ %self$, i32 0, i32 1
+  %6 = load %counter$ref$* %5
+  call void @counter$get(%counter$ref$ %6, i32* %minutes)
+  %7 = getelementptr %timer$ref$ %self$, i32 0, i32 2
+  %8 = load %counter$ref$* %7
+  call void @counter$get(%counter$ref$ %8, i32* %seconds)
+  br label %exit
+exit:
+  ret void
+}
+define void @timer$has_overflown(%timer$ref$ %self$, i1* %answer) {
+entry:
+  %0 = getelementptr %timer$ref$ %self$, i32 0, i32 4
+  %1 = load i1* %0
+  store i1 %1, i1* %answer
+  br label %exit
+exit:
+  ret void
+}

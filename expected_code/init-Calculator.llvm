@@ -1,0 +1,11 @@
+;; -*- mode: asm -*-
+declare void @Calculator$init$()
+declare void @Calculator$add(i32, i32, i32*)
+declare void @Calculator$mult(i32, i32, i32*)
+declare void @Calculator$pow(i32, i32, i32*)
+declare void @Calculator$sub(i32, i32, i32*)
+define void @$init$() {
+entry:
+  call void @Calculator$init$(%Calculator$ref$ @$Calculator)
+  ret void
+}

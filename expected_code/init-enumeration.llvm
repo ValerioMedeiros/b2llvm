@@ -1,0 +1,12 @@
+;; -*- mode: asm -*-
+%enumeration$state$ = type {i1}
+%enumeration$ref$ = type %enumeration$state$*
+@$enumeration = common global %enumeration$state$ zeroinitializer
+declare void @enumeration$init$(%enumeration$ref$)
+declare void @enumeration$tick(%enumeration$ref$)
+declare void @enumeration$read(%enumeration$ref$, i1*)
+define void @$init$() {
+entry:
+  call void @enumeration$init$(%enumeration$ref$ @$enumeration)
+  ret void
+}

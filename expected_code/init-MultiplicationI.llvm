@@ -1,0 +1,14 @@
+;; -*- mode: asm -*-
+%Body$state$ = type {i32}
+%Body$ref$ = type %Body$state$*
+%Multiplication$state$ = type {%Body$ref$}
+%Multiplication$ref$ = type %Multiplication$state$*
+@$Multiplication = common global %Multiplication$state$ zeroinitializer
+@$Body = common global %Body$state$ zeroinitializer
+declare void @Multiplication$init$(%Multiplication$ref$, %Body$ref$)
+declare void @Multiplication$mult(%Multiplication$ref$, i32)
+define void @$init$() {
+entry:
+  call void @Multiplication$init$(%Multiplication$ref$ @$Multiplication, %Body$ref$ @$Body)
+  ret void
+}

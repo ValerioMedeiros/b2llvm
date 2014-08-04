@@ -1,0 +1,15 @@
+IMPLEMENTATION
+   PrimeImp
+REFINES Prime
+OPERATIONS
+  rr <-- IsPrime(xx) =  VAR yy , res IN
+       yy := 2;
+       res := xx mod yy;
+       WHILE yy<xx &  res /= 0 DO
+         yy := yy+1
+        INVARIANT yy<=xx & yy:NAT & !zz.(zz:NAT & zz>2 & zz<yy => xx mod zz /= 0)
+        VARIANT xx-yy
+       END;
+       IF yy=xx THEN rr:= TRUE ELSE rr:= FALSE END
+   END
+END

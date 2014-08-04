@@ -1,0 +1,8 @@
+;; -*- mode: asm -*-
+declare void @Prime$init$()
+declare void @Prime$IsPrime(i32, i1*)
+define void @$init$() {
+entry:
+  call void @Prime$init$(%Prime$ref$ @$Prime)
+  ret void
+}

@@ -38,12 +38,6 @@
 <Identifier value='INTEGER' />
 </Unary_Expression>
 </TypeInfo>
-<B0Type>
-<Binary_Expression operator='..'>
-<Identifier value='MININT' />
-<Identifier value='MAXINT' />
-</Binary_Expression>
-</B0Type>
 </Attributes>
 </Identifier>
 </Unary_Expression>
@@ -104,12 +98,6 @@
 <Identifier value='INTEGER' />
 </Unary_Expression>
 </TypeInfo>
-<B0Type>
-<Binary_Expression operator='..'>
-<Identifier value='MININT' />
-<Identifier value='MAXINT' />
-</Binary_Expression>
-</B0Type>
 </Attributes>
 </Identifier>
 </Expression_Comparison>
@@ -175,9 +163,6 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
 </Attributes>
 </Identifier>
 </Output_Parameters>
@@ -211,9 +196,6 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
 </Attributes>
 </Identifier>
 </Variables>
@@ -245,9 +227,6 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
 </Attributes>
 </Identifier>
 </Output_Parameters>
@@ -281,9 +260,6 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
 </Attributes>
 </Identifier>
 </Variables>

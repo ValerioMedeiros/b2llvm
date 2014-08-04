@@ -2,7 +2,7 @@
  * Author: valerio
  */
 MACHINE
-   Bubble
+   bubble
 VARIABLES
    vec,sort
 INVARIANT

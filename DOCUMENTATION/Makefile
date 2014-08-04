@@ -1,7 +1,7 @@
 
 NAME= specification
 
-all: $(NAME).pdf translation.pdf
+all: $(NAME).pdf 
 
 $(NAME).pdf:
 
@@ -15,7 +15,7 @@ $(NAME).pdf:
 %.pdf : %.ps
 	ps2pdf $< $@
 
-%.pdf : %.tex
+%.pdf : %.tex  derivedTypes.tex
 	pdflatex -shell-escape $<
 	pdflatex -shell-escape $<
 

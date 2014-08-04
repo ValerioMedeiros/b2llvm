@@ -1,0 +1,90 @@
+;; -*- mode: asm -*-
+%counter$state$ = type opaque
+%counter$ref$ = type %counter$state$*
+declare void @counter$init$(%counter$ref$)
+declare void @counter$zero(%counter$ref$)
+declare void @counter$inc(%counter$ref$)
+declare void @counter$get(%counter$ref$, i32*)
+%wd$state$ = type {%counter$ref$}
+%wd$ref$ = type %wd$state$*
+define void @wd$init$(%wd$ref$ %self$, %counter$ref$ %arg0$) {
+entry:
+  %count = alloca i32
+  %0 = getelementptr %wd$ref$ %self$, i32 0, i32 0
+  store %counter$ref$ %arg0$, %counter$ref$* %0
+  call void @counter$init$(%counter$ref$ %arg0$)
+  store i32 0, i32* %count
+  br label %label1
+label1:
+  %1 = load i32* %count
+  %2 = icmp slt i32 %1, 50
+  br i1 %2, label %label2, label %label0
+label2:
+  %3 = getelementptr %wd$ref$ %self$, i32 0, i32 0
+  %4 = load %counter$ref$* %3
+  call void @counter$inc(%counter$ref$ %4)
+  %5 = load i32* %count
+  %6 = add i32 %5, 1
+  store i32 %6, i32* %count
+  br label %label1
+label0:
+  br label %exit
+exit:
+  ret void
+}
+define void @wd$start(%wd$ref$ %self$) {
+entry:
+  %0 = getelementptr %wd$ref$ %self$, i32 0, i32 0
+  %1 = load %counter$ref$* %0
+  call void @counter$zero(%counter$ref$ %1)
+  br label %exit
+exit:
+  ret void
+}
+define void @wd$tick(%wd$ref$ %self$) {
+entry:
+  %elapsed = alloca i32
+  %diff = alloca i32
+  %0 = getelementptr %wd$ref$ %self$, i32 0, i32 0
+  %1 = load %counter$ref$* %0
+  call void @counter$get(%counter$ref$ %1, i32* %elapsed)
+  %2 = load i32* %elapsed
+  %3 = sub i32 50, %2
+  store i32 %3, i32* %diff
+  %4 = load i32* %diff
+  %5 = icmp sgt i32 %4, 0
+  br i1 %5, label %label1, label %label0
+label1:
+  %6 = getelementptr %wd$ref$ %self$, i32 0, i32 0
+  %7 = load %counter$ref$* %6
+  call void @counter$inc(%counter$ref$ %7)
+  br label %label0
+label0:
+  br label %exit
+exit:
+  ret void
+}
+define void @wd$expired(%wd$ref$ %self$, i1* %res) {
+entry:
+  %elapsed = alloca i32
+  %diff = alloca i32
+  %0 = getelementptr %wd$ref$ %self$, i32 0, i32 0
+  %1 = load %counter$ref$* %0
+  call void @counter$get(%counter$ref$ %1, i32* %elapsed)
+  %2 = load i32* %elapsed
+  %3 = sub i32 50, %2
+  store i32 %3, i32* %diff
+  %4 = load i32* %diff
+  %5 = icmp slt i32 %4, 0
+  br i1 %5, label %label1, label %label2
+label1:
+  store i1 1, i1* %res
+  br label %label0
+label2:
+  store i1 0, i1* %res
+  br label %label0
+label0:
+  br label %exit
+exit:
+  ret void
+}

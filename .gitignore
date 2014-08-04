@@ -18,3 +18,48 @@ translation.pdf
 .coverage
 
 coverage_html
+b2llvm/typecheck/COPYING
+b2llvm/typecheck/README.md
+b2llvm/typecheck/annotation/__init__.py
+b2llvm/typecheck/annotation/overload.py
+b2llvm/typecheck/annotation/typed.py
+b2llvm/typecheck/tests/__init__.py
+b2llvm/typecheck/tests/test_annontations.py
+b2llvm/typecheck/tests/test_overload.py
+beta_tests/Counter/BKP/AllTests.c
+beta_tests/Counter/BKP/AllTests.ll
+beta_tests/Counter/BKP/AllTests_modified.ll
+beta_tests/Counter/BKP/AllTests_modified.s
+beta_tests/Counter/BKP/CuTest.c
+beta_tests/Counter/BKP/CuTest.h
+beta_tests/Counter/BKP/CuTest.ll
+beta_tests/Counter/BKP/CuTest.s
+beta_tests/Counter/BKP/Exemplo_gerado/AllTests.c
+beta_tests/Counter/BKP/Exemplo_gerado/AllTests.ll
+beta_tests/Counter/BKP/Exemplo_gerado/AllTests.s
+beta_tests/Counter/BKP/Exemplo_gerado/CuTest.c
+beta_tests/Counter/BKP/Exemplo_gerado/CuTest.h
+beta_tests/Counter/BKP/Exemplo_gerado/CuTest.ll
+beta_tests/Counter/BKP/Exemplo_gerado/CuTest.s
+beta_tests/Counter/BKP/Exemplo_gerado/comp_exec.sh
+beta_tests/Counter/BKP/Exemplo_gerado/counter.h
+beta_tests/Counter/BKP/Exemplo_gerado/counter.llvm
+beta_tests/Counter/BKP/Exemplo_gerado/counter.llvm.s
+beta_tests/Counter/BKP/Exemplo_gerado/executable
+beta_tests/Counter/BKP/code_not_used/counter.h
+beta_tests/Counter/BKP/code_not_used/counter_i.c
+beta_tests/Counter/BKP/comp_exec.sh
+beta_tests/Counter/BKP/counter.h
+beta_tests/Counter/BKP/counter.llvm
+beta_tests/Counter/BKP/counter.llvm.s
+beta_tests/Counter/BKP/counter.llvm_OK
+beta_tests/Counter/BKP/executable
+beta_tests/Counter/BKP/init-counter.llvm
+beta_tests/Counter/Counter_using_CUTest 1.5/Exemplo_gerado/counter copy.h
+beta_tests/Counter/Counter_using_CUTest 1.5/code_not_used/counter.h
+beta_tests/Counter/Counter_using_CUTest 1.5/code_not_used/counter_i.c
+beta_tests/Counter/Counter_using_CUTest 1.5/counter.llvm_OK
+beta_tests/Counter/Counter_using_CUTest 1.5/AllTests.c
+beta_tests/Counter/Counter_using_CUTest 1.5/Exemplo_gerado/comp_exec.sh
+beta_tests/Counter/Counter_using_CUTest 1.5/Exemplo_gerado/counter.h
+beta_tests/Counter/Counter_using_CUTest 1.5/counter.h
