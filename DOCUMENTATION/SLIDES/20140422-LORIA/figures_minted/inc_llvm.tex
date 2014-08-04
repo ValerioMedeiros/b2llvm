@@ -1,0 +1,16 @@
+\documentclass[10pt,a4paper]{article}
+\include{codeFormat}
+
+\begin{document}
+
+\begin{minted}[frame=lines]{llvm}
+define void @inc(i32* %pi) {
+entry:
+  %0 = load i32* %pi
+  %1 = add i32 %0, 1
+  store i32 %1, i32* %pi
+  ret void
+}
+\end{minted}
+
+\end{document}

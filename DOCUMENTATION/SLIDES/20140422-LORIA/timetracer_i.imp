@@ -1,0 +1,32 @@
+/* Author: David */
+IMPLEMENTATION timetracer_i
+REFINES timetracer
+IMPORTS run.timer, stop.timer
+CONCRETE_VARIABLES started , idle
+INVARIANT started: BOOL & idle: BOOL
+INITIALISATION BEGIN started := FALSE; idle := TRUE END
+OPERATIONS
+    enable =
+    BEGIN
+        started := TRUE;
+        idle := TRUE;
+        run.reset;
+        stop.reset
+    END;
+    run = idle := FALSE;
+    stop = idle := TRUE;
+    disable = started := FALSE;
+    tick =
+    VAR hh, mm, ss, total IN
+    IF idle = TRUE
+        THEN
+            hh, mm, ss <-- stop.elapsed;
+            total := 3600*hh+60*mm+ss;
+            IF total < MAXINT THEN stop.tick END
+        ELSE
+            hh, mm, ss <-- run.elapsed;
+            total := 3600*hh+60*mm+ss;
+            IF total < MAXINT THEN run.tick END
+        END
+    END
+END

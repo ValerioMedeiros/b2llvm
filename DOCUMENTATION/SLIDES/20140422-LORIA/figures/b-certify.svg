@@ -1,0 +1,390 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="744.09448819"
+   height="1052.3622047"
+   id="svg2"
+   version="1.1"
+   inkscape:version="0.48.4 r9939"
+   sodipodi:docname="b-certify.pdf">
+  <defs
+     id="defs4">
+    <marker
+       inkscape:stockid="Arrow2Mend"
+       orient="auto"
+       refY="0.0"
+       refX="0.0"
+       id="Arrow2Mend"
+       style="overflow:visible;">
+      <path
+         id="path3878"
+         style="fill-rule:evenodd;stroke-width:0.62500000;stroke-linejoin:round;"
+         d="M 8.7185878,4.0337352 L -2.2072895,0.016013256 L 8.7185884,-4.0017078 C 6.9730900,-1.6296469 6.9831476,1.6157441 8.7185878,4.0337352 z "
+         transform="scale(0.6) rotate(180) translate(0,0)" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow2Lend"
+       orient="auto"
+       refY="0.0"
+       refX="0.0"
+       id="Arrow2Lend"
+       style="overflow:visible;">
+      <path
+         id="path3872"
+         style="fill-rule:evenodd;stroke-width:0.62500000;stroke-linejoin:round;"
+         d="M 8.7185878,4.0337352 L -2.2072895,0.016013256 L 8.7185884,-4.0017078 C 6.9730900,-1.6296469 6.9831476,1.6157441 8.7185878,4.0337352 z "
+         transform="scale(1.1) rotate(180) translate(1,0)" />
+    </marker>
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="1.979899"
+     inkscape:cx="189.13193"
+     inkscape:cy="742.23356"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     inkscape:window-width="1680"
+     inkscape:window-height="1026"
+     inkscape:window-x="0"
+     inkscape:window-y="24"
+     inkscape:window-maximized="1" />
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <rect
+       style="fill:#dfdfdf;fill-opacity:0;stroke-width:2;stroke-miterlimit:4;stroke-dasharray:none"
+       id="rect3761"
+       width="154.55334"
+       height="62.124382"
+       x="218.69803"
+       y="329.09296" />
+    <g
+       id="g3118"
+       transform="translate(7.4498748,0)">
+      <rect
+         y="114.94062"
+         x="211.12189"
+         height="150.51273"
+         width="106.06602"
+         id="rect2985"
+         style="fill:#dfdfdf;fill-opacity:0;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+      <text
+         sodipodi:linespacing="125%"
+         id="text3755"
+         y="133.12337"
+         x="232.84018"
+         style="font-size:12px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+         xml:space="preserve"><tspan
+           y="133.12337"
+           x="232.84018"
+           id="tspan3757"
+           sodipodi:role="line"
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Adventor;-inkscape-font-specification:TeX Gyre Adventor">B method</tspan></text>
+      <rect
+         y="227.7448"
+         x="222.40573"
+         height="20.363811"
+         width="87.538963"
+         id="rect2985-5"
+         style="fill:#dfdfdf;fill-opacity:0;fill-rule:evenodd;stroke:#000000;stroke-width:0.33416077px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+      <text
+         sodipodi:linespacing="125%"
+         id="text3802"
+         y="240.68549"
+         x="226.50481"
+         style="font-size:10px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+         xml:space="preserve"><tspan
+           y="240.68549"
+           x="226.50481"
+           id="tspan3804"
+           sodipodi:role="line">implementation</tspan></text>
+    </g>
+    <g
+       id="g4302"
+       transform="translate(92.3027,54.043161)">
+      <rect
+         y="313.38211"
+         x="214.09885"
+         height="20.310034"
+         width="118.29484"
+         id="rect2985-5-8"
+         style="fill:#dfdfdf;fill-opacity:0;fill-rule:evenodd;stroke:#000000;stroke-width:0.38793901px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+      <text
+         sodipodi:linespacing="125%"
+         id="text3802-9"
+         y="326.2959"
+         x="219.58702"
+         style="font-size:10px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+         xml:space="preserve"><tspan
+           y="326.2959"
+           x="219.58702"
+           id="tspan3804-7"
+           sodipodi:role="line">LLVM implementation</tspan></text>
+    </g>
+    <flowRoot
+       transform="translate(142.93658,2.020305)"
+       style="font-size:10px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       id="flowRoot4498"
+       xml:space="preserve"><flowRegion
+         id="flowRegion4500"><rect
+           y="273.02948"
+           x="171.22086"
+           height="27.274118"
+           width="52.022861"
+           id="rect4502" /></flowRegion><flowPara
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;text-anchor:middle;font-family:TeX Gyre Adventor;-inkscape-font-specification:TeX Gyre Adventor"
+         id="flowPara4510">b2llvm</flowPara></flowRoot>    <text
+       xml:space="preserve"
+       style="font-size:10px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="81.317261"
+       y="404.34933"
+       id="text4923"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan4925"
+         x="81.317261"
+         y="404.34933"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Adventor;-inkscape-font-specification:TeX Gyre Adventor">LLVM interpreter</tspan></text>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#Arrow2Mend)"
+       d="m 309.33438,265.45335 51.12339,101.97192"
+       id="path4307"
+       inkscape:connector-type="polyline"
+       inkscape:connector-curvature="3"
+       inkscape:connection-start="#g3118"
+       inkscape:connection-start-point="d4"
+       inkscape:connection-end="#g4302"
+       inkscape:connection-end-point="d4" />
+    <g
+       id="g5149"
+       transform="translate(-0.60459682,0)">
+      <rect
+         y="310.35165"
+         x="103.48714"
+         height="20.310034"
+         width="118.29484"
+         id="rect2985-5-8-0"
+         style="fill:#dfdfdf;fill-opacity:0;fill-rule:evenodd;stroke:#000000;stroke-width:0.38793901px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+      <text
+         sodipodi:linespacing="125%"
+         id="text3802-9-8"
+         y="323.26544"
+         x="118.06668"
+         style="font-size:10px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+         xml:space="preserve"><tspan
+           y="323.26544"
+           x="118.06668"
+           id="tspan3804-7-6"
+           sodipodi:role="line">C implementation</tspan></text>
+    </g>
+    <flowRoot
+       transform="translate(-30.056634,1.3209399)"
+       style="font-size:10px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       id="flowRoot4498-3"
+       xml:space="preserve"><flowRegion
+         id="flowRegion4500-5"><rect
+           y="273.02948"
+           x="171.22086"
+           height="27.274118"
+           width="52.022861"
+           id="rect4502-8" /></flowRegion><flowPara
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:center;text-anchor:middle;font-family:TeX Gyre Adventor;-inkscape-font-specification:TeX Gyre Adventor"
+         id="flowPara4510-5">ComenC</flowPara></flowRoot>    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#Arrow2Mend)"
+       d="m 218.57176,253.61537 -47.44517,56.73628"
+       id="path4755"
+       inkscape:connector-type="polyline"
+       inkscape:connector-curvature="3"
+       inkscape:connection-start="#g3118"
+       inkscape:connection-start-point="d4"
+       inkscape:connection-end="#rect2985-5-8-0"
+       inkscape:connection-end-point="d4" />
+    <g
+       id="g5154"
+       transform="translate(-1.8811754,-16.162441)">
+      <rect
+         y="382.30103"
+         x="104.29825"
+         height="20.310034"
+         width="118.29484"
+         id="rect2985-5-8-0-7"
+         style="fill:#dfdfdf;fill-opacity:0;fill-rule:evenodd;stroke:#000000;stroke-width:0.38793901px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+      <text
+         sodipodi:linespacing="125%"
+         id="text3802-9-8-1"
+         y="395.21481"
+         x="109.41247"
+         style="font-size:10px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+         xml:space="preserve"><tspan
+           y="395.21481"
+           x="109.41247"
+           id="tspan3804-7-6-0"
+           sodipodi:role="line">LLVM implementation</tspan></text>
+    </g>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#Arrow2Mend)"
+       d="m 161.94523,330.66169 -0.29601,35.47689"
+       id="path5159"
+       inkscape:connector-type="polyline"
+       inkscape:connector-curvature="3"
+       inkscape:connection-start="#g5149"
+       inkscape:connection-start-point="d4"
+       inkscape:connection-end="#g5154"
+       inkscape:connection-end-point="d4" />
+    <rect
+       style="fill:#dfdfdf;fill-opacity:0;fill-rule:evenodd;stroke:#f10000;stroke-width:0.38793901px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       id="rect2985-5-8-5"
+       width="118.29484"
+       height="20.310034"
+       x="210.07854"
+       y="393.64862" />
+    <text
+       xml:space="preserve"
+       style="font-size:10px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:#f10000;stroke-opacity:1;font-family:Sans"
+       x="244.96199"
+       y="406.56241"
+       id="text3802-9-3"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan3804-7-7"
+         x="244.96199"
+         y="406.56241">Test data</tspan></text>
+    <g
+       id="g5821"
+       transform="translate(-0.56499045,0.5050861)">
+      <rect
+         y="422.47858"
+         x="102.98206"
+         height="20.310034"
+         width="118.29484"
+         id="rect2985-5-8-0-7-3"
+         style="fill:#dfdfdf;fill-opacity:0;fill-rule:evenodd;stroke:#000000;stroke-width:0.38793901px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+      <text
+         sodipodi:linespacing="125%"
+         id="text3802-9-8-1-3"
+         y="435.39236"
+         x="134.18027"
+         style="font-size:10px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+         xml:space="preserve"><tspan
+           y="435.39236"
+           x="134.18027"
+           id="tspan3804-7-6-0-1"
+           sodipodi:role="line">Test results</tspan></text>
+    </g>
+    <rect
+       style="fill:#dfdfdf;fill-opacity:0;fill-rule:evenodd;stroke:#000000;stroke-width:0.38793901px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       id="rect2985-5-8-0-7-4"
+       width="118.29484"
+       height="20.310034"
+       x="305.51764"
+       y="422.98367" />
+    <text
+       xml:space="preserve"
+       style="font-size:10px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="337.59973"
+       y="437.41269"
+       id="text3802-9-8-1-4"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan3804-7-6-0-6"
+         x="337.59973"
+         y="437.41269">Test results</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:10px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="369.55225"
+       y="405.56909"
+       id="text4923-6"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan4925-9"
+         x="369.55225"
+         y="405.56909"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Adventor;-inkscape-font-specification:TeX Gyre Adventor">LLVM interpreter</tspan></text>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#Arrow2Mend)"
+       d="m 365.3874,387.73531 -0.56078,35.24836"
+       id="path6196"
+       inkscape:connector-type="polyline"
+       inkscape:connector-curvature="3"
+       inkscape:connection-start="#g4302"
+       inkscape:connection-start-point="d4"
+       inkscape:connection-end="#rect2985-5-8-0-7-4"
+       inkscape:connection-end-point="d4" />
+    <text
+       xml:space="preserve"
+       style="font-size:10px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="78.628304"
+       y="349.00055"
+       id="text4923-2"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan4925-6"
+         x="78.628304"
+         y="349.00055"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Adventor;-inkscape-font-specification:TeX Gyre Adventor">LLVM-C compiler</tspan></text>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#Arrow2Mend)"
+       d="m 161.56449,386.44862 0,36.53504"
+       id="path6403"
+       inkscape:connector-type="polyline"
+       inkscape:connector-curvature="3"
+       inkscape:connection-start="#g5154"
+       inkscape:connection-start-point="d4"
+       inkscape:connection-end="#g5821"
+       inkscape:connection-end-point="d4" />
+    <text
+       xml:space="preserve"
+       style="font-size:10px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="234.57503"
+       y="437.38892"
+       id="text4923-8"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan4925-96"
+         x="234.57503"
+         y="437.38892"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:TeX Gyre Adventor;-inkscape-font-specification:TeX Gyre Adventor">compare</tspan></text>
+    <path
+       style="fill:none;stroke:#ff0000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#Arrow2Mend)"
+       d="m 210.07854,403.82682 -44.41352,0.0174"
+       id="path6610"
+       inkscape:connector-type="polyline"
+       inkscape:connector-curvature="3"
+       inkscape:connection-start="#rect2985-5-8-5"
+       inkscape:connection-start-point="d4" />
+    <path
+       style="fill:none;stroke:#ff0000;stroke-width:1.00156653000000007px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#Arrow2Mend)"
+       d="m 328.37416,403.83097 35.27997,0.0125"
+       id="path6798"
+       inkscape:connector-type="polyline"
+       inkscape:connector-curvature="3" />
+  </g>
+</svg>

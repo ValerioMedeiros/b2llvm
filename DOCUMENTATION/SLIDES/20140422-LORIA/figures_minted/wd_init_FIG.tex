@@ -1,0 +1,37 @@
+\documentclass[10pt,a4paper]{article}
+\include{codeFormat}
+
+\begin{document}
+
+
+\begin{llvmcode}
+define void @wd$init$(%wd$ref$ %self$, %counter$ref$ %arg0$) {
+entry:
+  %count = alloca i32
+  %0 = getelementptr %wd$ref$ %self$, i32 0, i32 0
+  store %counter$ref$ %arg0$, %counter$ref$* %0
+  call void @counter$init$(%counter$ref$ %arg0$)
+  store i32 0, i32* %count
+  br label %label1
+label1:
+  %1 = load i32* %count
+  %2 = icmp slt i32 %1, 50
+  br i1 %2, label %label2, label %label0
+label2:
+  %3 = getelementptr %wd$ref$ %self$, i32 0, i32 0
+  %4 = load %counter$ref$* %3
+  call void @counter$inc(%counter$ref$ %4)
+  %5 = load i32* %count
+  %6 = add i32 %5, 1
+  store i32 %6, i32* %count
+  br label %label1
+label0:
+  br label %exit
+exit:
+  ret void
+}
+\end{llvmcode}
+
+
+
+\end{document}

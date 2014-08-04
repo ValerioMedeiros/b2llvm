@@ -1,0 +1,32 @@
+\documentclass[10pt,a4paper]{article}
+\include{codeFormat}
+
+\begin{document}
+
+
+\begin{pascalcode}
+IMPLEMENTATION wd_i
+REFINES wd
+VALUES timeout=50
+IMPORTS counter
+INVARIANT overflow = FALSE & timeout - value = ticker
+INITIALISATION
+   VAR count IN
+       count := 0;
+       WHILE count < timeout DO
+           inc; count := count+1
+       INVARIANT ... VARIANT ...
+       END
+   END
+OPERATIONS
+   tick =
+   VAR elapsed, diff IN
+       elapsed <-- get;
+       diff := timeout - elapsed;
+       IF diff > 0 THEN inc END
+END;
+\end{pascalcode}
+
+
+
+\end{document}

@@ -1,0 +1,15 @@
+\documentclass[10pt,a4paper]{article}
+\include{codeFormat}
+
+\begin{document}
+
+\begin{llvmcode}
+%counter$ref$ = type %counter$state$*
+declare void @counter$init$(%counter$ref$)
+declare void @counter$inc(%counter$ref$)
+declare void @counter$get(%counter$ref$, i32*)
+\end{llvmcode}
+
+
+
+\end{document}

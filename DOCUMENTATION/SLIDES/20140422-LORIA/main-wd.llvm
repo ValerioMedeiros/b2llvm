@@ -1,0 +1,14 @@
+;; -*- mode: asm -*-
+%counter$state$ = type {i32, i1}
+%counter$ref$ = type %counter$state$*
+%wd$state$ = type {%counter$ref$}
+%wd$ref$ = type %wd$state$*
+@$wd = common global %wd$state$ zeroinitializer
+@$counter = common global %counter$state$ zeroinitializer
+declare void @wd$init$(%wd$ref$, %counter$ref$)
+declare void @wd$tick(%wd$ref$)
+define void @$init$() {
+entry:
+  call void @wd$init$(%wd$ref$ @$wd, %counter$ref$ @$counter)
+  ret void
+}
