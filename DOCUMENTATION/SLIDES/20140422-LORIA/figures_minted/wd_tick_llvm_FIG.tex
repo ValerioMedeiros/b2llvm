@@ -1,0 +1,35 @@
+\documentclass[10pt,a4paper]{article}
+\include{codeFormat}
+
+\begin{document}
+
+
+\begin{llvmcode}
+define void @wd$tick(%wd$ref$ %self$) {
+entry:
+  %elapsed = alloca i32
+  %diff = alloca i32
+  %0 = getelementptr %wd$ref$ %self$, i32 0, i32 0
+  %1 = load %counter$ref$* %0
+  call void @counter$get(%counter$ref$ %1, i32* %elapsed)
+  %2 = load i32* %elapsed
+  %3 = sub i32 50, %2
+  store i32 %3, i32* %diff
+  %4 = load i32* %diff
+  %5 = icmp sgt i32 %4, 0
+  br i1 %5, label %label1, label %label0
+label1:
+  %6 = getelementptr %wd$ref$ %self$, i32 0, i32 0
+  %7 = load %counter$ref$* %6
+  call void @counter$inc(%counter$ref$ %7)
+  br label %label0
+label0:
+  br label %exit
+exit:
+  ret void
+}
+\end{llvmcode}
+
+
+
+\end{document}

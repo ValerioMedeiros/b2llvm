@@ -1,0 +1,20 @@
+\documentclass[10pt,a4paper]{article}
+\include{codeFormat}
+
+\begin{document}
+
+\begin{llvmcode}
+define void @counter$get(%counter$ref$ %self$, i32* %res) {
+entry:
+  %0 = getelementptr %counter$ref$ %self$, i32 0, i32 0
+  %1 = load i32* %0
+  store i32 %1, i32* %res
+  br label %exit
+exit:
+  ret void
+}
+\end{llvmcode}
+
+\end{document}
+
+

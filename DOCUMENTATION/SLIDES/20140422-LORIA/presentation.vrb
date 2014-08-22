@@ -1,0 +1,16 @@
+\frametitle{Syntax of the target LLVM-IR: expressions, misc.}
+
+  \begin{center}
+    \begin{tabular}{rcl}
+      \nt{arith} & ::= & \llvm{add} \ALT \llvm{sub} \ALT \llvm{mul} \ALT \llvm{sdiv} \ALT \llvm{srem} \\
+      \nt{rel} & ::= & \llvm{eq} \ALT \llvm{ne} \ALT \llvm{sgt} \ALT \llvm{sge} \ALT \llvm{slt} \ALT \llvm{sle} \\
+      \nt{exp} & ::= & \nt{name} \ALT \nt{iliteral} \ALT \\
+& & \llvm{getelementptr} \llvm{(} \nt{type} \nt{exp} \llvm{,} \nt{index} \llvm{,} \nt{index} \llvm{)} \\
+      \nt{index} & ::= & \nt{itype} \nt{iliteral} \\
+      \nt{branch} & ::= & \nt{iliteral} \nt{iliteral} \nt{lbl} \\
+      \nt{arg} & ::= & \nt{type} \nt{exp}
+    \end{tabular}
+  \end{center}
+
+Main missing construct: arrays.
+

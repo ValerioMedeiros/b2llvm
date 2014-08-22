@@ -1,0 +1,22 @@
+\documentclass[10pt,a4paper]{article}
+\include{codeFormat}
+
+\begin{document}
+
+\begin{small}
+\begin{pascalcode}
+IMPLEMENTATION counter_i
+REFINES counter
+CONCRETE_VARIABLES value, error
+INVARIANT value: INT & error : BOOL & /* omitted gluing invariant */
+INITIALISATION  value := 0; error := FALSE
+OPERATIONS
+    inc = IF value < MAXINT THEN value := value + 1
+          ELSE error := TRUE END;
+    res <-- get = res := value
+END
+\end{pascalcode}
+\end{small}
+
+\end{document}
+

@@ -1,0 +1,20 @@
+\documentclass[10pt,a4paper]{article}
+\include{codeFormat}
+
+\begin{document}
+
+\begin{llvmcode}
+;;1 The type for the state of "counter" is defined in "counter_i",
+;; it is an aggregate such that:
+;;1.1 Position "0" represents variable "value".
+;;1.2 Position "1" represents variable "error".
+%counter$state$ = type {i32, i1}
+;;2 The type for references to state encodings of "counter" is:
+%counter$ref$ = type %counter$state$*
+;;3 The function implementing initialisation for "counter" is
+;;  named "@counter$init$" and has the following parameters:
+;;3.1 "%self$": address of LLVM aggregate storing state of "counter";
+define void @counter$init$(%counter$ref$ %self$) {
+\end{llvmcode}
+
+\end{document}
