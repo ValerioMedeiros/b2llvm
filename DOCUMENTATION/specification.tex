@@ -234,6 +234,10 @@ Note that the translation presented in this paper only considers types \B{INT}
         \multicolumn{3}{c}{\B{Lit}\alt\B{Term}\alt\B{Pred}\alt\B{Cons}\alt}\\
 	\multicolumn{3}{c}{\B{Vari}\alt\B{Record}\alt\B{Array}\alt} \\
 	\multicolumn{3}{c}{\B{RecField}\alt\B{ArrayItem} } \\
+		\hline
+		\multicolumn{3}{|c|}{Literal : \B{Lit}} \\
+		\hline
+		\multicolumn{3}{c}{ \B{Bool\_lit} \alt \B{Int\_lit}} \\ 
         \hline
         \multicolumn{3}{|c|}{Term expression: \B{Term}} \\
         \hline
@@ -253,16 +257,15 @@ Note that the translation presented in this paper only considers types \B{INT}
         \hline
         \B{op} & : & \B{RelOp} \\
         \B{arg1}, \B{arg2} & : & \B{Exp}\\
-        \hline
-        \multicolumn{3}{|c|}{Data type: \B{Type}} \\
-        \hline
-        \multicolumn{3}{c}{\B{INT} \alt \B{BOOL}\alt}\\
-	\multicolumn{3}{c}{\B{Structure} \alt \B{ArrayType} \alt} \\
-	\multicolumn{3}{c}{\B{Enumeration}} \\
-
 \end{tabular} 
        
 \begin{tabular}[t]{rcl}
+     \hline
+        \multicolumn{3}{|c|}{Data type: \B{Type}} \\
+        \hline
+        \multicolumn{3}{c}{\B{INT} \alt \B{BOOL}\alt}\\
+		\multicolumn{3}{c}{\B{Structure} \alt \B{ArrayType} \alt} \\
+		\multicolumn{3}{c}{\B{Enumeration}} \\
 	\hline
   	\multicolumn{3}{|c|}{Enumerated set: \B{Enumeration}} \\
         \hline
@@ -309,7 +312,7 @@ Note that the translation presented in this paper only considers types \B{INT}
   	\multicolumn{3}{|c|}{Cartesian product : \B{Product}} \\
         \hline
 	\B{arg1} & : & seq \B{Interval}\\ 
-	\B{arg2} & : & \B{Exp}\\ 	
+	\B{arg2} & : & \B{Term}\\ 	
 	\hline
 	\multicolumn{3}{|c|}{Access array : \B{ArrayItem}} \\
         \hline
@@ -325,10 +328,6 @@ Note that the translation presented in this paper only considers types \B{INT}
 	\multicolumn{3}{|c|}{B0 interval : \B{Interval}} \\
 	\hline
 	\multicolumn{3}{c}{ \B{start}, \B{end} : \B{Exp} } \\
-	\hline
-	\multicolumn{3}{|c|}{Literal : \B{Lit}} \\
-	\hline
-	\multicolumn{3}{c}{ \B{Bool\_lit} \alt \B{Int\_lit}} \\ 
       \end{tabular}
     \end{tabular}
   }
@@ -1134,7 +1133,8 @@ array2(1,1,3) := 5;
 \end{pascalcode}
 
 \subsubsection{Initializing different values to an array (Case 1.2) }
-It is not possible because B array attributions are atomic. The B array 
+The alternative way to represent is not appropriated for all array attributions cases. 
+Because B array attributions are atomic. The B array 
 attribution is made in two steps. First, the sequence of new value is calculated and
 copied to its temporal place. Second, the sequence of new values is setted 
 in its address. Finally, considering these steps and the execution of
