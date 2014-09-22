@@ -1,0 +1,262 @@
+<Machine name='MultiplicationI' type='implementation'>
+<Abstraction>Multiplication</Abstraction>
+<Imports>
+<Referenced_Machine>
+<Name>Body</Name>
+</Referenced_Machine>
+</Imports>
+<Promotes>
+<Promoted_Operation>value</Promoted_Operation>
+</Promotes>
+<Invariant>
+<Expression_Comparison operator='='>
+<Identifier value='loopnn'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Identifier value='nn'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Expression_Comparison>
+</Invariant>
+<Initialisation>
+<Skip />
+</Initialisation>
+<Operations>
+<Operation name='mult'>
+<Input_Parameters>
+<Identifier value='mm'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Input_Parameters>
+<Body>
+<VAR_IN>
+<Variables>
+<Identifier value='ii'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Identifier value='rr'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Variables>
+<Body>
+<Nary_Substitution operator=';'>
+<Assignement_Substitution>
+<Variables>
+<Identifier value='ii'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Variables>
+<Values>
+<Integer_Literal value='1'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Values>
+</Assignement_Substitution>
+<Operation_Call>
+<Name>
+<Identifier value='value' />
+</Name>
+<Output_Parameters>
+<Identifier value='rr'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Output_Parameters>
+</Operation_Call>
+<While>
+<Condition>
+<Expression_Comparison operator='&lt;'>
+<Identifier value='ii'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Identifier value='mm'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Expression_Comparison>
+</Condition>
+<Body>
+<Operation_Call>
+<Name>
+<Identifier value='body' />
+</Name>
+<Input_Parameters>
+<Identifier value='rr'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Identifier value='ii'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Input_Parameters>
+<Output_Parameters>
+<Identifier value='ii'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Output_Parameters>
+</Operation_Call>
+</Body>
+<Invariant>
+<Nary_Predicate operator='&amp;'>
+<Expression_Comparison operator='='>
+<Identifier value='loopnn'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Binary_Expression operator='*'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+<Identifier value='ii'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Identifier value='nn'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Binary_Expression>
+</Expression_Comparison>
+<Expression_Comparison operator='='>
+<Identifier value='rr'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Identifier value='nn'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Expression_Comparison>
+<Expression_Comparison operator=':'>
+<Identifier value='ii'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Identifier value='NAT'>
+<Attributes>
+<TypeInfo>
+<Unary_Expression operator='POW'>
+<Identifier value='INTEGER' />
+</Unary_Expression>
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Expression_Comparison>
+<Expression_Comparison operator='&lt;='>
+<Identifier value='ii'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Identifier value='mm'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Expression_Comparison>
+</Nary_Predicate>
+</Invariant>
+<Variant>
+<Binary_Expression operator='-'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+<Identifier value='mm'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Identifier value='ii'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Binary_Expression>
+</Variant>
+</While>
+</Nary_Substitution>
+</Body>
+</VAR_IN>
+</Body>
+</Operation>
+</Operations>
+</Machine>

@@ -1,0 +1,12 @@
+;; -*- mode: asm -*-
+%Body$state$ = type {i32}
+%Body$ref$ = type %Body$state$*
+@$Body = common global %Body$state$ zeroinitializer
+declare void @Body$init$(%Body$ref$)
+declare void @Body$body(%Body$ref$, i32, i32, i32*)
+declare void @Body$value(%Body$ref$, i32*)
+define void @$init$() {
+entry:
+  call void @Body$init$(%Body$ref$ @$Body)
+  ret void
+}

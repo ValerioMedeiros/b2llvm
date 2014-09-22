@@ -1,0 +1,13 @@
+;; -*- mode: asm -*-
+%MOD_SizeCounter$state$ = type {i32}
+%MOD_SizeCounter$ref$ = type %MOD_SizeCounter$state$*
+@$MOD_SizeCounter = common global %MOD_SizeCounter$state$ zeroinitializer
+declare void @MOD_SizeCounter$init$(%MOD_SizeCounter$ref$)
+declare void @MOD_SizeCounter$szeinc(%MOD_SizeCounter$ref$)
+declare void @MOD_SizeCounter$szedec(%MOD_SizeCounter$ref$)
+declare void @MOD_SizeCounter$szeget(%MOD_SizeCounter$ref$, i32*)
+define void @$init$() {
+entry:
+  call void @MOD_SizeCounter$init$(%MOD_SizeCounter$ref$ @$MOD_SizeCounter)
+  ret void
+}

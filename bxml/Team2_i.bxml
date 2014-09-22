@@ -1,0 +1,1234 @@
+<Machine name='Team2_i' type='implementation'>
+<Abstraction>Team2</Abstraction>
+<Values>
+<Valuation ident='PLAYER'>
+<Binary_Expression operator='..'>
+<Attributes>
+<TypeInfo>
+<Unary_Expression operator='POW'>
+<Identifier value='INTEGER' />
+</Unary_Expression>
+</TypeInfo>
+</Attributes>
+<Integer_Literal value='1'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+<Integer_Literal value='22'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Binary_Expression>
+</Valuation>
+</Values>
+<Concrete_Variables>
+<Identifier value='team_array'>
+<Attributes>
+<TypeInfo>
+<Unary_Expression operator='POW'>
+<Binary_Expression operator='*'>
+<Identifier value='INTEGER' />
+<Identifier value='INTEGER' />
+</Binary_Expression>
+</Unary_Expression>
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Concrete_Variables>
+<Invariant>
+<Nary_Predicate operator='&amp;'>
+<Expression_Comparison operator=':'>
+<Identifier value='team_array'>
+<Attributes>
+<TypeInfo>
+<Unary_Expression operator='POW'>
+<Binary_Expression operator='*'>
+<Identifier value='INTEGER' />
+<Identifier value='INTEGER' />
+</Binary_Expression>
+</Unary_Expression>
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Binary_Expression operator='&gt;-&gt;'>
+<Attributes>
+<TypeInfo>
+<Unary_Expression operator='POW'>
+<Unary_Expression operator='POW'>
+<Binary_Expression operator='*'>
+<Identifier value='INTEGER' />
+<Identifier value='INTEGER' />
+</Binary_Expression>
+</Unary_Expression>
+</Unary_Expression>
+</TypeInfo>
+</Attributes>
+<Binary_Expression operator='..'>
+<Attributes>
+<TypeInfo>
+<Unary_Expression operator='POW'>
+<Identifier value='INTEGER' />
+</Unary_Expression>
+</TypeInfo>
+</Attributes>
+<Integer_Literal value='0'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+<Integer_Literal value='10'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Binary_Expression>
+<Binary_Expression operator='..'>
+<Attributes>
+<TypeInfo>
+<Unary_Expression operator='POW'>
+<Identifier value='INTEGER' />
+</Unary_Expression>
+</TypeInfo>
+</Attributes>
+<Integer_Literal value='1'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+<Integer_Literal value='22'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Binary_Expression>
+</Binary_Expression>
+</Expression_Comparison>
+<Expression_Comparison operator='='>
+<Unary_Expression operator='ran'>
+<Attributes>
+<TypeInfo>
+<Unary_Expression operator='POW'>
+<Identifier value='INTEGER' />
+</Unary_Expression>
+</TypeInfo>
+</Attributes>
+<Identifier value='team_array'>
+<Attributes>
+<TypeInfo>
+<Unary_Expression operator='POW'>
+<Binary_Expression operator='*'>
+<Identifier value='INTEGER' />
+<Identifier value='INTEGER' />
+</Binary_Expression>
+</Unary_Expression>
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Unary_Expression>
+<Identifier value='team'>
+<Attributes>
+<TypeInfo>
+<Unary_Expression operator='POW'>
+<Identifier value='INTEGER' />
+</Unary_Expression>
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Expression_Comparison>
+</Nary_Predicate>
+</Invariant>
+<Initialisation>
+<Nary_Substitution operator=';'>
+<Assignement_Substitution>
+<Variables>
+<Binary_Expression operator='('>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+<Identifier value='team_array'>
+<Attributes>
+<TypeInfo>
+<Unary_Expression operator='POW'>
+<Binary_Expression operator='*'>
+<Identifier value='INTEGER' />
+<Identifier value='INTEGER' />
+</Binary_Expression>
+</Unary_Expression>
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Integer_Literal value='0'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Binary_Expression>
+</Variables>
+<Values>
+<Integer_Literal value='1'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Values>
+</Assignement_Substitution>
+<Assignement_Substitution>
+<Variables>
+<Binary_Expression operator='('>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+<Identifier value='team_array'>
+<Attributes>
+<TypeInfo>
+<Unary_Expression operator='POW'>
+<Binary_Expression operator='*'>
+<Identifier value='INTEGER' />
+<Identifier value='INTEGER' />
+</Binary_Expression>
+</Unary_Expression>
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Integer_Literal value='1'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Binary_Expression>
+</Variables>
+<Values>
+<Integer_Literal value='2'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Values>
+</Assignement_Substitution>
+<Assignement_Substitution>
+<Variables>
+<Binary_Expression operator='('>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+<Identifier value='team_array'>
+<Attributes>
+<TypeInfo>
+<Unary_Expression operator='POW'>
+<Binary_Expression operator='*'>
+<Identifier value='INTEGER' />
+<Identifier value='INTEGER' />
+</Binary_Expression>
+</Unary_Expression>
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Integer_Literal value='2'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Binary_Expression>
+</Variables>
+<Values>
+<Integer_Literal value='3'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Values>
+</Assignement_Substitution>
+<Assignement_Substitution>
+<Variables>
+<Binary_Expression operator='('>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+<Identifier value='team_array'>
+<Attributes>
+<TypeInfo>
+<Unary_Expression operator='POW'>
+<Binary_Expression operator='*'>
+<Identifier value='INTEGER' />
+<Identifier value='INTEGER' />
+</Binary_Expression>
+</Unary_Expression>
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Integer_Literal value='3'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Binary_Expression>
+</Variables>
+<Values>
+<Integer_Literal value='4'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Values>
+</Assignement_Substitution>
+<Assignement_Substitution>
+<Variables>
+<Binary_Expression operator='('>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+<Identifier value='team_array'>
+<Attributes>
+<TypeInfo>
+<Unary_Expression operator='POW'>
+<Binary_Expression operator='*'>
+<Identifier value='INTEGER' />
+<Identifier value='INTEGER' />
+</Binary_Expression>
+</Unary_Expression>
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Integer_Literal value='4'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Binary_Expression>
+</Variables>
+<Values>
+<Integer_Literal value='5'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Values>
+</Assignement_Substitution>
+<Assignement_Substitution>
+<Variables>
+<Binary_Expression operator='('>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+<Identifier value='team_array'>
+<Attributes>
+<TypeInfo>
+<Unary_Expression operator='POW'>
+<Binary_Expression operator='*'>
+<Identifier value='INTEGER' />
+<Identifier value='INTEGER' />
+</Binary_Expression>
+</Unary_Expression>
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Integer_Literal value='5'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Binary_Expression>
+</Variables>
+<Values>
+<Integer_Literal value='6'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Values>
+</Assignement_Substitution>
+<Assignement_Substitution>
+<Variables>
+<Binary_Expression operator='('>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+<Identifier value='team_array'>
+<Attributes>
+<TypeInfo>
+<Unary_Expression operator='POW'>
+<Binary_Expression operator='*'>
+<Identifier value='INTEGER' />
+<Identifier value='INTEGER' />
+</Binary_Expression>
+</Unary_Expression>
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Integer_Literal value='6'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Binary_Expression>
+</Variables>
+<Values>
+<Integer_Literal value='7'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Values>
+</Assignement_Substitution>
+<Assignement_Substitution>
+<Variables>
+<Binary_Expression operator='('>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+<Identifier value='team_array'>
+<Attributes>
+<TypeInfo>
+<Unary_Expression operator='POW'>
+<Binary_Expression operator='*'>
+<Identifier value='INTEGER' />
+<Identifier value='INTEGER' />
+</Binary_Expression>
+</Unary_Expression>
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Integer_Literal value='7'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Binary_Expression>
+</Variables>
+<Values>
+<Integer_Literal value='8'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Values>
+</Assignement_Substitution>
+<Assignement_Substitution>
+<Variables>
+<Binary_Expression operator='('>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+<Identifier value='team_array'>
+<Attributes>
+<TypeInfo>
+<Unary_Expression operator='POW'>
+<Binary_Expression operator='*'>
+<Identifier value='INTEGER' />
+<Identifier value='INTEGER' />
+</Binary_Expression>
+</Unary_Expression>
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Integer_Literal value='8'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Binary_Expression>
+</Variables>
+<Values>
+<Integer_Literal value='9'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Values>
+</Assignement_Substitution>
+<Assignement_Substitution>
+<Variables>
+<Binary_Expression operator='('>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+<Identifier value='team_array'>
+<Attributes>
+<TypeInfo>
+<Unary_Expression operator='POW'>
+<Binary_Expression operator='*'>
+<Identifier value='INTEGER' />
+<Identifier value='INTEGER' />
+</Binary_Expression>
+</Unary_Expression>
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Integer_Literal value='9'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Binary_Expression>
+</Variables>
+<Values>
+<Integer_Literal value='10'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Values>
+</Assignement_Substitution>
+<Assignement_Substitution>
+<Variables>
+<Binary_Expression operator='('>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+<Identifier value='team_array'>
+<Attributes>
+<TypeInfo>
+<Unary_Expression operator='POW'>
+<Binary_Expression operator='*'>
+<Identifier value='INTEGER' />
+<Identifier value='INTEGER' />
+</Binary_Expression>
+</Unary_Expression>
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Integer_Literal value='10'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Binary_Expression>
+</Variables>
+<Values>
+<Integer_Literal value='11'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Values>
+</Assignement_Substitution>
+</Nary_Substitution>
+</Initialisation>
+<Operations>
+<Operation name='substitute'>
+<Input_Parameters>
+<Identifier value='pp'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Identifier value='rr'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Input_Parameters>
+<Body>
+<VAR_IN>
+<Variables>
+<Identifier value='ii'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Identifier value='pl'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Variables>
+<Body>
+<Nary_Substitution operator=';'>
+<Assignement_Substitution>
+<Variables>
+<Identifier value='ii'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Variables>
+<Values>
+<Integer_Literal value='0'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Values>
+</Assignement_Substitution>
+<Assignement_Substitution>
+<Variables>
+<Identifier value='pl'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Variables>
+<Values>
+<Integer_Literal value='0'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Values>
+</Assignement_Substitution>
+<While>
+<Condition>
+<Expression_Comparison operator='&lt;'>
+<Identifier value='ii'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Integer_Literal value='11'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Expression_Comparison>
+</Condition>
+<Body>
+<Nary_Substitution operator=';'>
+<Assignement_Substitution>
+<Variables>
+<Identifier value='pl'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Variables>
+<Values>
+<Binary_Expression operator='('>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+<Identifier value='team_array'>
+<Attributes>
+<TypeInfo>
+<Unary_Expression operator='POW'>
+<Binary_Expression operator='*'>
+<Identifier value='INTEGER' />
+<Identifier value='INTEGER' />
+</Binary_Expression>
+</Unary_Expression>
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Identifier value='ii'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Binary_Expression>
+</Values>
+</Assignement_Substitution>
+<If_Substitution elseif='no'>
+<Condition>
+<Expression_Comparison operator='='>
+<Identifier value='pl'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Identifier value='pp'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Expression_Comparison>
+</Condition>
+<Then>
+<Nary_Substitution operator=';'>
+<Assignement_Substitution>
+<Variables>
+<Binary_Expression operator='('>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+<Identifier value='team_array'>
+<Attributes>
+<TypeInfo>
+<Unary_Expression operator='POW'>
+<Binary_Expression operator='*'>
+<Identifier value='INTEGER' />
+<Identifier value='INTEGER' />
+</Binary_Expression>
+</Unary_Expression>
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Identifier value='ii'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Binary_Expression>
+</Variables>
+<Values>
+<Identifier value='rr'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Values>
+</Assignement_Substitution>
+<Assignement_Substitution>
+<Variables>
+<Identifier value='ii'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Variables>
+<Values>
+<Integer_Literal value='11'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Values>
+</Assignement_Substitution>
+</Nary_Substitution>
+</Then>
+<Else>
+<Assignement_Substitution>
+<Variables>
+<Identifier value='ii'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Variables>
+<Values>
+<Binary_Expression operator='+'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+<Identifier value='ii'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Integer_Literal value='1'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Binary_Expression>
+</Values>
+</Assignement_Substitution>
+</Else>
+</If_Substitution>
+</Nary_Substitution>
+</Body>
+<Invariant>
+<Expression_Comparison operator=':'>
+<Identifier value='ii'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Binary_Expression operator='..'>
+<Attributes>
+<TypeInfo>
+<Unary_Expression operator='POW'>
+<Identifier value='INTEGER' />
+</Unary_Expression>
+</TypeInfo>
+</Attributes>
+<Integer_Literal value='0'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+<Integer_Literal value='11'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Binary_Expression>
+</Expression_Comparison>
+</Invariant>
+<Variant>
+<Binary_Expression operator='-'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+<Integer_Literal value='11'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+<Identifier value='ii'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Binary_Expression>
+</Variant>
+</While>
+</Nary_Substitution>
+</Body>
+</VAR_IN>
+</Body>
+</Operation>
+<Operation name='in_team'>
+<Output_Parameters>
+<Identifier value='aa'>
+<Attributes>
+<TypeInfo>
+<Identifier value='BOOL' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Output_Parameters>
+<Input_Parameters>
+<Identifier value='pp'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Input_Parameters>
+<Body>
+<VAR_IN>
+<Variables>
+<Identifier value='ii'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Identifier value='pl'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Variables>
+<Body>
+<Nary_Substitution operator=';'>
+<Assignement_Substitution>
+<Variables>
+<Identifier value='ii'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Variables>
+<Values>
+<Integer_Literal value='0'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Values>
+</Assignement_Substitution>
+<Assignement_Substitution>
+<Variables>
+<Identifier value='pl'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Variables>
+<Values>
+<Integer_Literal value='0'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Values>
+</Assignement_Substitution>
+<Assignement_Substitution>
+<Variables>
+<Identifier value='aa'>
+<Attributes>
+<TypeInfo>
+<Identifier value='BOOL' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Variables>
+<Values>
+<Boolean_Literal value='FALSE'>
+<Attributes>
+<TypeInfo>
+<Identifier value='BOOL' />
+</TypeInfo>
+</Attributes>
+</Boolean_Literal>
+</Values>
+</Assignement_Substitution>
+<While>
+<Condition>
+<Expression_Comparison operator='&lt;'>
+<Identifier value='ii'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Integer_Literal value='11'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Expression_Comparison>
+</Condition>
+<Body>
+<Nary_Substitution operator=';'>
+<Assignement_Substitution>
+<Variables>
+<Identifier value='pl'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Variables>
+<Values>
+<Binary_Expression operator='('>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+<Identifier value='team_array'>
+<Attributes>
+<TypeInfo>
+<Unary_Expression operator='POW'>
+<Binary_Expression operator='*'>
+<Identifier value='INTEGER' />
+<Identifier value='INTEGER' />
+</Binary_Expression>
+</Unary_Expression>
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Identifier value='ii'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Binary_Expression>
+</Values>
+</Assignement_Substitution>
+<If_Substitution elseif='no'>
+<Condition>
+<Expression_Comparison operator='='>
+<Identifier value='pl'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Identifier value='pp'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Expression_Comparison>
+</Condition>
+<Then>
+<Nary_Substitution operator=';'>
+<Assignement_Substitution>
+<Variables>
+<Identifier value='aa'>
+<Attributes>
+<TypeInfo>
+<Identifier value='BOOL' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Variables>
+<Values>
+<Boolean_Literal value='TRUE'>
+<Attributes>
+<TypeInfo>
+<Identifier value='BOOL' />
+</TypeInfo>
+</Attributes>
+</Boolean_Literal>
+</Values>
+</Assignement_Substitution>
+<Assignement_Substitution>
+<Variables>
+<Identifier value='ii'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Variables>
+<Values>
+<Integer_Literal value='11'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Values>
+</Assignement_Substitution>
+</Nary_Substitution>
+</Then>
+<Else>
+<Assignement_Substitution>
+<Variables>
+<Identifier value='ii'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Variables>
+<Values>
+<Binary_Expression operator='+'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+<Identifier value='ii'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Integer_Literal value='1'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Binary_Expression>
+</Values>
+</Assignement_Substitution>
+</Else>
+</If_Substitution>
+</Nary_Substitution>
+</Body>
+<Invariant>
+<Expression_Comparison operator=':'>
+<Identifier value='ii'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Binary_Expression operator='..'>
+<Attributes>
+<TypeInfo>
+<Unary_Expression operator='POW'>
+<Identifier value='INTEGER' />
+</Unary_Expression>
+</TypeInfo>
+</Attributes>
+<Integer_Literal value='0'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+<Integer_Literal value='11'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Binary_Expression>
+</Expression_Comparison>
+</Invariant>
+<Variant>
+<Binary_Expression operator='-'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+<Integer_Literal value='11'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+<Identifier value='ii'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Binary_Expression>
+</Variant>
+</While>
+</Nary_Substitution>
+</Body>
+</VAR_IN>
+</Body>
+</Operation>
+</Operations>
+</Machine>

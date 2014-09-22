@@ -1,0 +1,27 @@
+IMPLEMENTATION
+   MOD_FifoI
+REFINES
+   MOD_Fifo
+IMPORTS
+    MOD_Varray, MOD_SizeCounter, MOD_PositionCounter
+INVARIANT
+    sze = size(contents) &
+    (array \|/ (pos - 1))^(array /|\ (pos - 1)) /|\ sze = contents
+OPERATIONS
+   input ( ee ) =
+   VAR ii, jj, pp IN
+       ii <-- szeget;
+       jj <-- posget;
+       pp := (ii + jj - 1) mod cap + 1;
+       set(pp, ee);
+       szeinc
+   END;
+
+   ee <-- output =
+   VAR pp IN
+       pp <-- posget;
+       ee <-- get(pp);
+       posinc;
+       szedec
+   END
+END

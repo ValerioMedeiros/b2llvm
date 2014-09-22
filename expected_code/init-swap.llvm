@@ -1,13 +1,39 @@
 ;; -*- mode: asm -*-
+;;   file generated with b2llvm
+;;   B project settings: project.xml
+;;   B module: swap
+;;   B project directory: bxml
+;;   code generation mode: project
+;;   output file: init-swap.llvm
+;;   Preamble
+;;   
+;;   This file instantiates B machine "swap", and all its components,
+;;   and a function to initialise this instantiation.
+;;   
+;;1 These are the types encoding the state of each module,
+;;2 and the corresponding pointer types.
+;;2.1 The type encoding the state of "swap" is an aggregate and is defined as
+;;     (using implementation "swap_i"):
+;;2.1.1 Position "0" represents "v1".
+;;2.1.2 Position "1" represents "v2".
 %swap$state$ = type {i32, i32}
+;;2.2 The type for references to state encodings of "swap" is:
 %swap$ref$ = type %swap$state$*
+;;3 Variables representing instances of components forming "swap".
+;;3.1 Variable representing to swap
 @$swap = common global %swap$state$ zeroinitializer
+;;4 The declaration of the function implementing initialisation is:
 declare void @swap$init$(%swap$ref$)
+;;5 The declaration of the function implementing operation "step" is:
 declare void @swap$step(%swap$ref$)
+;;6 The declaration of the function implementing operation "set" is:
 declare void @swap$set(%swap$ref$, i32, i32)
+;;7 The declaration of the function implementing operation "get" is:
 declare void @swap$get(%swap$ref$, i32*, i32*)
+;;8 Definition of the function to initialise instance "@$swap" of "swap".
 define void @$init$() {
 entry:
+;;8.1 Call to initialisation function of "swap".
   call void @swap$init$(%swap$ref$ @$swap)
   ret void
 }

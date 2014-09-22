@@ -53,6 +53,8 @@ def translate_bxml(bmodule, outfile, buf, mode='comp', dir='bxml', settings='pro
     if mode == 'comp':
         translate_mode_comp(buf, ast, emit_printer)
         generate_header_skeleton(ast,bmodule)
+    elif mode == 'skeleton':
+        generate_header_skeleton(ast,bmodule)
     else:
         translate_mode_proj(buf, ast, emit_printer)
     llvm = open(outfile, 'w')
@@ -1195,6 +1197,10 @@ def x_expression(buf, n):
         v1 = names.new_local()
         buf.code(LOADD, v1, _ , p)
         res = (v1,_)
+    elif n["kind"] == "seq_Map_Array":
+        assert False, " Not yet supported  print- seq_Map_Array"
+        #TODO: create a way to get the left side of "becomeEqual"
+        res = ("VARIABLE","TYPE")
     else:
         print("error: unknown expression kind")
         buf.code("<error inserted by b2llvm>")
@@ -1272,11 +1278,14 @@ def x_arrayitem(buf, n):
     
     buf.trace.tab() 
     #for elem in n["indexes"]:
+    #elem = n["indexes"][0]
+    elem = n["indexes"]
+    #vi,ti = x_expression(buf, elem)
     vi,ti = x_expression(buf, n["indexes"])
     v = names.new_local()
     buf.code(LOADI,v,t1+"*",v1,vi) #GETPT
     t  = "i32"
-    buf.trace.out("Variable array (indexes) \""+printer.term(n["indexes"])+"\" is stored at position "+vi+" of \"%self$\". (ArrayItem)")
+    buf.trace.out("Variable array (indexes) \""+n["base"]["id"]+ printer.term(n["indexes"])+"\" is stored at position "+vi+" of \"%self$\". (ArrayItem)")#TODO: Update it indexes
     buf.trace.untab()
     
     #TODO: Adjust the size o vector to size=(b-a+1)

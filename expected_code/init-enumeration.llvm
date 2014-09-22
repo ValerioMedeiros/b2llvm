@@ -1,12 +1,36 @@
 ;; -*- mode: asm -*-
+;;   file generated with b2llvm
+;;   B project settings: project.xml
+;;   B module: enumeration
+;;   B project directory: bxml
+;;   code generation mode: project
+;;   output file: init-enumeration.llvm
+;;   Preamble
+;;   
+;;   This file instantiates B machine "enumeration", and all its components,
+;;   and a function to initialise this instantiation.
+;;   
+;;1 These are the types encoding the state of each module,
+;;2 and the corresponding pointer types.
+;;2.1 The type encoding the state of "enumeration" is an aggregate and is defined as
+;;     (using implementation "enumeration_i"):
+;;2.1.1 Position "0" represents "current".
 %enumeration$state$ = type {i1}
+;;2.2 The type for references to state encodings of "enumeration" is:
 %enumeration$ref$ = type %enumeration$state$*
+;;3 Variables representing instances of components forming "enumeration".
+;;3.1 Variable representing to enumeration
 @$enumeration = common global %enumeration$state$ zeroinitializer
+;;4 The declaration of the function implementing initialisation is:
 declare void @enumeration$init$(%enumeration$ref$)
+;;5 The declaration of the function implementing operation "tick" is:
 declare void @enumeration$tick(%enumeration$ref$)
+;;6 The declaration of the function implementing operation "read" is:
 declare void @enumeration$read(%enumeration$ref$, i1*)
+;;7 Definition of the function to initialise instance "@$enumeration" of "enumeration".
 define void @$init$() {
 entry:
+;;7.1 Call to initialisation function of "enumeration".
   call void @enumeration$init$(%enumeration$ref$ @$enumeration)
   ret void
 }

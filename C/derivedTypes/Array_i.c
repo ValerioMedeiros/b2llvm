@@ -28,6 +28,7 @@ int main(void){
 void Array__INITIALISATION(void)
 {
     Array__arr[1] = 100;
+    Array__arr[1] = Array__arr[2];
     Array__arr_n[0][0] = 10;
     memmove(Array__tmp,Array__arr,100 * sizeof(int32_t));
     Array__setZero();

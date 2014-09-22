@@ -536,6 +536,13 @@ def load_becomes_eq(elem, symast):
     if len(lhs) != 1 or len(rhs) != 1:
         _LOG.error("unsupported multiple becomes equal substitution")
         return ast.make_skip()
+    #If the left side is array and right side is map then we create intermediate variables to attribute
+    #res = "value" in lhs[0].attrib and symast._table[lhs[0].attrib["value"]]["type"]["kind"] 
+    #if res and "operator" in rhs[0].attrib and rhs[0].attrib["operator"] == "{" :
+    #    assert True, "Tratando"
+    #    print (exit)
+    #    return False
+    #else:
     dst = load_exp(lhs[0], symast)
     src = load_exp(rhs[0], symast)
     return ast.make_beq(dst, src)
@@ -679,14 +686,14 @@ def load_exp(node, symast):
         pynode = load_integer_literal(node)
     elif node.tag == "Identifier":
         pynode = load_identifier(node, symast)
-    elif node.tag == "Boolean_Expression":
+    elif node.tag in {"Boolean_Expression","Binary_Predicate","Expression_Comparison","Unary_Predicate", "Nary_Predicate", "Quantified_Predicate", "Set"}:
         pynode = load_boolean_expression(node, symast)
     elif node.tag in {"EmptySet", "EmptySeq", "Quantified_Expression",
                    "Quantified_Set", "String_Litteral", "Struct", "Record"}:
         _LOG.error("unexpected expression " + node.tag)
         pynode = None
     else:
-        _LOG.error("unknown expression " + node.tag)
+        _LOG.error("load_exp - unknown expression " + node.tag)
         pynode = None
     return pynode
 
@@ -752,14 +759,14 @@ def load_nary(node, symast, tag, table):
 def load_unary_expression(node, symast):
     """Load an XML element for a unary expression to an AST node."""
     return load_unary(node, symast, "Unary_Expression",
-                      {"pred":ast.make_pred, "succ":ast.make_succ})
+                      {"pred":ast.make_pred, "succ":ast.make_succ, "{":ast.make_array})
 
 def load_binary_expression(node, symast):
     """Load an XML element for a binary expression to an AST node."""
     return load_binary(node, symast, "Binary_Expression",
                        {"+":ast.make_sum, "-":ast.make_diff,
-                        "*":ast.make_prod,"(":ast.make_array_item,
-                        "mod":ast.make_mod,"..":ast.make_interval})
+                        "*":ast.make_prod,"(":ast.make_array_item,",":ast.make_map,
+                        "mod":ast.make_mod,"..":ast.make_interval, "|->":ast.make_map})
 
 def load_nary_expression(node, symast):
     """Load an XML element for a nary expression to an AST node."""
@@ -930,10 +937,11 @@ def get_inv_type(xmlid, xmlinv):
         if (varName == xmlid.get("value")):
             elem = xmlinvElem
             break
-    assert elem != None
+    assert elem != None, "The concrete variable defined its type only in invariant from Machine. Please, define the types also in Invariant of Implementation" 
+    #TODO: When the concrete variables define its type only in invariant from Machine "elem" will be "None". Maybe the solution is pass the invariant from Machine here.
     function = elem[1]
-    
-    if (function.get("operator")=="-->"):
+    op = function.get("operator")
+    if (op =="-->" or op=="+->" or op==">->" or op=="-->"):
         domxml = function[1] 
         ranxml = function[2]
         res = ast.make_array_type(domxml,ranxml)

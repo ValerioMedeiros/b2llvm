@@ -1,4 +1,55 @@
 <project>
+
+<developed>
+    <machine>MOD_Fifo</machine>
+    <implementation>MOD_FifoI</implementation>
+  </developed>
+
+<developed>
+    <machine>MOD_PositionCounter</machine>
+    <implementation>MOD_PositionCounterI</implementation>
+  </developed>	
+
+<developed>
+    <machine>MOD_SizeCounter</machine>
+    <implementation>MOD_SizeCounterI</implementation>
+  </developed>	
+
+<developed>
+    <machine>MOD_Varray</machine>
+    <implementation>MOD_VarrayI</implementation>
+  </developed>	
+
+
+
+ <developed>
+    <machine>ArraySwap</machine>
+    <implementation>ArraySwap_i</implementation>
+  </developed>	
+
+
+
+  <developed>
+    <machine>Team2</machine>
+    <implementation>Team2_i</implementation>
+  </developed>	
+
+  <developed>
+    <machine>TicTacToe</machine>
+    <implementation>TicTacToeI</implementation>
+  </developed>
+
+
+  <developed>
+    <machine>Sort</machine>
+    <implementation>BubbleSort</implementation>
+  </developed>	
+
+  <developed>
+    <machine>Calendar</machine>
+    <implementation>CalendarI</implementation>
+  </developed>	
+
   <developed>
     <machine>Division</machine>
     <implementation>DivisionImplOk</implementation>

@@ -16,20 +16,23 @@ VALUES
 OPERATIONS
 
 ss <-- sizequery(rr) = 
-  VAR tmp IN
+  VAR tmp, ss_ret IN
       tmp := rr mod 2;  
      IF tmp = 1
-     THEN ss := little
-     ELSE ss := big
-     END
+     THEN ss_ret := little
+     ELSE ss_ret := big
+     END;
+  ss := ss_ret
   END;
 
 pp <-- pricequery(rr) =
-  VAR tmp IN
+  VAR tmp, pp_ret IN
       tmp:= rr mod 2;
      IF tmp  = 1
-     THEN pp := defaultprice
-     ELSE pp := defaultprice * 3 / 2
-     END
+     THEN pp_ret := defaultprice
+     ELSE pp_ret := defaultprice * 3 / 2
+     END;
+  pp := pp_ret
   END
+  
 END

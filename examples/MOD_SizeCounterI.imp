@@ -1,0 +1,26 @@
+IMPLEMENTATION
+   MOD_SizeCounterI
+REFINES
+   MOD_SizeCounter
+VALUES
+    maximum2 = 100
+    
+CONCRETE_VARIABLES
+    sze
+INVARIANT
+    sze : INT
+INITIALISATION
+   sze := 0
+
+OPERATIONS
+   szeinc = sze := sze + 1
+   ;
+
+   szedec = sze := sze - 1
+   ;
+
+   ss <-- szeget =
+   ss := sze
+
+
+END

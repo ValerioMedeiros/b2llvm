@@ -26,12 +26,17 @@ def term(n):
         return n["value"]
     elif kind == "Cons":
         return n["id"]
+    elif kind == "seq_exp":
+        return  "i32 1" #n["indexes"][0] + term(n["indexes"][1:])   #TODO: Update it!!!
     elif kind == "ArrayItem":
-        return (SP + term(n["base"])+"("+ term(n["indexes"])+ ")")
+        #return (SP + term(n["base"])+"("+ term(n["indexes"][0])+ ")") #TODO: Update to support several items
+        return (SP + term(n["base"])+"("+ term(n["indexes"])+ ")") #TODO: Update to support several items
     elif kind == "Vari":
         return n["id"]
     elif kind == "Enumerated":
         return n["id"]
+    elif kind == "seq_Map_Array":
+        return "i32 1"
     elif n["op"] in { "succ", "pred" }:
         return n["op"] + "(" + term(n["args"][0]) + ")"
     elif n["op"] in { "+", "*", "-" }:
@@ -53,6 +58,9 @@ def form(n):
     op, args = n["op"], n["args"]
     if op == "not":
         return "(" + op + SP + condition(args[0]) + ")"
+    elif args == [None, None]:
+        assert False,"formule <<UNRECOGNIZED >>"
+
     else:
         return (SP + op + SP).join([condition(e) for e in args])
 

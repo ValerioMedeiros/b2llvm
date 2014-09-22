@@ -1,0 +1,48 @@
+;; -*- mode: asm -*-
+%MOD_Varray$state$ = type {[ 101 x i32]}
+%MOD_Varray$ref$ = type %MOD_Varray$state$*
+define void @MOD_Varray$init$(%MOD_Varray$ref$ %self$) {
+entry:
+  %ii = alloca i32
+  store i32 0, i32* %ii
+  br label %label1
+label1:
+  %0 = load i32* %ii
+  %1 = icmp sle i32 %0, 100
+  br i1 %1, label %label2, label %label0
+label2:
+  %2 = getelementptr %MOD_Varray$ref$ %self$, i32 0, i32 0
+  %3 = getelementptr [ 101 x i32]* %2, i32 0
+  %4 = load i32* %ii
+  %5 = getelementptr [ 101 x i32]* %3, i32 0, i32 %4
+  store i32 0, i32* %5
+  %6 = load i32* %ii
+  %7 = add i32 %6, 1
+  store i32 %7, i32* %ii
+  br label %label1
+label0:
+  br label %exit
+exit:
+  ret void
+}
+define void @MOD_Varray$set(%MOD_Varray$ref$ %self$, i32 %ii, i32 %vv) {
+entry:
+  %0 = getelementptr %MOD_Varray$ref$ %self$, i32 0, i32 0
+  %1 = getelementptr [ 101 x i32]* %0, i32 0
+  %2 = getelementptr [ 101 x i32]* %1, i32 0, i32 %ii
+  store i32 %vv, i32* %2
+  br label %exit
+exit:
+  ret void
+}
+define void @MOD_Varray$get(%MOD_Varray$ref$ %self$, i32 %ii, i32* %vv) {
+entry:
+  %0 = getelementptr %MOD_Varray$ref$ %self$, i32 0, i32 0
+  %1 = getelementptr [ 101 x i32]* %0, i32 0
+  %2 = getelementptr [ 101 x i32]* %1, i32 0, i32 %ii
+  %3 = load i32* %2
+  store i32 %3, i32* %vv
+  br label %exit
+exit:
+  ret void
+}

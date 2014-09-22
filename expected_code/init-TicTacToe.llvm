@@ -1,0 +1,13 @@
+;; -*- mode: asm -*-
+%TicTacToe$state$ = type {[ 9 x i32], i1}
+%TicTacToe$ref$ = type %TicTacToe$state$*
+@$TicTacToe = common global %TicTacToe$state$ zeroinitializer
+declare void @TicTacToe$init$(%TicTacToe$ref$)
+declare void @TicTacToe$BlueMove(%TicTacToe$ref$, i32)
+declare void @TicTacToe$RedMove(%TicTacToe$ref$, i32)
+declare void @TicTacToe$GameResult(%TicTacToe$ref$, i32*)
+define void @$init$() {
+entry:
+  call void @TicTacToe$init$(%TicTacToe$ref$ @$TicTacToe)
+  ret void
+}

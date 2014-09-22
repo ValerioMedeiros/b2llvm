@@ -8,6 +8,10 @@ LLVM_LINK = llvm-link-mp-3.5
 init-%.llvm : bxml/%.bxml
 	$(B2LLVM) --mode proj $* $@ bxml project.xml
 
+binary:
+	pyinstaller -n b2llvm -F b2llvm.spec
+	rm -rf build
+
 %.bc : %.llvm
 	$(LLVM_AS) $< -o $@
 
@@ -36,6 +40,8 @@ timer: counter.bc timer.bc init-timer.bc scaffold-timer.bc
 	$(LLVM_LINK) $^ -o $@
 
 all: counter wd timer
+
+
 
 clean:
 	rm *.bc expected_code/*.diff 

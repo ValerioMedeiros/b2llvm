@@ -1,0 +1,27 @@
+IMPLEMENTATION
+   MOD_VarrayI
+REFINES
+   MOD_Varray
+VALUES
+    cap = 100
+CONCRETE_VARIABLES
+    array
+INVARIANT
+    array : 0..100 --> INT
+INITIALISATION
+   VAR ii IN
+       ii := 0;
+       WHILE ii <= cap DO
+           array(ii) := 0;
+           ii := ii + 1
+       INVARIANT
+           ii <= cap + 1
+       VARIANT
+           cap - ii
+       END
+   END
+OPERATIONS
+   set ( ii , vv ) = array ( ii ) := vv;
+
+   vv <-- get ( ii ) = vv := array ( ii )
+END

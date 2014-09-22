@@ -1,0 +1,298 @@
+<Machine name='ArraySwap' type='abstraction'>
+<Abstract_Variables>
+<Identifier value='mvector'>
+<Attributes>
+<TypeInfo>
+<Unary_Expression operator='POW'>
+<Binary_Expression operator='*'>
+<Identifier value='INTEGER' />
+<Identifier value='INTEGER' />
+</Binary_Expression>
+</Unary_Expression>
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Abstract_Variables>
+<Invariant>
+<Expression_Comparison operator=':'>
+<Identifier value='mvector'>
+<Attributes>
+<TypeInfo>
+<Unary_Expression operator='POW'>
+<Binary_Expression operator='*'>
+<Identifier value='INTEGER' />
+<Identifier value='INTEGER' />
+</Binary_Expression>
+</Unary_Expression>
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Binary_Expression operator='--&gt;'>
+<Attributes>
+<TypeInfo>
+<Unary_Expression operator='POW'>
+<Unary_Expression operator='POW'>
+<Binary_Expression operator='*'>
+<Identifier value='INTEGER' />
+<Identifier value='INTEGER' />
+</Binary_Expression>
+</Unary_Expression>
+</Unary_Expression>
+</TypeInfo>
+</Attributes>
+<Binary_Expression operator='..'>
+<Attributes>
+<TypeInfo>
+<Unary_Expression operator='POW'>
+<Identifier value='INTEGER' />
+</Unary_Expression>
+</TypeInfo>
+</Attributes>
+<Integer_Literal value='0'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+<Integer_Literal value='1'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Binary_Expression>
+<Binary_Expression operator='..'>
+<Attributes>
+<TypeInfo>
+<Unary_Expression operator='POW'>
+<Identifier value='INTEGER' />
+</Unary_Expression>
+</TypeInfo>
+</Attributes>
+<Integer_Literal value='2'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+<Integer_Literal value='3'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Binary_Expression>
+</Binary_Expression>
+</Expression_Comparison>
+</Invariant>
+<Initialisation>
+<Assignement_Substitution>
+<Variables>
+<Identifier value='mvector'>
+<Attributes>
+<TypeInfo>
+<Unary_Expression operator='POW'>
+<Binary_Expression operator='*'>
+<Identifier value='INTEGER' />
+<Identifier value='INTEGER' />
+</Binary_Expression>
+</Unary_Expression>
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Variables>
+<Values>
+<Unary_Expression operator='{'>
+<Attributes>
+<TypeInfo>
+<Unary_Expression operator='POW'>
+<Binary_Expression operator='*'>
+<Identifier value='INTEGER' />
+<Identifier value='INTEGER' />
+</Binary_Expression>
+</Unary_Expression>
+</TypeInfo>
+</Attributes>
+<Binary_Expression operator=','>
+<Binary_Expression operator='|-&gt;'>
+<Attributes>
+<TypeInfo>
+<Binary_Expression operator='*'>
+<Identifier value='INTEGER' />
+<Identifier value='INTEGER' />
+</Binary_Expression>
+</TypeInfo>
+</Attributes>
+<Integer_Literal value='0'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+<Integer_Literal value='2'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Binary_Expression>
+<Binary_Expression operator='|-&gt;'>
+<Attributes>
+<TypeInfo>
+<Binary_Expression operator='*'>
+<Identifier value='INTEGER' />
+<Identifier value='INTEGER' />
+</Binary_Expression>
+</TypeInfo>
+</Attributes>
+<Integer_Literal value='1'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+<Integer_Literal value='3'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Binary_Expression>
+</Binary_Expression>
+</Unary_Expression>
+</Values>
+</Assignement_Substitution>
+</Initialisation>
+<Operations>
+<Operation name='swap'>
+<Body>
+<Assignement_Substitution>
+<Variables>
+<Identifier value='mvector'>
+<Attributes>
+<TypeInfo>
+<Unary_Expression operator='POW'>
+<Binary_Expression operator='*'>
+<Identifier value='INTEGER' />
+<Identifier value='INTEGER' />
+</Binary_Expression>
+</Unary_Expression>
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Variables>
+<Values>
+<Unary_Expression operator='{'>
+<Attributes>
+<TypeInfo>
+<Unary_Expression operator='POW'>
+<Binary_Expression operator='*'>
+<Identifier value='INTEGER' />
+<Identifier value='INTEGER' />
+</Binary_Expression>
+</Unary_Expression>
+</TypeInfo>
+</Attributes>
+<Binary_Expression operator=','>
+<Binary_Expression operator='|-&gt;'>
+<Attributes>
+<TypeInfo>
+<Binary_Expression operator='*'>
+<Identifier value='INTEGER' />
+<Identifier value='INTEGER' />
+</Binary_Expression>
+</TypeInfo>
+</Attributes>
+<Integer_Literal value='0'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+<Binary_Expression operator='('>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+<Identifier value='mvector'>
+<Attributes>
+<TypeInfo>
+<Unary_Expression operator='POW'>
+<Binary_Expression operator='*'>
+<Identifier value='INTEGER' />
+<Identifier value='INTEGER' />
+</Binary_Expression>
+</Unary_Expression>
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Integer_Literal value='1'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Binary_Expression>
+</Binary_Expression>
+<Binary_Expression operator='|-&gt;'>
+<Attributes>
+<TypeInfo>
+<Binary_Expression operator='*'>
+<Identifier value='INTEGER' />
+<Identifier value='INTEGER' />
+</Binary_Expression>
+</TypeInfo>
+</Attributes>
+<Integer_Literal value='1'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+<Binary_Expression operator='('>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+<Identifier value='mvector'>
+<Attributes>
+<TypeInfo>
+<Unary_Expression operator='POW'>
+<Binary_Expression operator='*'>
+<Identifier value='INTEGER' />
+<Identifier value='INTEGER' />
+</Binary_Expression>
+</Unary_Expression>
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Integer_Literal value='0'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Binary_Expression>
+</Binary_Expression>
+</Binary_Expression>
+</Unary_Expression>
+</Values>
+</Assignement_Substitution>
+</Body>
+</Operation>
+</Operations>
+</Machine>

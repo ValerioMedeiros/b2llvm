@@ -1,0 +1,34 @@
+IMPLEMENTATION
+   ArraySwap_i
+REFINES
+   ArraySwap
+
+CONCRETE_VARIABLES
+   mvector
+INVARIANT
+   mvector : 0..1 --> 2..3
+    
+INITIALISATION
+   /*VAR aa, bb IN
+    aa:=2;
+    bb:=3;
+    mvector(0):=aa;   
+    mvector(1):=bb           
+END;*/
+mvector := { 0 |-> 2 , 1 |-> 3 } 
+
+OPERATIONS
+/*   swap =
+   BEGIN
+       mvector := { 0 |-> mvector ( 1 ) , 1 |-> mvector ( 0 ) }
+   END*/
+   swap =
+   VAR t0, t1 IN
+       t0 := mvector ( 1 ); 
+       t1 := mvector ( 0 );
+       mvector(0):= t0;
+       mvector(1):= t1
+   END
+
+
+END

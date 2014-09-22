@@ -1,0 +1,59 @@
+IMPLEMENTATION
+   CalendarI
+REFINES
+   Calendar
+SETS
+    MONTH = {January, February, March, April, May, June, July, August, September, October, November, December, Invalid_Month}
+CONCRETE_VARIABLES
+    mmi
+INVARIANT
+    mmi : MONTH &
+    ((mm = 1) <=> (mmi = January)) &
+    ((mm = 2) <=> (mmi = February)) &
+    ((mm = 3) <=> (mmi = March)) &
+    ((mm = 4) <=> (mmi = April)) &
+    ((mm = 5) <=> (mmi = May)) &
+    ((mm = 6) <=> (mmi = June)) &
+    ((mm = 7) <=> (mmi = July)) &
+    ((mm = 8) <=> (mmi = August)) &
+    ((mm = 9) <=> (mmi = September)) &
+    ((mm = 10) <=> (mmi = October)) &
+    ((mm = 11) <=> (mmi = November)) &
+    ((mm = 12) <=> (mmi = December)) &
+    ((mm = 13) <=> (mmi = Invalid_Month))
+
+INITIALISATION
+    mmi:= January
+    
+OPERATIONS
+   month ( nn ) =
+   CASE nn OF
+       EITHER 1 THEN
+           mmi := January
+       OR 2 THEN
+           mmi := February
+       OR 3 THEN
+           mmi := March
+       OR 4 THEN
+           mmi := April
+       OR 5 THEN
+           mmi := May
+       OR 6 THEN
+           mmi := June
+       OR 7 THEN
+           mmi := July
+       OR 8 THEN
+           mmi := August
+       OR 9 THEN
+           mmi := September
+       OR 10 THEN
+           mmi := October
+       OR 11 THEN
+           mmi := November
+       OR 12 THEN
+           mmi := December
+       ELSE
+           mmi := Invalid_Month
+       END
+    END
+END

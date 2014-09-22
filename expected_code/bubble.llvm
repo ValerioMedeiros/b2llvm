@@ -1,94 +1,362 @@
 ;; -*- mode: asm -*-
+;;   file generated with b2llvm
+;;   B project settings: project.xml
+;;   B module: bubble
+;;   B project directory: bxml
+;;   code generation mode: component
+;;   output file: bubble.llvm
+;;   
+;;   This file contains LLVM code that implements B machine "bubble".
+;;   It is registered as a developed machine.
+;;   The produced LLVM code is based on B implementation "bubble_i".
+;;   
+;;1 The type encoding the state of "bubble" is an aggregate and is defined as
+;;   (using implementation "bubble_i"):
+;;1.1 Position "0" represents "vec1".
+;;1.2 Position "1" represents "sort1".
 %bubble$state$ = type {[ 100 x i32], i32}
+;;2 The type for references to state encodings of "bubble" is:
 %bubble$ref$ = type %bubble$state$*
+;;3 The function implementing initialisation for "bubble" is "@bubble$init$"
+;;   and has the following parameters:
+;;3.1 "%self$": address of LLVM aggregate storing state of "bubble";
 define void @bubble$init$(%bubble$ref$ %self$) {
+;;3.2 The entry point of the initialisation is:
 entry:
+;;3.3 Execute substitutions in initialisation of "bubble_i" then exits:
+;;3.3.1 Execute assignment " vec1(0) := 0":
+;;3.3.1.1 Evaluate expression "0".
+;;3.3.1.1.1 An integer literal is represented as such in LLVM.
+;;         The evaluation of "0" is "0".
+;;3.3.1.2 Evaluate address for " vec1(0)".
+;;3.3.1.2.1 Evaluate expression "vec1".
+;;3.3.1.2.1.1 State variable "vec1" is stored at position "0" of "%self$".
+;;3.3.1.2.1.2 Let temporary "%0" be the corresponding address.
   %0 = getelementptr %bubble$ref$ %self$, i32 0, i32 0
   %1 = getelementptr [ 100 x i32]* %0, i32 0
+;;           The evaluation of "vec1" is "%1".
+;;3.3.1.2.2 Variable array (base) "vec1" is stored at position %1 of "%self$". (ArrayItem)
+;;3.3.1.2.1 Evaluate expression "0".
+;;3.3.1.2.1.1 An integer literal is represented as such in LLVM.
+;;           The evaluation of "0" is "0".
   %2 = getelementptr [ 100 x i32]* %1, i32 0, i32 0
+;;3.3.1.2.2 Variable array (indexes) "vec10" is stored at position 0 of "%self$". (ArrayItem)
+;;3.3.1.3 Store value at address to achieve assignment.
   store i32 0, i32* %2
+;;3.3.2 Execute assignment "sort1 := 0":
+;;3.3.2.1 Evaluate expression "0".
+;;3.3.2.1.1 An integer literal is represented as such in LLVM.
+;;         The evaluation of "0" is "0".
+;;3.3.2.2 Evaluate address for "sort1".
+;;3.3.2.2.1 Variable "sort1" is stored at position 1 of "%self$".
+;;           Let temporary %3 be the corresponding address:
   %3 = getelementptr %bubble$ref$ %self$, i32 0, i32 1
+;;3.3.2.3 Store value at address to achieve assignment.
   store i32 0, i32* %3
   br label %exit
+;;3.4 The exit point of the initialisation is:
 exit:
   ret void
 }
+;;4 The LLVM function implementing B operation "op_sort" in "bubble_i" follows.
 define void @bubble$op_sort(%bubble$ref$ %self$) {
 entry:
+;;4.1 local variable declarations implemented as frame stack allocations
+;;4.1.1 frame stack allocation for variable nn
   %nn = alloca i32
+;;4.1.2 frame stack allocation for variable swapped
   %swapped = alloca i32
+;;4.1.3 frame stack allocation for variable ii
   %ii = alloca i32
+;;4.1.4 frame stack allocation for variable tmp
   %tmp = alloca i32
+;;4.1.5 frame stack allocation for variable vi
   %vi = alloca i32
+;;4.1.6 frame stack allocation for variable vi2
   %vi2 = alloca i32
+;;4.2 Execute assignment "swapped := 1":
+;;4.2.1 Evaluate expression "1".
+;;4.2.1.1 An integer literal is represented as such in LLVM.
+;;       The evaluation of "1" is "1".
+;;4.2.2 Evaluate address for "swapped".
+;;4.2.2.1 "swapped" is stored in the frame stack and represented by "%swapped".
+;;4.2.3 Store value at address to achieve assignment.
   store i32 1, i32* %swapped
+;;4.3 Execute assignment "nn := 100":
+;;4.3.1 Evaluate expression "100".
+;;4.3.1.1 An integer literal is represented as such in LLVM.
+;;       The evaluation of "100" is "100".
+;;4.3.2 Evaluate address for "nn".
+;;4.3.2.1 "nn" is stored in the frame stack and represented by "%nn".
+;;4.3.3 Store value at address to achieve assignment.
   store i32 100, i32* %nn
+;;4.4 Execute assignment "ii := 0":
+;;4.4.1 Evaluate expression "0".
+;;4.4.1.1 An integer literal is represented as such in LLVM.
+;;       The evaluation of "0" is "0".
+;;4.4.2 Evaluate address for "ii".
+;;4.4.2.1 "ii" is stored in the frame stack and represented by "%ii".
+;;4.4.3 Store value at address to achieve assignment.
   store i32 0, i32* %ii
+;;4.5 Execute "WHILE swapped = 1 DO ..." and branch to "label0".
+;;4.5.1 Evaluate loop guard "swapped = 1".
   br label %label1
 label1:
+;;4.5.2 Evaluate formula "swapped = 1", branch to "label2" if true, to "label0" otherwise.
+;;4.5.2.1 Evaluate expression "swapped".
+;;4.5.2.1.1 B local variable "swapped" is on the LLVM stack at address "%swapped".
+;;4.5.2.1.2 Temporary "%0" gets the contents from this position.
   %0 = load i32* %swapped
+;;         The evaluation of "swapped" is "%0".
+;;4.5.2.2 Evaluate expression "1".
+;;4.5.2.2.1 An integer literal is represented as such in LLVM.
+;;         The evaluation of "1" is "1".
+;;4.5.2.3 Temporary "%1" gets the value of "swapped = 1".
   %1 = icmp eq i32 %0, 1
   br i1 %1, label %label2, label %label0
+;;4.5.3 Execute loop body "BEGIN  swapped := 0; ...".
 label2:
+;;4.5.4 Execute assignment "swapped := 0":
+;;4.5.4.1 Evaluate expression "0".
+;;4.5.4.1.1 An integer literal is represented as such in LLVM.
+;;         The evaluation of "0" is "0".
+;;4.5.4.2 Evaluate address for "swapped".
+;;4.5.4.2.1 "swapped" is stored in the frame stack and represented by "%swapped".
+;;4.5.4.3 Store value at address to achieve assignment.
   store i32 0, i32* %swapped
+;;4.5.5 Execute assignment "ii := 0":
+;;4.5.5.1 Evaluate expression "0".
+;;4.5.5.1.1 An integer literal is represented as such in LLVM.
+;;         The evaluation of "0" is "0".
+;;4.5.5.2 Evaluate address for "ii".
+;;4.5.5.2.1 "ii" is stored in the frame stack and represented by "%ii".
+;;4.5.5.3 Store value at address to achieve assignment.
   store i32 0, i32* %ii
+;;4.5.6 Execute assignment "nn := nn - 1":
+;;4.5.6.1 Evaluate expression "nn - 1".
+;;4.5.6.1.1 Evaluate expression "nn".
+;;4.5.6.1.1.1 B local variable "nn" is on the LLVM stack at address "%nn".
+;;4.5.6.1.1.2 Temporary "%2" gets the contents from this position.
   %2 = load i32* %nn
+;;           The evaluation of "nn" is "%2".
+;;4.5.6.1.2 Evaluate expression "1".
+;;4.5.6.1.2.1 An integer literal is represented as such in LLVM.
+;;           The evaluation of "1" is "1".
+;;4.5.6.1.3 Let temporary "%3" get the value of "nn - 1".
   %3 = sub i32 %2, 1
+;;         The evaluation of "nn - 1" is "%3".
+;;4.5.6.2 Evaluate address for "nn".
+;;4.5.6.2.1 "nn" is stored in the frame stack and represented by "%nn".
+;;4.5.6.3 Store value at address to achieve assignment.
   store i32 %3, i32* %nn
+;;4.5.7 Execute "WHILE ii <= nn DO  BE..." and branch to "label3".
+;;4.5.7.1 Evaluate loop guard "ii <= nn".
   br label %label4
 label4:
+;;4.5.7.2 Evaluate formula "ii <= nn", branch to "label5" if true, to "label3" otherwise.
+;;4.5.7.2.1 Evaluate expression "ii".
+;;4.5.7.2.1.1 B local variable "ii" is on the LLVM stack at address "%ii".
+;;4.5.7.2.1.2 Temporary "%4" gets the contents from this position.
   %4 = load i32* %ii
+;;           The evaluation of "ii" is "%4".
+;;4.5.7.2.2 Evaluate expression "nn".
+;;4.5.7.2.2.1 B local variable "nn" is on the LLVM stack at address "%nn".
+;;4.5.7.2.2.2 Temporary "%5" gets the contents from this position.
   %5 = load i32* %nn
+;;           The evaluation of "nn" is "%5".
+;;4.5.7.2.3 Temporary "%6" gets the value of "ii <= nn".
   %6 = icmp sle i32 %4, %5
   br i1 %6, label %label5, label %label3
+;;4.5.7.3 Execute loop body "BEGIN  vi :=  vec1(ii...".
 label5:
+;;4.5.7.4 Execute assignment "vi :=  vec1(ii)":
+;;4.5.7.4.1 Evaluate expression " vec1(ii)".
+;;4.5.7.4.1.0.1 Evaluate expression "vec1".
+;;4.5.7.4.1.0.1.1 State variable "vec1" is stored at position "0" of "%self$".
+;;4.5.7.4.1.0.1.2 Let temporary "%7" be the corresponding address.
   %7 = getelementptr %bubble$ref$ %self$, i32 0, i32 0
   %8 = getelementptr [ 100 x i32]* %7, i32 0
+;;               The evaluation of "vec1" is "%8".
+;;4.5.7.4.1.0.2 Variable array (base) "vec1" is stored at position %8 of "%self$". (ArrayItem)
+;;4.5.7.4.1.0.1 Evaluate expression "ii".
+;;4.5.7.4.1.0.1.1 B local variable "ii" is on the LLVM stack at address "%ii".
+;;4.5.7.4.1.0.1.2 Temporary "%9" gets the contents from this position.
   %9 = load i32* %ii
+;;               The evaluation of "ii" is "%9".
   %10 = getelementptr [ 100 x i32]* %8, i32 0, i32 %9
+;;4.5.7.4.1.0.2 Variable array (indexes) "vec1ii" is stored at position %9 of "%self$". (ArrayItem)
   %11 = load i32* %10
+;;           The evaluation of " vec1(ii)" is "%11".
+;;4.5.7.4.2 Evaluate address for "vi".
+;;4.5.7.4.2.1 "vi" is stored in the frame stack and represented by "%vi".
+;;4.5.7.4.3 Store value at address to achieve assignment.
   store i32 %11, i32* %vi
+;;4.5.7.5 Execute assignment "vi2 :=  vec1(ii + 1)":
+;;4.5.7.5.1 Evaluate expression " vec1(ii + 1)".
+;;4.5.7.5.1.0.1 Evaluate expression "vec1".
+;;4.5.7.5.1.0.1.1 State variable "vec1" is stored at position "0" of "%self$".
+;;4.5.7.5.1.0.1.2 Let temporary "%12" be the corresponding address.
   %12 = getelementptr %bubble$ref$ %self$, i32 0, i32 0
   %13 = getelementptr [ 100 x i32]* %12, i32 0
+;;               The evaluation of "vec1" is "%13".
+;;4.5.7.5.1.0.2 Variable array (base) "vec1" is stored at position %13 of "%self$". (ArrayItem)
+;;4.5.7.5.1.0.1 Evaluate expression "ii + 1".
+;;4.5.7.5.1.0.1.1 Evaluate expression "ii".
+;;4.5.7.5.1.0.1.1.1 B local variable "ii" is on the LLVM stack at address "%ii".
+;;4.5.7.5.1.0.1.1.2 Temporary "%14" gets the contents from this position.
   %14 = load i32* %ii
+;;                 The evaluation of "ii" is "%14".
+;;4.5.7.5.1.0.1.2 Evaluate expression "1".
+;;4.5.7.5.1.0.1.2.1 An integer literal is represented as such in LLVM.
+;;                 The evaluation of "1" is "1".
+;;4.5.7.5.1.0.1.3 Let temporary "%15" get the value of "ii + 1".
   %15 = add i32 %14, 1
+;;               The evaluation of "ii + 1" is "%15".
   %16 = getelementptr [ 100 x i32]* %13, i32 0, i32 %15
+;;4.5.7.5.1.0.2 Variable array (indexes) "vec1ii + 1" is stored at position %15 of "%self$". (ArrayItem)
   %17 = load i32* %16
+;;           The evaluation of " vec1(ii + 1)" is "%17".
+;;4.5.7.5.2 Evaluate address for "vi2".
+;;4.5.7.5.2.1 "vi2" is stored in the frame stack and represented by "%vi2".
+;;4.5.7.5.3 Store value at address to achieve assignment.
   store i32 %17, i32* %vi2
+;;4.5.7.6 Execute "IF vi > vi2 THEN  BEG..." and branch to "label6".
+;;4.5.7.6.1 execute if branch "IF vi > vi2 THEN  BEG..."
+;;4.5.7.6.2 Evaluate formula "vi > vi2", branch to "label7" if true, to "label6" otherwise.
+;;4.5.7.6.2.1 Evaluate expression "vi".
+;;4.5.7.6.2.1.1 B local variable "vi" is on the LLVM stack at address "%vi".
+;;4.5.7.6.2.1.2 Temporary "%18" gets the contents from this position.
   %18 = load i32* %vi
+;;             The evaluation of "vi" is "%18".
+;;4.5.7.6.2.2 Evaluate expression "vi2".
+;;4.5.7.6.2.2.1 B local variable "vi2" is on the LLVM stack at address "%vi2".
+;;4.5.7.6.2.2.2 Temporary "%19" gets the contents from this position.
   %19 = load i32* %vi2
+;;             The evaluation of "vi2" is "%19".
+;;4.5.7.6.2.3 Temporary "%20" gets the value of "vi > vi2".
   %20 = icmp sgt i32 %18, %19
   br i1 %20, label %label7, label %label6
 label7:
+;;4.5.7.6.3 Execute assignment "tmp :=  vec1(ii + 1)":
+;;4.5.7.6.3.1 Evaluate expression " vec1(ii + 1)".
+;;4.5.7.6.3.1.0.1 Evaluate expression "vec1".
+;;4.5.7.6.3.1.0.1.1 State variable "vec1" is stored at position "0" of "%self$".
+;;4.5.7.6.3.1.0.1.2 Let temporary "%21" be the corresponding address.
   %21 = getelementptr %bubble$ref$ %self$, i32 0, i32 0
   %22 = getelementptr [ 100 x i32]* %21, i32 0
+;;                 The evaluation of "vec1" is "%22".
+;;4.5.7.6.3.1.0.2 Variable array (base) "vec1" is stored at position %22 of "%self$". (ArrayItem)
+;;4.5.7.6.3.1.0.1 Evaluate expression "ii + 1".
+;;4.5.7.6.3.1.0.1.1 Evaluate expression "ii".
+;;4.5.7.6.3.1.0.1.1.1 B local variable "ii" is on the LLVM stack at address "%ii".
+;;4.5.7.6.3.1.0.1.1.2 Temporary "%23" gets the contents from this position.
   %23 = load i32* %ii
+;;                   The evaluation of "ii" is "%23".
+;;4.5.7.6.3.1.0.1.2 Evaluate expression "1".
+;;4.5.7.6.3.1.0.1.2.1 An integer literal is represented as such in LLVM.
+;;                   The evaluation of "1" is "1".
+;;4.5.7.6.3.1.0.1.3 Let temporary "%24" get the value of "ii + 1".
   %24 = add i32 %23, 1
+;;                 The evaluation of "ii + 1" is "%24".
   %25 = getelementptr [ 100 x i32]* %22, i32 0, i32 %24
+;;4.5.7.6.3.1.0.2 Variable array (indexes) "vec1ii + 1" is stored at position %24 of "%self$". (ArrayItem)
   %26 = load i32* %25
+;;             The evaluation of " vec1(ii + 1)" is "%26".
+;;4.5.7.6.3.2 Evaluate address for "tmp".
+;;4.5.7.6.3.2.1 "tmp" is stored in the frame stack and represented by "%tmp".
+;;4.5.7.6.3.3 Store value at address to achieve assignment.
   store i32 %26, i32* %tmp
+;;4.5.7.6.4 Execute assignment " vec1(ii + 1) :=  vec1(ii)":
+;;4.5.7.6.4.1 Evaluate expression " vec1(ii)".
+;;4.5.7.6.4.1.0.1 Evaluate expression "vec1".
+;;4.5.7.6.4.1.0.1.1 State variable "vec1" is stored at position "0" of "%self$".
+;;4.5.7.6.4.1.0.1.2 Let temporary "%27" be the corresponding address.
   %27 = getelementptr %bubble$ref$ %self$, i32 0, i32 0
   %28 = getelementptr [ 100 x i32]* %27, i32 0
+;;                 The evaluation of "vec1" is "%28".
+;;4.5.7.6.4.1.0.2 Variable array (base) "vec1" is stored at position %28 of "%self$". (ArrayItem)
+;;4.5.7.6.4.1.0.1 Evaluate expression "ii".
+;;4.5.7.6.4.1.0.1.1 B local variable "ii" is on the LLVM stack at address "%ii".
+;;4.5.7.6.4.1.0.1.2 Temporary "%29" gets the contents from this position.
   %29 = load i32* %ii
+;;                 The evaluation of "ii" is "%29".
   %30 = getelementptr [ 100 x i32]* %28, i32 0, i32 %29
+;;4.5.7.6.4.1.0.2 Variable array (indexes) "vec1ii" is stored at position %29 of "%self$". (ArrayItem)
   %31 = load i32* %30
+;;             The evaluation of " vec1(ii)" is "%31".
+;;4.5.7.6.4.2 Evaluate address for " vec1(ii + 1)".
+;;4.5.7.6.4.2.1 Evaluate expression "vec1".
+;;4.5.7.6.4.2.1.1 State variable "vec1" is stored at position "0" of "%self$".
+;;4.5.7.6.4.2.1.2 Let temporary "%32" be the corresponding address.
   %32 = getelementptr %bubble$ref$ %self$, i32 0, i32 0
   %33 = getelementptr [ 100 x i32]* %32, i32 0
+;;               The evaluation of "vec1" is "%33".
+;;4.5.7.6.4.2.2 Variable array (base) "vec1" is stored at position %33 of "%self$". (ArrayItem)
+;;4.5.7.6.4.2.1 Evaluate expression "ii + 1".
+;;4.5.7.6.4.2.1.1 Evaluate expression "ii".
+;;4.5.7.6.4.2.1.1.1 B local variable "ii" is on the LLVM stack at address "%ii".
+;;4.5.7.6.4.2.1.1.2 Temporary "%34" gets the contents from this position.
   %34 = load i32* %ii
+;;                 The evaluation of "ii" is "%34".
+;;4.5.7.6.4.2.1.2 Evaluate expression "1".
+;;4.5.7.6.4.2.1.2.1 An integer literal is represented as such in LLVM.
+;;                 The evaluation of "1" is "1".
+;;4.5.7.6.4.2.1.3 Let temporary "%35" get the value of "ii + 1".
   %35 = add i32 %34, 1
+;;               The evaluation of "ii + 1" is "%35".
   %36 = getelementptr [ 100 x i32]* %33, i32 0, i32 %35
+;;4.5.7.6.4.2.2 Variable array (indexes) "vec1ii + 1" is stored at position %35 of "%self$". (ArrayItem)
+;;4.5.7.6.4.3 Store value at address to achieve assignment.
   store i32 %31, i32* %36
+;;4.5.7.6.5 Execute assignment " vec1(ii) := tmp":
+;;4.5.7.6.5.1 Evaluate expression "tmp".
+;;4.5.7.6.5.1.1 B local variable "tmp" is on the LLVM stack at address "%tmp".
+;;4.5.7.6.5.1.2 Temporary "%37" gets the contents from this position.
   %37 = load i32* %tmp
+;;             The evaluation of "tmp" is "%37".
+;;4.5.7.6.5.2 Evaluate address for " vec1(ii)".
+;;4.5.7.6.5.2.1 Evaluate expression "vec1".
+;;4.5.7.6.5.2.1.1 State variable "vec1" is stored at position "0" of "%self$".
+;;4.5.7.6.5.2.1.2 Let temporary "%38" be the corresponding address.
   %38 = getelementptr %bubble$ref$ %self$, i32 0, i32 0
   %39 = getelementptr [ 100 x i32]* %38, i32 0
+;;               The evaluation of "vec1" is "%39".
+;;4.5.7.6.5.2.2 Variable array (base) "vec1" is stored at position %39 of "%self$". (ArrayItem)
+;;4.5.7.6.5.2.1 Evaluate expression "ii".
+;;4.5.7.6.5.2.1.1 B local variable "ii" is on the LLVM stack at address "%ii".
+;;4.5.7.6.5.2.1.2 Temporary "%40" gets the contents from this position.
   %40 = load i32* %ii
+;;               The evaluation of "ii" is "%40".
   %41 = getelementptr [ 100 x i32]* %39, i32 0, i32 %40
+;;4.5.7.6.5.2.2 Variable array (indexes) "vec1ii" is stored at position %40 of "%self$". (ArrayItem)
+;;4.5.7.6.5.3 Store value at address to achieve assignment.
   store i32 %37, i32* %41
+;;4.5.7.6.6 Execute assignment "swapped := 1":
+;;4.5.7.6.6.1 Evaluate expression "1".
+;;4.5.7.6.6.1.1 An integer literal is represented as such in LLVM.
+;;             The evaluation of "1" is "1".
+;;4.5.7.6.6.2 Evaluate address for "swapped".
+;;4.5.7.6.6.2.1 "swapped" is stored in the frame stack and represented by "%swapped".
+;;4.5.7.6.6.3 Store value at address to achieve assignment.
   store i32 1, i32* %swapped
   br label %label6
 label6:
+;;4.5.7.7 Execute assignment "ii := ii + 1":
+;;4.5.7.7.1 Evaluate expression "ii + 1".
+;;4.5.7.7.1.1 Evaluate expression "ii".
+;;4.5.7.7.1.1.1 B local variable "ii" is on the LLVM stack at address "%ii".
+;;4.5.7.7.1.1.2 Temporary "%42" gets the contents from this position.
   %42 = load i32* %ii
+;;             The evaluation of "ii" is "%42".
+;;4.5.7.7.1.2 Evaluate expression "1".
+;;4.5.7.7.1.2.1 An integer literal is represented as such in LLVM.
+;;             The evaluation of "1" is "1".
+;;4.5.7.7.1.3 Let temporary "%43" get the value of "ii + 1".
   %43 = add i32 %42, 1
+;;           The evaluation of "ii + 1" is "%43".
+;;4.5.7.7.2 Evaluate address for "ii".
+;;4.5.7.7.2.1 "ii" is stored in the frame stack and represented by "%ii".
+;;4.5.7.7.3 Store value at address to achieve assignment.
   store i32 %43, i32* %ii
   br label %label4
 label3:

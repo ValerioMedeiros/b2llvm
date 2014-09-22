@@ -15,7 +15,7 @@ $(NAME).pdf:
 %.pdf : %.ps
 	ps2pdf $< $@
 
-%.pdf : %.tex  derivedTypes.tex
+%.pdf : %.tex
 	pdflatex -shell-escape $<
 	pdflatex -shell-escape $<
 

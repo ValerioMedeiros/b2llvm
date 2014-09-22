@@ -1,26 +1,85 @@
-/* Author:  */
 IMPLEMENTATION 
    array_i
 REFINES
    array
 CONCRETE_VARIABLES
-   arr, arr_n, tmp
+   arr,arr2d, arr_n, tmp, short_array, a3d //, short_array2
 INVARIANT 
     arr :  ((0..99) --> 0..1000) &
+    arr2d : ((0..99) * (0..99) --> 0..1000) &
     tmp :  ((0..99) --> 0..1000) &
-    arr_n : ((0..99) *(0..99)) --> 0..1000
+    short_array : ((0..2) --> 0..1000) &
+   // //   short_array2 : ((3..4) --> 0..1000) &
+    arr_n : ((0..99) *(0..99)) --> 0..1000 &
+    a3d : ((0..1) *(0..1)*(0..3)) --> 0..1000 &
+    a3d(0,0,1) = 2 // It certify that the attribution is atomic
+    
 INITIALISATION
-   arr(1) := 100;
-   arr_n(0,0) := 10;
-   tmp := arr
+   //arr := (0..99) * { 5 }; 
+   arr(1):=1;
+   tmp := arr;
+   
+   //short_array := {0|->99,1|->100,2 |->101};  
+    short_array(1) := 1 ;//(0..2) * { 5 };
+   arr_n(0,0) := 10; 
+   arr2d(0,0) := 9;
+   //arr2d(0,1) := 100;
+   a3d(1,2,3):=1
+   //a3d:= ( (0..1) * (0..1) * (0..3) * {1});
+  /* a3d := { 0|->0|->0|->2 , 0|->0|->1|->(a3d(0,0,0)+1), 
+            0|->1|->0|->2 , 0|->1|->1|->2 , 
+            1|->0|->0|->2 , 1|->0|->1|->2 , 
+            1|->1|->0|->2 , 1|->1|->1|->2 ,
+            
+            0|->0|->2|->2 , 0|->0|->3|->2 ,
+            0|->1|->2|->2 , 0|->1|->3|->2 , 
+            1|->0|->2|->2 , 1|->0|->3|->2 , 
+            1|->1|->2|->2 , 1|->1|->3|->2 };
+        
+
+   arr2d := ((0..99) * (0..99)) * {0}
+   
+   //arr2d := arr2d <+ {(0|->0)|->99,(0|->1)|->100};  //The operator override (<+) is not allowed in B0
+   */
+   
    
 OPERATIONS
+   set ( ix , tt ) =
+   BEGIN
+            skip
+   END;
+        
+  tt <-- read ( ix ) =
+   BEGIN
+            tt :=1
+   END;
+
+   swap ( ix , jx ) =
+   BEGIN
+            skip
+   END;
+           
+set3(ix1,ix2,tt)=
+        BEGIN arr2d(ix1,ix2) := tt
+        END;
+
+tt <-- read3(ix1,ix2) =
+        BEGIN tt := arr2d(ix1,ix2)
+        END
+        ;
+
+swap3(ix1,ix2, ij1,ij2)=
+        BEGIN
+            skip
+        END
+/*
+    
    set ( ix , tt ) =
    IF
        ix >= 0 & ix <=99 & tt >= 0  & tt <= 1000
    THEN
        
-      arr(ix) := tt 
+      arr(ix) := tt // case 2.1 - n attributions 
    END;
 
    tt <-- read ( ix ) =
@@ -42,7 +101,22 @@ OPERATIONS
            arr(jx) := arr(ix);
            arr(ix) := temp
        END
-   END
+   END;
+           
+set3(ix1,ix2,tt)=
+        BEGIN arr2d(ix1,ix2) := tt
+        END;
 
+tt <-- read3(ix1,ix2) =
+        BEGIN tt := arr2d(ix1,ix2)
+        END
+        ;
 
+swap3(ix1,ix2, ij1,ij2)=
+        VAR arr_tmp IN 
+            arr_tmp := arr2d(ix1,ix2);
+            arr2d(ix1,ix2) := arr2d(ij1,ij2);
+            arr2d(ij1,ij2):= arr_tmp
+        END
+*/
 END

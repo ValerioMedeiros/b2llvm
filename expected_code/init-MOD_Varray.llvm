@@ -1,0 +1,12 @@
+;; -*- mode: asm -*-
+%MOD_Varray$state$ = type {[ 101 x i32]}
+%MOD_Varray$ref$ = type %MOD_Varray$state$*
+@$MOD_Varray = common global %MOD_Varray$state$ zeroinitializer
+declare void @MOD_Varray$init$(%MOD_Varray$ref$)
+declare void @MOD_Varray$set(%MOD_Varray$ref$, i32, i32)
+declare void @MOD_Varray$get(%MOD_Varray$ref$, i32, i32*)
+define void @$init$() {
+entry:
+  call void @MOD_Varray$init$(%MOD_Varray$ref$ @$MOD_Varray)
+  ret void
+}

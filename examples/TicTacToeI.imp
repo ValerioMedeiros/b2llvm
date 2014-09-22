@@ -1,0 +1,87 @@
+IMPLEMENTATION
+   TicTacToeI
+REFINES
+   TicTacToe
+
+CONCRETE_VARIABLES
+    board, blue_turn
+    
+INVARIANT
+    board : (0..8) --> (0..2) &
+    dom(board |> {1}) = bposn &
+    dom(board |> {2}) = rposn &
+    blue_turn : BOOL &
+    (blue_turn = TRUE => turn = blue) &
+    (blue_turn = FALSE => turn = red)
+    
+INITIALISATION
+   /*board := {0|->0,1|->0,2|->0,3|->0,4|->0,5|->0,6|->0,7|->0,8|->0};*/
+   board(0):=0;
+   board(1):=0;
+   board(2):=0;
+   board(3):=0;
+   board(4):=0;
+   board(5):=0;
+   board(6):=0;
+   board(7):=0;
+   board(8):=0;
+   blue_turn := TRUE
+
+OPERATIONS
+   BlueMove (pp) =
+   BEGIN
+       board(pp) := 1;
+       blue_turn := FALSE
+   END;
+
+   RedMove ( pp ) =
+   BEGIN
+       board(pp) := 2;
+       blue_turn := TRUE
+   END;
+
+   result <-- GameResult =
+   BEGIN
+       VAR b0, b1, b2, b3, b4, b5, b6, b7, b8,ret IN
+           b0 := board(0);
+           b1 := board(1);
+           b2 := board(2);
+           b3 := board(3);
+           b4 := board(4);
+           b5 := board(5);
+           b6 := board(6);
+           b7 := board(7);
+           b8 := board(8);
+           
+           /* Verifying the first player */
+           IF (b0 = 1 & b1 = 1 & b2 = 1) or
+               (b3 = 1 & b4 = 1 & b5 = 1) or
+               (b6 = 1 & b7 = 1 & b8 = 1) or
+               (b0 = 1 & b3 = 1 & b6 = 1) or
+               (b1 = 1 & b4 = 1 & b7 = 1) or
+               (b2 = 1 & b5 = 1 & b8 = 1) or
+               (b0 = 1 & b4 = 1 & b8 = 1) or
+               (b6 = 1 & b4 = 1 & b2 = 1)
+           THEN
+               ret:= 1;
+               result := ret//blue_win //1
+           ELSIF (b0 = 2 & b1 = 2 & b2 = 2) or
+               (b3 = 2 & b4 = 2 & b5 = 2) or
+               (b6 = 2 & b7 = 2 & b8 = 2) or
+               (b0 = 2 & b3 = 2 & b6 = 2) or
+               (b1 = 2 & b4 = 2 & b7 = 2) or
+               (b2 = 2 & b5 = 2 & b8 = 2) or
+               (b0 = 2 & b4 = 2 & b8 = 2) or
+               (b6 = 2 & b4 = 2 & b2 = 2)
+           THEN
+               ret:= 2;
+                result := ret//red_win //2
+           ELSE
+               ret:= 0;
+               result := ret//draw //0
+           END
+        END
+   END
+
+
+END

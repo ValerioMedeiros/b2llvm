@@ -5,17 +5,29 @@ DEFINITIONS SET_PREF_MAXINT == 5; SET_PREF_MAX_OPERATIONS == 30
 
 OPERATIONS
    qq, rr <-- div(aa, bb) = 
-	/* PRE	aa : NAT & b : NAT1 */
-	BEGIN	
-		rr := aa;
-		qq := 0;
-		WHILE 		rr >= bb
-		DO		qq := qq+1;
-				rr := rr-bb
-		INVARIANT	rr : NAT & 
-				qq : NAT &
-				rr+(qq*bb) = aa
-		VARIANT		rr
-		END
-	END	
+   VAR qq_Ret, rr_Ret IN
+    	 // PRE	aa : NAT & b : NAT1 
+    	BEGIN	
+    		rr_Ret := aa;
+    		qq_Ret := 0;
+    		WHILE 		rr_Ret >= bb
+    		DO		qq_Ret := qq_Ret+1;
+    				rr_Ret := rr_Ret-bb
+    		INVARIANT	rr_Ret : NAT & 
+    				qq_Ret : NAT &
+    				rr_Ret+(qq_Ret*bb) = aa
+    		VARIANT		rr_Ret
+    		END
+    	END;
+       qq := qq_Ret;
+       rr := rr_Ret
+	END
+
+	/*qq, rr <-- div(aa, bb) = 
+	IF	aa < 10 & aa >0 & bb < 10 & bb >1
+	THEN	
+	    qq:= aa/bb;
+	    rr := aa mod bb
+	END*/	
+
 END

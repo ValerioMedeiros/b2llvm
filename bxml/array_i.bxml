@@ -11,12 +11,6 @@
 </Binary_Expression>
 </Unary_Expression>
 </TypeInfo>
-<B0Type>
-<Binary_Expression operator='--&gt;'>
-<Identifier value='INTEGER' />
-<Identifier value='INTEGER' />
-</Binary_Expression>
-</B0Type>
 </Attributes>
 </Identifier>
 <Identifier value='arr2d'>
@@ -32,15 +26,6 @@
 </Binary_Expression>
 </Unary_Expression>
 </TypeInfo>
-<B0Type>
-<Binary_Expression operator='--&gt;'>
-<Binary_Expression operator='*'>
-<Identifier value='INTEGER' />
-<Identifier value='INTEGER' />
-</Binary_Expression>
-<Identifier value='INTEGER' />
-</Binary_Expression>
-</B0Type>
 </Attributes>
 </Identifier>
 <Identifier value='arr_n'>
@@ -56,15 +41,6 @@
 </Binary_Expression>
 </Unary_Expression>
 </TypeInfo>
-<B0Type>
-<Binary_Expression operator='--&gt;'>
-<Binary_Expression operator='*'>
-<Identifier value='INTEGER' />
-<Identifier value='INTEGER' />
-</Binary_Expression>
-<Identifier value='INTEGER' />
-</Binary_Expression>
-</B0Type>
 </Attributes>
 </Identifier>
 <Identifier value='tmp'>
@@ -77,12 +53,6 @@
 </Binary_Expression>
 </Unary_Expression>
 </TypeInfo>
-<B0Type>
-<Binary_Expression operator='--&gt;'>
-<Identifier value='INTEGER' />
-<Identifier value='INTEGER' />
-</Binary_Expression>
-</B0Type>
 </Attributes>
 </Identifier>
 <Identifier value='short_array'>
@@ -95,12 +65,24 @@
 </Binary_Expression>
 </Unary_Expression>
 </TypeInfo>
-<B0Type>
-<Binary_Expression operator='--&gt;'>
+</Attributes>
+</Identifier>
+<Identifier value='a3d'>
+<Attributes>
+<TypeInfo>
+<Unary_Expression operator='POW'>
+<Binary_Expression operator='*'>
+<Binary_Expression operator='*'>
+<Binary_Expression operator='*'>
 <Identifier value='INTEGER' />
 <Identifier value='INTEGER' />
 </Binary_Expression>
-</B0Type>
+<Identifier value='INTEGER' />
+</Binary_Expression>
+<Identifier value='INTEGER' />
+</Binary_Expression>
+</Unary_Expression>
+</TypeInfo>
 </Attributes>
 </Identifier>
 </Concrete_Variables>
@@ -117,12 +99,6 @@
 </Binary_Expression>
 </Unary_Expression>
 </TypeInfo>
-<B0Type>
-<Binary_Expression operator='--&gt;'>
-<Identifier value='INTEGER' />
-<Identifier value='INTEGER' />
-</Binary_Expression>
-</B0Type>
 </Attributes>
 </Identifier>
 <Binary_Expression operator='--&gt;'>
@@ -200,15 +176,6 @@
 </Binary_Expression>
 </Unary_Expression>
 </TypeInfo>
-<B0Type>
-<Binary_Expression operator='--&gt;'>
-<Binary_Expression operator='*'>
-<Identifier value='INTEGER' />
-<Identifier value='INTEGER' />
-</Binary_Expression>
-<Identifier value='INTEGER' />
-</Binary_Expression>
-</B0Type>
 </Attributes>
 </Identifier>
 <Binary_Expression operator='--&gt;'>
@@ -321,12 +288,6 @@
 </Binary_Expression>
 </Unary_Expression>
 </TypeInfo>
-<B0Type>
-<Binary_Expression operator='--&gt;'>
-<Identifier value='INTEGER' />
-<Identifier value='INTEGER' />
-</Binary_Expression>
-</B0Type>
 </Attributes>
 </Identifier>
 <Binary_Expression operator='--&gt;'>
@@ -401,12 +362,6 @@
 </Binary_Expression>
 </Unary_Expression>
 </TypeInfo>
-<B0Type>
-<Binary_Expression operator='--&gt;'>
-<Identifier value='INTEGER' />
-<Identifier value='INTEGER' />
-</Binary_Expression>
-</B0Type>
 </Attributes>
 </Identifier>
 <Binary_Expression operator='--&gt;'>
@@ -484,15 +439,6 @@
 </Binary_Expression>
 </Unary_Expression>
 </TypeInfo>
-<B0Type>
-<Binary_Expression operator='--&gt;'>
-<Binary_Expression operator='*'>
-<Identifier value='INTEGER' />
-<Identifier value='INTEGER' />
-</Binary_Expression>
-<Identifier value='INTEGER' />
-</Binary_Expression>
-</B0Type>
 </Attributes>
 </Identifier>
 <Binary_Expression operator='--&gt;'>
@@ -594,32 +540,58 @@
 </Binary_Expression>
 </Binary_Expression>
 </Expression_Comparison>
-</Nary_Predicate>
-</Invariant>
-<Initialisation>
-<Nary_Substitution operator=';'>
-<Assignement_Substitution>
-<Variables>
-<Identifier value='arr'>
+<Expression_Comparison operator=':'>
+<Identifier value='a3d'>
 <Attributes>
 <TypeInfo>
 <Unary_Expression operator='POW'>
 <Binary_Expression operator='*'>
+<Binary_Expression operator='*'>
+<Binary_Expression operator='*'>
 <Identifier value='INTEGER' />
+<Identifier value='INTEGER' />
+</Binary_Expression>
+<Identifier value='INTEGER' />
+</Binary_Expression>
 <Identifier value='INTEGER' />
 </Binary_Expression>
 </Unary_Expression>
 </TypeInfo>
-<B0Type>
+</Attributes>
+</Identifier>
 <Binary_Expression operator='--&gt;'>
+<Attributes>
+<TypeInfo>
+<Unary_Expression operator='POW'>
+<Unary_Expression operator='POW'>
+<Binary_Expression operator='*'>
+<Binary_Expression operator='*'>
+<Binary_Expression operator='*'>
 <Identifier value='INTEGER' />
 <Identifier value='INTEGER' />
 </Binary_Expression>
-</B0Type>
+<Identifier value='INTEGER' />
+</Binary_Expression>
+<Identifier value='INTEGER' />
+</Binary_Expression>
+</Unary_Expression>
+</Unary_Expression>
+</TypeInfo>
 </Attributes>
-</Identifier>
-</Variables>
-<Values>
+<Binary_Expression operator='*'>
+<Attributes>
+<TypeInfo>
+<Unary_Expression operator='POW'>
+<Binary_Expression operator='*'>
+<Binary_Expression operator='*'>
+<Identifier value='INTEGER' />
+<Identifier value='INTEGER' />
+</Binary_Expression>
+<Identifier value='INTEGER' />
+</Binary_Expression>
+</Unary_Expression>
+</TypeInfo>
+</Attributes>
 <Binary_Expression operator='*'>
 <Attributes>
 <TypeInfo>
@@ -646,7 +618,7 @@
 </TypeInfo>
 </Attributes>
 </Integer_Literal>
-<Integer_Literal value='99'>
+<Integer_Literal value='1'>
 <Attributes>
 <TypeInfo>
 <Identifier value='INTEGER' />
@@ -654,7 +626,7 @@
 </Attributes>
 </Integer_Literal>
 </Binary_Expression>
-<Unary_Expression operator='{'>
+<Binary_Expression operator='..'>
 <Attributes>
 <TypeInfo>
 <Unary_Expression operator='POW'>
@@ -662,15 +634,171 @@
 </Unary_Expression>
 </TypeInfo>
 </Attributes>
-<Integer_Literal value='5'>
+<Integer_Literal value='0'>
 <Attributes>
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
 </Attributes>
 </Integer_Literal>
-</Unary_Expression>
+<Integer_Literal value='1'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
 </Binary_Expression>
+</Binary_Expression>
+<Binary_Expression operator='..'>
+<Attributes>
+<TypeInfo>
+<Unary_Expression operator='POW'>
+<Identifier value='INTEGER' />
+</Unary_Expression>
+</TypeInfo>
+</Attributes>
+<Integer_Literal value='0'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+<Integer_Literal value='3'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Binary_Expression>
+</Binary_Expression>
+<Binary_Expression operator='..'>
+<Attributes>
+<TypeInfo>
+<Unary_Expression operator='POW'>
+<Identifier value='INTEGER' />
+</Unary_Expression>
+</TypeInfo>
+</Attributes>
+<Integer_Literal value='0'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+<Integer_Literal value='1000'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Binary_Expression>
+</Binary_Expression>
+</Expression_Comparison>
+<Expression_Comparison operator='='>
+<Binary_Expression operator='('>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+<Identifier value='a3d'>
+<Attributes>
+<TypeInfo>
+<Unary_Expression operator='POW'>
+<Binary_Expression operator='*'>
+<Binary_Expression operator='*'>
+<Binary_Expression operator='*'>
+<Identifier value='INTEGER' />
+<Identifier value='INTEGER' />
+</Binary_Expression>
+<Identifier value='INTEGER' />
+</Binary_Expression>
+<Identifier value='INTEGER' />
+</Binary_Expression>
+</Unary_Expression>
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Binary_Expression operator=','>
+<Binary_Expression operator=','>
+<Integer_Literal value='0'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+<Integer_Literal value='0'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Binary_Expression>
+<Integer_Literal value='1'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Binary_Expression>
+</Binary_Expression>
+<Integer_Literal value='2'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Expression_Comparison>
+</Nary_Predicate>
+</Invariant>
+<Initialisation>
+<Nary_Substitution operator=';'>
+<Assignement_Substitution>
+<Variables>
+<Binary_Expression operator='('>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+<Identifier value='arr'>
+<Attributes>
+<TypeInfo>
+<Unary_Expression operator='POW'>
+<Binary_Expression operator='*'>
+<Identifier value='INTEGER' />
+<Identifier value='INTEGER' />
+</Binary_Expression>
+</Unary_Expression>
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Integer_Literal value='1'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Binary_Expression>
+</Variables>
+<Values>
+<Integer_Literal value='1'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
 </Values>
 </Assignement_Substitution>
 <Assignement_Substitution>
@@ -685,12 +813,6 @@
 </Binary_Expression>
 </Unary_Expression>
 </TypeInfo>
-<B0Type>
-<Binary_Expression operator='--&gt;'>
-<Identifier value='INTEGER' />
-<Identifier value='INTEGER' />
-</Binary_Expression>
-</B0Type>
 </Attributes>
 </Identifier>
 </Variables>
@@ -705,18 +827,18 @@
 </Binary_Expression>
 </Unary_Expression>
 </TypeInfo>
-<B0Type>
-<Binary_Expression operator='--&gt;'>
-<Identifier value='INTEGER' />
-<Identifier value='INTEGER' />
-</Binary_Expression>
-</B0Type>
 </Attributes>
 </Identifier>
 </Values>
 </Assignement_Substitution>
 <Assignement_Substitution>
 <Variables>
+<Binary_Expression operator='('>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
 <Identifier value='short_array'>
 <Attributes>
 <TypeInfo>
@@ -727,62 +849,8 @@
 </Binary_Expression>
 </Unary_Expression>
 </TypeInfo>
-<B0Type>
-<Binary_Expression operator='--&gt;'>
-<Identifier value='INTEGER' />
-<Identifier value='INTEGER' />
-</Binary_Expression>
-</B0Type>
 </Attributes>
 </Identifier>
-</Variables>
-<Values>
-<Unary_Expression operator='{'>
-<Attributes>
-<TypeInfo>
-<Unary_Expression operator='POW'>
-<Binary_Expression operator='*'>
-<Identifier value='INTEGER' />
-<Identifier value='INTEGER' />
-</Binary_Expression>
-</Unary_Expression>
-</TypeInfo>
-</Attributes>
-<Binary_Expression operator=','>
-<Binary_Expression operator='|-&gt;'>
-<Attributes>
-<TypeInfo>
-<Binary_Expression operator='*'>
-<Identifier value='INTEGER' />
-<Identifier value='INTEGER' />
-</Binary_Expression>
-</TypeInfo>
-</Attributes>
-<Integer_Literal value='0'>
-<Attributes>
-<TypeInfo>
-<Identifier value='INTEGER' />
-</TypeInfo>
-</Attributes>
-</Integer_Literal>
-<Integer_Literal value='99'>
-<Attributes>
-<TypeInfo>
-<Identifier value='INTEGER' />
-</TypeInfo>
-</Attributes>
-</Integer_Literal>
-</Binary_Expression>
-<Binary_Expression operator=','>
-<Binary_Expression operator='|-&gt;'>
-<Attributes>
-<TypeInfo>
-<Binary_Expression operator='*'>
-<Identifier value='INTEGER' />
-<Identifier value='INTEGER' />
-</Binary_Expression>
-</TypeInfo>
-</Attributes>
 <Integer_Literal value='1'>
 <Attributes>
 <TypeInfo>
@@ -790,116 +858,16 @@
 </TypeInfo>
 </Attributes>
 </Integer_Literal>
-<Integer_Literal value='100'>
-<Attributes>
-<TypeInfo>
-<Identifier value='INTEGER' />
-</TypeInfo>
-</Attributes>
-</Integer_Literal>
 </Binary_Expression>
-<Binary_Expression operator='|-&gt;'>
-<Attributes>
-<TypeInfo>
-<Binary_Expression operator='*'>
-<Identifier value='INTEGER' />
-<Identifier value='INTEGER' />
-</Binary_Expression>
-</TypeInfo>
-</Attributes>
-<Integer_Literal value='2'>
-<Attributes>
-<TypeInfo>
-<Identifier value='INTEGER' />
-</TypeInfo>
-</Attributes>
-</Integer_Literal>
-<Integer_Literal value='101'>
-<Attributes>
-<TypeInfo>
-<Identifier value='INTEGER' />
-</TypeInfo>
-</Attributes>
-</Integer_Literal>
-</Binary_Expression>
-</Binary_Expression>
-</Binary_Expression>
-</Unary_Expression>
-</Values>
-</Assignement_Substitution>
-<Assignement_Substitution>
-<Variables>
-<Identifier value='short_array'>
-<Attributes>
-<TypeInfo>
-<Unary_Expression operator='POW'>
-<Binary_Expression operator='*'>
-<Identifier value='INTEGER' />
-<Identifier value='INTEGER' />
-</Binary_Expression>
-</Unary_Expression>
-</TypeInfo>
-<B0Type>
-<Binary_Expression operator='--&gt;'>
-<Identifier value='INTEGER' />
-<Identifier value='INTEGER' />
-</Binary_Expression>
-</B0Type>
-</Attributes>
-</Identifier>
 </Variables>
 <Values>
-<Binary_Expression operator='*'>
-<Attributes>
-<TypeInfo>
-<Unary_Expression operator='POW'>
-<Binary_Expression operator='*'>
-<Identifier value='INTEGER' />
-<Identifier value='INTEGER' />
-</Binary_Expression>
-</Unary_Expression>
-</TypeInfo>
-</Attributes>
-<Binary_Expression operator='..'>
-<Attributes>
-<TypeInfo>
-<Unary_Expression operator='POW'>
-<Identifier value='INTEGER' />
-</Unary_Expression>
-</TypeInfo>
-</Attributes>
-<Integer_Literal value='0'>
+<Integer_Literal value='1'>
 <Attributes>
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
 </Attributes>
 </Integer_Literal>
-<Integer_Literal value='2'>
-<Attributes>
-<TypeInfo>
-<Identifier value='INTEGER' />
-</TypeInfo>
-</Attributes>
-</Integer_Literal>
-</Binary_Expression>
-<Unary_Expression operator='{'>
-<Attributes>
-<TypeInfo>
-<Unary_Expression operator='POW'>
-<Identifier value='INTEGER' />
-</Unary_Expression>
-</TypeInfo>
-</Attributes>
-<Integer_Literal value='5'>
-<Attributes>
-<TypeInfo>
-<Identifier value='INTEGER' />
-</TypeInfo>
-</Attributes>
-</Integer_Literal>
-</Unary_Expression>
-</Binary_Expression>
 </Values>
 </Assignement_Substitution>
 <Assignement_Substitution>
@@ -923,15 +891,6 @@
 </Binary_Expression>
 </Unary_Expression>
 </TypeInfo>
-<B0Type>
-<Binary_Expression operator='--&gt;'>
-<Binary_Expression operator='*'>
-<Identifier value='INTEGER' />
-<Identifier value='INTEGER' />
-</Binary_Expression>
-<Identifier value='INTEGER' />
-</Binary_Expression>
-</B0Type>
 </Attributes>
 </Identifier>
 <Binary_Expression operator=','>
@@ -983,15 +942,6 @@
 </Binary_Expression>
 </Unary_Expression>
 </TypeInfo>
-<B0Type>
-<Binary_Expression operator='--&gt;'>
-<Binary_Expression operator='*'>
-<Identifier value='INTEGER' />
-<Identifier value='INTEGER' />
-</Binary_Expression>
-<Identifier value='INTEGER' />
-</Binary_Expression>
-</B0Type>
 </Attributes>
 </Identifier>
 <Binary_Expression operator=','>
@@ -1030,38 +980,26 @@
 <Identifier value='INTEGER' />
 </TypeInfo>
 </Attributes>
-<Identifier value='arr2d'>
+<Identifier value='a3d'>
 <Attributes>
 <TypeInfo>
 <Unary_Expression operator='POW'>
 <Binary_Expression operator='*'>
 <Binary_Expression operator='*'>
+<Binary_Expression operator='*'>
 <Identifier value='INTEGER' />
+<Identifier value='INTEGER' />
+</Binary_Expression>
 <Identifier value='INTEGER' />
 </Binary_Expression>
 <Identifier value='INTEGER' />
 </Binary_Expression>
 </Unary_Expression>
 </TypeInfo>
-<B0Type>
-<Binary_Expression operator='--&gt;'>
-<Binary_Expression operator='*'>
-<Identifier value='INTEGER' />
-<Identifier value='INTEGER' />
-</Binary_Expression>
-<Identifier value='INTEGER' />
-</Binary_Expression>
-</B0Type>
 </Attributes>
 </Identifier>
 <Binary_Expression operator=','>
-<Integer_Literal value='0'>
-<Attributes>
-<TypeInfo>
-<Identifier value='INTEGER' />
-</TypeInfo>
-</Attributes>
-</Integer_Literal>
+<Binary_Expression operator=','>
 <Integer_Literal value='1'>
 <Attributes>
 <TypeInfo>
@@ -1069,136 +1007,32 @@
 </TypeInfo>
 </Attributes>
 </Integer_Literal>
+<Integer_Literal value='2'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Binary_Expression>
+<Integer_Literal value='3'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
 </Binary_Expression>
 </Binary_Expression>
 </Variables>
 <Values>
-<Integer_Literal value='100'>
+<Integer_Literal value='1'>
 <Attributes>
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
 </Attributes>
 </Integer_Literal>
-</Values>
-</Assignement_Substitution>
-<Assignement_Substitution>
-<Variables>
-<Identifier value='arr2d'>
-<Attributes>
-<TypeInfo>
-<Unary_Expression operator='POW'>
-<Binary_Expression operator='*'>
-<Binary_Expression operator='*'>
-<Identifier value='INTEGER' />
-<Identifier value='INTEGER' />
-</Binary_Expression>
-<Identifier value='INTEGER' />
-</Binary_Expression>
-</Unary_Expression>
-</TypeInfo>
-<B0Type>
-<Binary_Expression operator='--&gt;'>
-<Binary_Expression operator='*'>
-<Identifier value='INTEGER' />
-<Identifier value='INTEGER' />
-</Binary_Expression>
-<Identifier value='INTEGER' />
-</Binary_Expression>
-</B0Type>
-</Attributes>
-</Identifier>
-</Variables>
-<Values>
-<Binary_Expression operator='*'>
-<Attributes>
-<TypeInfo>
-<Unary_Expression operator='POW'>
-<Binary_Expression operator='*'>
-<Binary_Expression operator='*'>
-<Identifier value='INTEGER' />
-<Identifier value='INTEGER' />
-</Binary_Expression>
-<Identifier value='INTEGER' />
-</Binary_Expression>
-</Unary_Expression>
-</TypeInfo>
-</Attributes>
-<Binary_Expression operator='*'>
-<Attributes>
-<TypeInfo>
-<Unary_Expression operator='POW'>
-<Binary_Expression operator='*'>
-<Identifier value='INTEGER' />
-<Identifier value='INTEGER' />
-</Binary_Expression>
-</Unary_Expression>
-</TypeInfo>
-</Attributes>
-<Binary_Expression operator='..'>
-<Attributes>
-<TypeInfo>
-<Unary_Expression operator='POW'>
-<Identifier value='INTEGER' />
-</Unary_Expression>
-</TypeInfo>
-</Attributes>
-<Integer_Literal value='0'>
-<Attributes>
-<TypeInfo>
-<Identifier value='INTEGER' />
-</TypeInfo>
-</Attributes>
-</Integer_Literal>
-<Integer_Literal value='99'>
-<Attributes>
-<TypeInfo>
-<Identifier value='INTEGER' />
-</TypeInfo>
-</Attributes>
-</Integer_Literal>
-</Binary_Expression>
-<Binary_Expression operator='..'>
-<Attributes>
-<TypeInfo>
-<Unary_Expression operator='POW'>
-<Identifier value='INTEGER' />
-</Unary_Expression>
-</TypeInfo>
-</Attributes>
-<Integer_Literal value='0'>
-<Attributes>
-<TypeInfo>
-<Identifier value='INTEGER' />
-</TypeInfo>
-</Attributes>
-</Integer_Literal>
-<Integer_Literal value='99'>
-<Attributes>
-<TypeInfo>
-<Identifier value='INTEGER' />
-</TypeInfo>
-</Attributes>
-</Integer_Literal>
-</Binary_Expression>
-</Binary_Expression>
-<Unary_Expression operator='{'>
-<Attributes>
-<TypeInfo>
-<Unary_Expression operator='POW'>
-<Identifier value='INTEGER' />
-</Unary_Expression>
-</TypeInfo>
-</Attributes>
-<Integer_Literal value='0'>
-<Attributes>
-<TypeInfo>
-<Identifier value='INTEGER' />
-</TypeInfo>
-</Attributes>
-</Integer_Literal>
-</Unary_Expression>
-</Binary_Expression>
 </Values>
 </Assignement_Substitution>
 </Nary_Substitution>
@@ -1211,9 +1045,6 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
 </Attributes>
 </Identifier>
 <Identifier value='tt'>
@@ -1221,148 +1052,11 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
 </Attributes>
 </Identifier>
 </Input_Parameters>
 <Body>
-<If_Substitution elseif='no'>
-<Condition>
-<Nary_Predicate operator='&amp;'>
-<Expression_Comparison operator='&gt;='>
-<Identifier value='ix'>
-<Attributes>
-<TypeInfo>
-<Identifier value='INTEGER' />
-</TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
-</Attributes>
-</Identifier>
-<Integer_Literal value='0'>
-<Attributes>
-<TypeInfo>
-<Identifier value='INTEGER' />
-</TypeInfo>
-</Attributes>
-</Integer_Literal>
-</Expression_Comparison>
-<Expression_Comparison operator='&lt;='>
-<Identifier value='ix'>
-<Attributes>
-<TypeInfo>
-<Identifier value='INTEGER' />
-</TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
-</Attributes>
-</Identifier>
-<Integer_Literal value='99'>
-<Attributes>
-<TypeInfo>
-<Identifier value='INTEGER' />
-</TypeInfo>
-</Attributes>
-</Integer_Literal>
-</Expression_Comparison>
-<Expression_Comparison operator='&gt;='>
-<Identifier value='tt'>
-<Attributes>
-<TypeInfo>
-<Identifier value='INTEGER' />
-</TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
-</Attributes>
-</Identifier>
-<Integer_Literal value='0'>
-<Attributes>
-<TypeInfo>
-<Identifier value='INTEGER' />
-</TypeInfo>
-</Attributes>
-</Integer_Literal>
-</Expression_Comparison>
-<Expression_Comparison operator='&lt;='>
-<Identifier value='tt'>
-<Attributes>
-<TypeInfo>
-<Identifier value='INTEGER' />
-</TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
-</Attributes>
-</Identifier>
-<Integer_Literal value='1000'>
-<Attributes>
-<TypeInfo>
-<Identifier value='INTEGER' />
-</TypeInfo>
-</Attributes>
-</Integer_Literal>
-</Expression_Comparison>
-</Nary_Predicate>
-</Condition>
-<Then>
-<Assignement_Substitution>
-<Variables>
-<Binary_Expression operator='('>
-<Attributes>
-<TypeInfo>
-<Identifier value='INTEGER' />
-</TypeInfo>
-</Attributes>
-<Identifier value='arr'>
-<Attributes>
-<TypeInfo>
-<Unary_Expression operator='POW'>
-<Binary_Expression operator='*'>
-<Identifier value='INTEGER' />
-<Identifier value='INTEGER' />
-</Binary_Expression>
-</Unary_Expression>
-</TypeInfo>
-<B0Type>
-<Binary_Expression operator='--&gt;'>
-<Identifier value='INTEGER' />
-<Identifier value='INTEGER' />
-</Binary_Expression>
-</B0Type>
-</Attributes>
-</Identifier>
-<Identifier value='ix'>
-<Attributes>
-<TypeInfo>
-<Identifier value='INTEGER' />
-</TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
-</Attributes>
-</Identifier>
-</Binary_Expression>
-</Variables>
-<Values>
-<Identifier value='tt'>
-<Attributes>
-<TypeInfo>
-<Identifier value='INTEGER' />
-</TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
-</Attributes>
-</Identifier>
-</Values>
-</Assignement_Substitution>
-</Then>
-</If_Substitution>
+<Skip />
 </Body>
 </Operation>
 <Operation name='read'>
@@ -1372,9 +1066,6 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
 </Attributes>
 </Identifier>
 </Output_Parameters>
@@ -1384,57 +1075,10 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
 </Attributes>
 </Identifier>
 </Input_Parameters>
 <Body>
-<If_Substitution elseif='no'>
-<Condition>
-<Nary_Predicate operator='&amp;'>
-<Expression_Comparison operator='&gt;='>
-<Identifier value='ix'>
-<Attributes>
-<TypeInfo>
-<Identifier value='INTEGER' />
-</TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
-</Attributes>
-</Identifier>
-<Integer_Literal value='0'>
-<Attributes>
-<TypeInfo>
-<Identifier value='INTEGER' />
-</TypeInfo>
-</Attributes>
-</Integer_Literal>
-</Expression_Comparison>
-<Expression_Comparison operator='&lt;='>
-<Identifier value='ix'>
-<Attributes>
-<TypeInfo>
-<Identifier value='INTEGER' />
-</TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
-</Attributes>
-</Identifier>
-<Integer_Literal value='99'>
-<Attributes>
-<TypeInfo>
-<Identifier value='INTEGER' />
-</TypeInfo>
-</Attributes>
-</Integer_Literal>
-</Expression_Comparison>
-</Nary_Predicate>
-</Condition>
-<Then>
 <Assignement_Substitution>
 <Variables>
 <Identifier value='tt'>
@@ -1442,67 +1086,11 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
 </Attributes>
 </Identifier>
 </Variables>
 <Values>
-<Binary_Expression operator='('>
-<Attributes>
-<TypeInfo>
-<Identifier value='INTEGER' />
-</TypeInfo>
-</Attributes>
-<Identifier value='arr'>
-<Attributes>
-<TypeInfo>
-<Unary_Expression operator='POW'>
-<Binary_Expression operator='*'>
-<Identifier value='INTEGER' />
-<Identifier value='INTEGER' />
-</Binary_Expression>
-</Unary_Expression>
-</TypeInfo>
-<B0Type>
-<Binary_Expression operator='--&gt;'>
-<Identifier value='INTEGER' />
-<Identifier value='INTEGER' />
-</Binary_Expression>
-</B0Type>
-</Attributes>
-</Identifier>
-<Identifier value='ix'>
-<Attributes>
-<TypeInfo>
-<Identifier value='INTEGER' />
-</TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
-</Attributes>
-</Identifier>
-</Binary_Expression>
-</Values>
-</Assignement_Substitution>
-</Then>
-<Else>
-<Assignement_Substitution>
-<Variables>
-<Identifier value='tt'>
-<Attributes>
-<TypeInfo>
-<Identifier value='INTEGER' />
-</TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
-</Attributes>
-</Identifier>
-</Variables>
-<Values>
-<Integer_Literal value='0'>
+<Integer_Literal value='1'>
 <Attributes>
 <TypeInfo>
 <Identifier value='INTEGER' />
@@ -1511,8 +1099,6 @@
 </Integer_Literal>
 </Values>
 </Assignement_Substitution>
-</Else>
-</If_Substitution>
 </Body>
 </Operation>
 <Operation name='swap'>
@@ -1522,9 +1108,6 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
 </Attributes>
 </Identifier>
 <Identifier value='jx'>
@@ -1532,293 +1115,11 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
 </Attributes>
 </Identifier>
 </Input_Parameters>
 <Body>
-<If_Substitution elseif='no'>
-<Condition>
-<Nary_Predicate operator='&amp;'>
-<Expression_Comparison operator='&gt;='>
-<Identifier value='ix'>
-<Attributes>
-<TypeInfo>
-<Identifier value='INTEGER' />
-</TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
-</Attributes>
-</Identifier>
-<Integer_Literal value='0'>
-<Attributes>
-<TypeInfo>
-<Identifier value='INTEGER' />
-</TypeInfo>
-</Attributes>
-</Integer_Literal>
-</Expression_Comparison>
-<Expression_Comparison operator='&lt;='>
-<Identifier value='ix'>
-<Attributes>
-<TypeInfo>
-<Identifier value='INTEGER' />
-</TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
-</Attributes>
-</Identifier>
-<Integer_Literal value='99'>
-<Attributes>
-<TypeInfo>
-<Identifier value='INTEGER' />
-</TypeInfo>
-</Attributes>
-</Integer_Literal>
-</Expression_Comparison>
-<Expression_Comparison operator='&gt;='>
-<Identifier value='jx'>
-<Attributes>
-<TypeInfo>
-<Identifier value='INTEGER' />
-</TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
-</Attributes>
-</Identifier>
-<Integer_Literal value='0'>
-<Attributes>
-<TypeInfo>
-<Identifier value='INTEGER' />
-</TypeInfo>
-</Attributes>
-</Integer_Literal>
-</Expression_Comparison>
-<Expression_Comparison operator='&lt;='>
-<Identifier value='jx'>
-<Attributes>
-<TypeInfo>
-<Identifier value='INTEGER' />
-</TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
-</Attributes>
-</Identifier>
-<Integer_Literal value='99'>
-<Attributes>
-<TypeInfo>
-<Identifier value='INTEGER' />
-</TypeInfo>
-</Attributes>
-</Integer_Literal>
-</Expression_Comparison>
-</Nary_Predicate>
-</Condition>
-<Then>
-<VAR_IN>
-<Variables>
-<Identifier value='temp'>
-<Attributes>
-<TypeInfo>
-<Identifier value='INTEGER' />
-</TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
-</Attributes>
-</Identifier>
-</Variables>
-<Body>
-<Nary_Substitution operator=';'>
-<Assignement_Substitution>
-<Variables>
-<Identifier value='temp'>
-<Attributes>
-<TypeInfo>
-<Identifier value='INTEGER' />
-</TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
-</Attributes>
-</Identifier>
-</Variables>
-<Values>
-<Binary_Expression operator='('>
-<Attributes>
-<TypeInfo>
-<Identifier value='INTEGER' />
-</TypeInfo>
-</Attributes>
-<Identifier value='arr'>
-<Attributes>
-<TypeInfo>
-<Unary_Expression operator='POW'>
-<Binary_Expression operator='*'>
-<Identifier value='INTEGER' />
-<Identifier value='INTEGER' />
-</Binary_Expression>
-</Unary_Expression>
-</TypeInfo>
-<B0Type>
-<Binary_Expression operator='--&gt;'>
-<Identifier value='INTEGER' />
-<Identifier value='INTEGER' />
-</Binary_Expression>
-</B0Type>
-</Attributes>
-</Identifier>
-<Identifier value='jx'>
-<Attributes>
-<TypeInfo>
-<Identifier value='INTEGER' />
-</TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
-</Attributes>
-</Identifier>
-</Binary_Expression>
-</Values>
-</Assignement_Substitution>
-<Assignement_Substitution>
-<Variables>
-<Binary_Expression operator='('>
-<Attributes>
-<TypeInfo>
-<Identifier value='INTEGER' />
-</TypeInfo>
-</Attributes>
-<Identifier value='arr'>
-<Attributes>
-<TypeInfo>
-<Unary_Expression operator='POW'>
-<Binary_Expression operator='*'>
-<Identifier value='INTEGER' />
-<Identifier value='INTEGER' />
-</Binary_Expression>
-</Unary_Expression>
-</TypeInfo>
-<B0Type>
-<Binary_Expression operator='--&gt;'>
-<Identifier value='INTEGER' />
-<Identifier value='INTEGER' />
-</Binary_Expression>
-</B0Type>
-</Attributes>
-</Identifier>
-<Identifier value='jx'>
-<Attributes>
-<TypeInfo>
-<Identifier value='INTEGER' />
-</TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
-</Attributes>
-</Identifier>
-</Binary_Expression>
-</Variables>
-<Values>
-<Binary_Expression operator='('>
-<Attributes>
-<TypeInfo>
-<Identifier value='INTEGER' />
-</TypeInfo>
-</Attributes>
-<Identifier value='arr'>
-<Attributes>
-<TypeInfo>
-<Unary_Expression operator='POW'>
-<Binary_Expression operator='*'>
-<Identifier value='INTEGER' />
-<Identifier value='INTEGER' />
-</Binary_Expression>
-</Unary_Expression>
-</TypeInfo>
-<B0Type>
-<Binary_Expression operator='--&gt;'>
-<Identifier value='INTEGER' />
-<Identifier value='INTEGER' />
-</Binary_Expression>
-</B0Type>
-</Attributes>
-</Identifier>
-<Identifier value='ix'>
-<Attributes>
-<TypeInfo>
-<Identifier value='INTEGER' />
-</TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
-</Attributes>
-</Identifier>
-</Binary_Expression>
-</Values>
-</Assignement_Substitution>
-<Assignement_Substitution>
-<Variables>
-<Binary_Expression operator='('>
-<Attributes>
-<TypeInfo>
-<Identifier value='INTEGER' />
-</TypeInfo>
-</Attributes>
-<Identifier value='arr'>
-<Attributes>
-<TypeInfo>
-<Unary_Expression operator='POW'>
-<Binary_Expression operator='*'>
-<Identifier value='INTEGER' />
-<Identifier value='INTEGER' />
-</Binary_Expression>
-</Unary_Expression>
-</TypeInfo>
-<B0Type>
-<Binary_Expression operator='--&gt;'>
-<Identifier value='INTEGER' />
-<Identifier value='INTEGER' />
-</Binary_Expression>
-</B0Type>
-</Attributes>
-</Identifier>
-<Identifier value='ix'>
-<Attributes>
-<TypeInfo>
-<Identifier value='INTEGER' />
-</TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
-</Attributes>
-</Identifier>
-</Binary_Expression>
-</Variables>
-<Values>
-<Identifier value='temp'>
-<Attributes>
-<TypeInfo>
-<Identifier value='INTEGER' />
-</TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
-</Attributes>
-</Identifier>
-</Values>
-</Assignement_Substitution>
-</Nary_Substitution>
-</Body>
-</VAR_IN>
-</Then>
-</If_Substitution>
+<Skip />
 </Body>
 </Operation>
 <Operation name='set3'>
@@ -1828,9 +1129,6 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
 </Attributes>
 </Identifier>
 <Identifier value='ix2'>
@@ -1838,9 +1136,6 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
 </Attributes>
 </Identifier>
 <Identifier value='tt'>
@@ -1848,9 +1143,6 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
 </Attributes>
 </Identifier>
 </Input_Parameters>
@@ -1876,15 +1168,6 @@
 </Binary_Expression>
 </Unary_Expression>
 </TypeInfo>
-<B0Type>
-<Binary_Expression operator='--&gt;'>
-<Binary_Expression operator='*'>
-<Identifier value='INTEGER' />
-<Identifier value='INTEGER' />
-</Binary_Expression>
-<Identifier value='INTEGER' />
-</Binary_Expression>
-</B0Type>
 </Attributes>
 </Identifier>
 <Binary_Expression operator=','>
@@ -1893,9 +1176,6 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
 </Attributes>
 </Identifier>
 <Identifier value='ix2'>
@@ -1903,9 +1183,6 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
 </Attributes>
 </Identifier>
 </Binary_Expression>
@@ -1917,9 +1194,6 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
 </Attributes>
 </Identifier>
 </Values>
@@ -1933,9 +1207,6 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
 </Attributes>
 </Identifier>
 </Output_Parameters>
@@ -1945,9 +1216,6 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
 </Attributes>
 </Identifier>
 <Identifier value='ix2'>
@@ -1955,9 +1223,6 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
 </Attributes>
 </Identifier>
 </Input_Parameters>
@@ -1969,9 +1234,6 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
 </Attributes>
 </Identifier>
 </Variables>
@@ -1995,15 +1257,6 @@
 </Binary_Expression>
 </Unary_Expression>
 </TypeInfo>
-<B0Type>
-<Binary_Expression operator='--&gt;'>
-<Binary_Expression operator='*'>
-<Identifier value='INTEGER' />
-<Identifier value='INTEGER' />
-</Binary_Expression>
-<Identifier value='INTEGER' />
-</Binary_Expression>
-</B0Type>
 </Attributes>
 </Identifier>
 <Binary_Expression operator=','>
@@ -2012,9 +1265,6 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
 </Attributes>
 </Identifier>
 <Identifier value='ix2'>
@@ -2022,9 +1272,6 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
 </Attributes>
 </Identifier>
 </Binary_Expression>
@@ -2040,9 +1287,6 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
 </Attributes>
 </Identifier>
 <Identifier value='ix2'>
@@ -2050,9 +1294,6 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
 </Attributes>
 </Identifier>
 <Identifier value='ij1'>
@@ -2060,9 +1301,6 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
 </Attributes>
 </Identifier>
 <Identifier value='ij2'>
@@ -2070,281 +1308,11 @@
 <TypeInfo>
 <Identifier value='INTEGER' />
 </TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
 </Attributes>
 </Identifier>
 </Input_Parameters>
 <Body>
-<VAR_IN>
-<Variables>
-<Identifier value='arr_tmp'>
-<Attributes>
-<TypeInfo>
-<Identifier value='INTEGER' />
-</TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
-</Attributes>
-</Identifier>
-</Variables>
-<Body>
-<Nary_Substitution operator=';'>
-<Assignement_Substitution>
-<Variables>
-<Identifier value='arr_tmp'>
-<Attributes>
-<TypeInfo>
-<Identifier value='INTEGER' />
-</TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
-</Attributes>
-</Identifier>
-</Variables>
-<Values>
-<Binary_Expression operator='('>
-<Attributes>
-<TypeInfo>
-<Identifier value='INTEGER' />
-</TypeInfo>
-</Attributes>
-<Identifier value='arr2d'>
-<Attributes>
-<TypeInfo>
-<Unary_Expression operator='POW'>
-<Binary_Expression operator='*'>
-<Binary_Expression operator='*'>
-<Identifier value='INTEGER' />
-<Identifier value='INTEGER' />
-</Binary_Expression>
-<Identifier value='INTEGER' />
-</Binary_Expression>
-</Unary_Expression>
-</TypeInfo>
-<B0Type>
-<Binary_Expression operator='--&gt;'>
-<Binary_Expression operator='*'>
-<Identifier value='INTEGER' />
-<Identifier value='INTEGER' />
-</Binary_Expression>
-<Identifier value='INTEGER' />
-</Binary_Expression>
-</B0Type>
-</Attributes>
-</Identifier>
-<Binary_Expression operator=','>
-<Identifier value='ix1'>
-<Attributes>
-<TypeInfo>
-<Identifier value='INTEGER' />
-</TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
-</Attributes>
-</Identifier>
-<Identifier value='ix2'>
-<Attributes>
-<TypeInfo>
-<Identifier value='INTEGER' />
-</TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
-</Attributes>
-</Identifier>
-</Binary_Expression>
-</Binary_Expression>
-</Values>
-</Assignement_Substitution>
-<Assignement_Substitution>
-<Variables>
-<Binary_Expression operator='('>
-<Attributes>
-<TypeInfo>
-<Identifier value='INTEGER' />
-</TypeInfo>
-</Attributes>
-<Identifier value='arr2d'>
-<Attributes>
-<TypeInfo>
-<Unary_Expression operator='POW'>
-<Binary_Expression operator='*'>
-<Binary_Expression operator='*'>
-<Identifier value='INTEGER' />
-<Identifier value='INTEGER' />
-</Binary_Expression>
-<Identifier value='INTEGER' />
-</Binary_Expression>
-</Unary_Expression>
-</TypeInfo>
-<B0Type>
-<Binary_Expression operator='--&gt;'>
-<Binary_Expression operator='*'>
-<Identifier value='INTEGER' />
-<Identifier value='INTEGER' />
-</Binary_Expression>
-<Identifier value='INTEGER' />
-</Binary_Expression>
-</B0Type>
-</Attributes>
-</Identifier>
-<Binary_Expression operator=','>
-<Identifier value='ix1'>
-<Attributes>
-<TypeInfo>
-<Identifier value='INTEGER' />
-</TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
-</Attributes>
-</Identifier>
-<Identifier value='ix2'>
-<Attributes>
-<TypeInfo>
-<Identifier value='INTEGER' />
-</TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
-</Attributes>
-</Identifier>
-</Binary_Expression>
-</Binary_Expression>
-</Variables>
-<Values>
-<Binary_Expression operator='('>
-<Attributes>
-<TypeInfo>
-<Identifier value='INTEGER' />
-</TypeInfo>
-</Attributes>
-<Identifier value='arr2d'>
-<Attributes>
-<TypeInfo>
-<Unary_Expression operator='POW'>
-<Binary_Expression operator='*'>
-<Binary_Expression operator='*'>
-<Identifier value='INTEGER' />
-<Identifier value='INTEGER' />
-</Binary_Expression>
-<Identifier value='INTEGER' />
-</Binary_Expression>
-</Unary_Expression>
-</TypeInfo>
-<B0Type>
-<Binary_Expression operator='--&gt;'>
-<Binary_Expression operator='*'>
-<Identifier value='INTEGER' />
-<Identifier value='INTEGER' />
-</Binary_Expression>
-<Identifier value='INTEGER' />
-</Binary_Expression>
-</B0Type>
-</Attributes>
-</Identifier>
-<Binary_Expression operator=','>
-<Identifier value='ij1'>
-<Attributes>
-<TypeInfo>
-<Identifier value='INTEGER' />
-</TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
-</Attributes>
-</Identifier>
-<Identifier value='ij2'>
-<Attributes>
-<TypeInfo>
-<Identifier value='INTEGER' />
-</TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
-</Attributes>
-</Identifier>
-</Binary_Expression>
-</Binary_Expression>
-</Values>
-</Assignement_Substitution>
-<Assignement_Substitution>
-<Variables>
-<Binary_Expression operator='('>
-<Attributes>
-<TypeInfo>
-<Identifier value='INTEGER' />
-</TypeInfo>
-</Attributes>
-<Identifier value='arr2d'>
-<Attributes>
-<TypeInfo>
-<Unary_Expression operator='POW'>
-<Binary_Expression operator='*'>
-<Binary_Expression operator='*'>
-<Identifier value='INTEGER' />
-<Identifier value='INTEGER' />
-</Binary_Expression>
-<Identifier value='INTEGER' />
-</Binary_Expression>
-</Unary_Expression>
-</TypeInfo>
-<B0Type>
-<Binary_Expression operator='--&gt;'>
-<Binary_Expression operator='*'>
-<Identifier value='INTEGER' />
-<Identifier value='INTEGER' />
-</Binary_Expression>
-<Identifier value='INTEGER' />
-</Binary_Expression>
-</B0Type>
-</Attributes>
-</Identifier>
-<Binary_Expression operator=','>
-<Identifier value='ij1'>
-<Attributes>
-<TypeInfo>
-<Identifier value='INTEGER' />
-</TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
-</Attributes>
-</Identifier>
-<Identifier value='ij2'>
-<Attributes>
-<TypeInfo>
-<Identifier value='INTEGER' />
-</TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
-</Attributes>
-</Identifier>
-</Binary_Expression>
-</Binary_Expression>
-</Variables>
-<Values>
-<Identifier value='arr_tmp'>
-<Attributes>
-<TypeInfo>
-<Identifier value='INTEGER' />
-</TypeInfo>
-<B0Type>
-<Identifier value='INTEGER' />
-</B0Type>
-</Attributes>
-</Identifier>
-</Values>
-</Assignement_Substitution>
-</Nary_Substitution>
-</Body>
-</VAR_IN>
+<Skip />
 </Body>
 </Operation>
 </Operations>

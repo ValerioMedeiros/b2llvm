@@ -1,0 +1,12 @@
+;; -*- mode: asm -*-
+%Team2$state$ = type {[ 11 x i32]}
+%Team2$ref$ = type %Team2$state$*
+@$Team2 = common global %Team2$state$ zeroinitializer
+declare void @Team2$init$(%Team2$ref$)
+declare void @Team2$substitute(%Team2$ref$, i32, i32)
+declare void @Team2$in_team(%Team2$ref$, i32, i1*)
+define void @$init$() {
+entry:
+  call void @Team2$init$(%Team2$ref$ @$Team2)
+  ret void
+}

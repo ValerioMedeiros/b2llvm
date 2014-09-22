@@ -93,6 +93,7 @@ TRUE = make_boollit("TRUE")
 ZERO = make_intlit(0)
 ONE = make_intlit(1)
 MAXINT = make_intlit(2147483647)
+MININT = make_intlit(-2147483648)
 
 def make_sset(node):
     """Creates an AST node for a B simple set."""
@@ -101,6 +102,10 @@ def make_sset(node):
     elif (node.get("operator") == "*"):
         res = become_list(make_sset(node[0]))
         res += become_list(make_sset(node[1]))
+    elif (node.get("value") == "INT"):
+        res = make_interval(MININT.get("value"),MAXINT.get("value"))
+    elif (node.get("value") == "NAT"):
+        res = make_interval(ZERO.get("value"),MAXINT.get("value"))
     assert res != None
     return res
 
@@ -127,6 +132,20 @@ def make_array_item(base,indexes):
     """Creates an AST node for a B ArrayItem."""
     return { "base": base, "indexes": indexes, 
             "kind":"ArrayItem", "type": INTEGER} #TODO: change it support other typer different of INTEGER 
+def make_array(arg):
+    """Creates an AST node for a B Array."""
+    return {"kind": "seq_Map_Array", "arg": arg}
+#    if kind == "Map":
+#        return { "kind":"seq_Map_Array", "arg": arg}
+#    if kind == "Product":
+#        return {  "kind":"product_Array" , "arg": arg}
+#    if kind == "Name":
+#        return {"kind":"name_Array",  "arg": arg}
+
+def make_map(arg1,arg2):
+    """Creates an AST node for a B Map."""
+    return { "arg1": arg1, "arg2": arg2, 
+            "kind":"Map", "type": INTEGER} 
 
 ### COMPOSED EXPRESSIONS ###
 

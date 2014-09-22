@@ -1,50 +1,151 @@
 ;; -*- mode: asm -*-
+;;   file generated with b2llvm
+;;   B project settings: project.xml
+;;   B module: swap
+;;   B project directory: bxml
+;;   code generation mode: component
+;;   output file: swap.llvm
+;;   
+;;   This file contains LLVM code that implements B machine "swap".
+;;   It is registered as a developed machine.
+;;   The produced LLVM code is based on B implementation "swap_i".
+;;   
+;;1 The type encoding the state of "swap" is an aggregate and is defined as
+;;   (using implementation "swap_i"):
+;;1.1 Position "0" represents "v1".
+;;1.2 Position "1" represents "v2".
 %swap$state$ = type {i32, i32}
+;;2 The type for references to state encodings of "swap" is:
 %swap$ref$ = type %swap$state$*
+;;3 The function implementing initialisation for "swap" is "@swap$init$"
+;;   and has the following parameters:
+;;3.1 "%self$": address of LLVM aggregate storing state of "swap";
 define void @swap$init$(%swap$ref$ %self$) {
+;;3.2 The entry point of the initialisation is:
 entry:
+;;3.3 Execute substitutions in initialisation of "swap_i" then exits:
+;;3.3.1 Execute assignment "v1 := 0":
+;;3.3.1.1 Evaluate expression "0".
+;;3.3.1.1.1 An integer literal is represented as such in LLVM.
+;;         The evaluation of "0" is "0".
+;;3.3.1.2 Evaluate address for "v1".
+;;3.3.1.2.1 Variable "v1" is stored at position 0 of "%self$".
+;;           Let temporary %0 be the corresponding address:
   %0 = getelementptr %swap$ref$ %self$, i32 0, i32 0
+;;3.3.1.3 Store value at address to achieve assignment.
   store i32 0, i32* %0
+;;3.3.2 Execute assignment "v2 := 1":
+;;3.3.2.1 Evaluate expression "1".
+;;3.3.2.1.1 An integer literal is represented as such in LLVM.
+;;         The evaluation of "1" is "1".
+;;3.3.2.2 Evaluate address for "v2".
+;;3.3.2.2.1 Variable "v2" is stored at position 1 of "%self$".
+;;           Let temporary %1 be the corresponding address:
   %1 = getelementptr %swap$ref$ %self$, i32 0, i32 1
+;;3.3.2.3 Store value at address to achieve assignment.
   store i32 1, i32* %1
   br label %exit
+;;3.4 The exit point of the initialisation is:
 exit:
   ret void
 }
+;;4 The LLVM function implementing B operation "step" in "swap_i" follows.
 define void @swap$step(%swap$ref$ %self$) {
 entry:
+;;4.1 local variable declarations implemented as frame stack allocations
+;;4.1.1 frame stack allocation for variable tmp
   %tmp = alloca i32
+;;4.2 Execute assignment "tmp := v1":
+;;4.2.1 Evaluate expression "v1".
+;;4.2.1.1 State variable "v1" is stored at position "0" of "%self$".
+;;4.2.1.2 Let temporary "%0" be the corresponding address.
   %0 = getelementptr %swap$ref$ %self$, i32 0, i32 0
   %1 = load i32* %0
+;;       The evaluation of "v1" is "%1".
+;;4.2.2 Evaluate address for "tmp".
+;;4.2.2.1 "tmp" is stored in the frame stack and represented by "%tmp".
+;;4.2.3 Store value at address to achieve assignment.
   store i32 %1, i32* %tmp
+;;4.3 Execute assignment "v1 := v2":
+;;4.3.1 Evaluate expression "v2".
+;;4.3.1.1 State variable "v2" is stored at position "1" of "%self$".
+;;4.3.1.2 Let temporary "%2" be the corresponding address.
   %2 = getelementptr %swap$ref$ %self$, i32 0, i32 1
   %3 = load i32* %2
+;;       The evaluation of "v2" is "%3".
+;;4.3.2 Evaluate address for "v1".
+;;4.3.2.1 Variable "v1" is stored at position 0 of "%self$".
+;;         Let temporary %4 be the corresponding address:
   %4 = getelementptr %swap$ref$ %self$, i32 0, i32 0
+;;4.3.3 Store value at address to achieve assignment.
   store i32 %3, i32* %4
+;;4.4 Execute assignment "v2 := tmp":
+;;4.4.1 Evaluate expression "tmp".
+;;4.4.1.1 B local variable "tmp" is on the LLVM stack at address "%tmp".
+;;4.4.1.2 Temporary "%5" gets the contents from this position.
   %5 = load i32* %tmp
+;;       The evaluation of "tmp" is "%5".
+;;4.4.2 Evaluate address for "v2".
+;;4.4.2.1 Variable "v2" is stored at position 1 of "%self$".
+;;         Let temporary %6 be the corresponding address:
   %6 = getelementptr %swap$ref$ %self$, i32 0, i32 1
+;;4.4.3 Store value at address to achieve assignment.
   store i32 %5, i32* %6
   br label %exit
 exit:
   ret void
 }
+;;5 The LLVM function implementing B operation "set" in "swap_i" follows.
 define void @swap$set(%swap$ref$ %self$, i32 %av1, i32 %av2) {
 entry:
+;;5.1 Execute assignment "v1 := av1":
+;;5.1.1 Evaluate expression "av1".
+;;5.1.1.1 Operation parameter "av1" is LLVM parameter "%av1".
+;;       The evaluation of "av1" is "%av1".
+;;5.1.2 Evaluate address for "v1".
+;;5.1.2.1 Variable "v1" is stored at position 0 of "%self$".
+;;         Let temporary %0 be the corresponding address:
   %0 = getelementptr %swap$ref$ %self$, i32 0, i32 0
+;;5.1.3 Store value at address to achieve assignment.
   store i32 %av1, i32* %0
+;;5.2 Execute assignment "v2 := av2":
+;;5.2.1 Evaluate expression "av2".
+;;5.2.1.1 Operation parameter "av2" is LLVM parameter "%av2".
+;;       The evaluation of "av2" is "%av2".
+;;5.2.2 Evaluate address for "v2".
+;;5.2.2.1 Variable "v2" is stored at position 1 of "%self$".
+;;         Let temporary %1 be the corresponding address:
   %1 = getelementptr %swap$ref$ %self$, i32 0, i32 1
+;;5.2.3 Store value at address to achieve assignment.
   store i32 %av2, i32* %1
   br label %exit
 exit:
   ret void
 }
+;;6 The LLVM function implementing B operation "get" in "swap_i" follows.
 define void @swap$get(%swap$ref$ %self$, i32* %r1, i32* %r2) {
 entry:
+;;6.1 Execute assignment "r1 := v1":
+;;6.1.1 Evaluate expression "v1".
+;;6.1.1.1 State variable "v1" is stored at position "0" of "%self$".
+;;6.1.1.2 Let temporary "%0" be the corresponding address.
   %0 = getelementptr %swap$ref$ %self$, i32 0, i32 0
   %1 = load i32* %0
+;;       The evaluation of "v1" is "%1".
+;;6.1.2 Evaluate address for "r1".
+;;6.1.2.1 "r1" is stored in the frame stack and represented by "%r1".
+;;6.1.3 Store value at address to achieve assignment.
   store i32 %1, i32* %r1
+;;6.2 Execute assignment "r2 := v2":
+;;6.2.1 Evaluate expression "v2".
+;;6.2.1.1 State variable "v2" is stored at position "1" of "%self$".
+;;6.2.1.2 Let temporary "%2" be the corresponding address.
   %2 = getelementptr %swap$ref$ %self$, i32 0, i32 1
   %3 = load i32* %2
+;;       The evaluation of "v2" is "%3".
+;;6.2.2 Evaluate address for "r2".
+;;6.2.2.1 "r2" is stored in the frame stack and represented by "%r2".
+;;6.2.3 Store value at address to achieve assignment.
   store i32 %3, i32* %r2
   br label %exit
 exit:

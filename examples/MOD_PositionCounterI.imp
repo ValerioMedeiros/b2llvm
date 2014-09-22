@@ -1,0 +1,23 @@
+IMPLEMENTATION
+   MOD_PositionCounterI
+REFINES
+   MOD_PositionCounter
+VALUES
+    maximum = 100
+CONCRETE_VARIABLES
+   pos
+INVARIANT
+    pos : INT
+INITIALISATION
+   pos := 1
+
+OPERATIONS
+   posinc =
+   pos := ( pos mod maximum ) + 1
+   ;
+
+   pp <-- posget =
+   pp := pos
+
+
+END

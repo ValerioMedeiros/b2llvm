@@ -1,0 +1,29 @@
+IMPLEMENTATION
+   MultiplicationI
+REFINES
+   Multiplication
+IMPORTS
+    Body
+PROMOTES
+    value
+INVARIANT
+    loopnn = nn
+OPERATIONS
+   mult ( mm ) =
+   BEGIN
+       VAR ii, rr IN 
+           ii := 1;
+           rr <-- value;
+           WHILE ii < mm
+           DO
+               ii <-- body(rr, ii)
+           INVARIANT
+               loopnn = ii * nn & rr = nn & ii : NAT & ii <= mm
+           VARIANT
+               mm - ii
+           END
+       END 
+   END
+
+
+END

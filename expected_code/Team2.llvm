@@ -1,0 +1,132 @@
+;; -*- mode: asm -*-
+%Team2$state$ = type {[ 11 x i32]}
+%Team2$ref$ = type %Team2$state$*
+define void @Team2$init$(%Team2$ref$ %self$) {
+entry:
+  %0 = getelementptr %Team2$ref$ %self$, i32 0, i32 0
+  %1 = getelementptr [ 11 x i32]* %0, i32 0
+  %2 = getelementptr [ 11 x i32]* %1, i32 0, i32 0
+  store i32 1, i32* %2
+  %3 = getelementptr %Team2$ref$ %self$, i32 0, i32 0
+  %4 = getelementptr [ 11 x i32]* %3, i32 0
+  %5 = getelementptr [ 11 x i32]* %4, i32 0, i32 1
+  store i32 2, i32* %5
+  %6 = getelementptr %Team2$ref$ %self$, i32 0, i32 0
+  %7 = getelementptr [ 11 x i32]* %6, i32 0
+  %8 = getelementptr [ 11 x i32]* %7, i32 0, i32 2
+  store i32 3, i32* %8
+  %9 = getelementptr %Team2$ref$ %self$, i32 0, i32 0
+  %10 = getelementptr [ 11 x i32]* %9, i32 0
+  %11 = getelementptr [ 11 x i32]* %10, i32 0, i32 3
+  store i32 4, i32* %11
+  %12 = getelementptr %Team2$ref$ %self$, i32 0, i32 0
+  %13 = getelementptr [ 11 x i32]* %12, i32 0
+  %14 = getelementptr [ 11 x i32]* %13, i32 0, i32 4
+  store i32 5, i32* %14
+  %15 = getelementptr %Team2$ref$ %self$, i32 0, i32 0
+  %16 = getelementptr [ 11 x i32]* %15, i32 0
+  %17 = getelementptr [ 11 x i32]* %16, i32 0, i32 5
+  store i32 6, i32* %17
+  %18 = getelementptr %Team2$ref$ %self$, i32 0, i32 0
+  %19 = getelementptr [ 11 x i32]* %18, i32 0
+  %20 = getelementptr [ 11 x i32]* %19, i32 0, i32 6
+  store i32 7, i32* %20
+  %21 = getelementptr %Team2$ref$ %self$, i32 0, i32 0
+  %22 = getelementptr [ 11 x i32]* %21, i32 0
+  %23 = getelementptr [ 11 x i32]* %22, i32 0, i32 7
+  store i32 8, i32* %23
+  %24 = getelementptr %Team2$ref$ %self$, i32 0, i32 0
+  %25 = getelementptr [ 11 x i32]* %24, i32 0
+  %26 = getelementptr [ 11 x i32]* %25, i32 0, i32 8
+  store i32 9, i32* %26
+  %27 = getelementptr %Team2$ref$ %self$, i32 0, i32 0
+  %28 = getelementptr [ 11 x i32]* %27, i32 0
+  %29 = getelementptr [ 11 x i32]* %28, i32 0, i32 9
+  store i32 10, i32* %29
+  %30 = getelementptr %Team2$ref$ %self$, i32 0, i32 0
+  %31 = getelementptr [ 11 x i32]* %30, i32 0
+  %32 = getelementptr [ 11 x i32]* %31, i32 0, i32 10
+  store i32 11, i32* %32
+  br label %exit
+exit:
+  ret void
+}
+define void @Team2$substitute(%Team2$ref$ %self$, i32 %pp, i32 %rr) {
+entry:
+  %ii = alloca i32
+  %pl = alloca i32
+  store i32 0, i32* %ii
+  store i32 0, i32* %pl
+  br label %label1
+label1:
+  %0 = load i32* %ii
+  %1 = icmp slt i32 %0, 11
+  br i1 %1, label %label2, label %label0
+label2:
+  %2 = getelementptr %Team2$ref$ %self$, i32 0, i32 0
+  %3 = getelementptr [ 11 x i32]* %2, i32 0
+  %4 = load i32* %ii
+  %5 = getelementptr [ 11 x i32]* %3, i32 0, i32 %4
+  %6 = load i32* %5
+  store i32 %6, i32* %pl
+  %7 = load i32* %pl
+  %8 = icmp eq i32 %7, %pp
+  br i1 %8, label %label4, label %label5
+label4:
+  %9 = getelementptr %Team2$ref$ %self$, i32 0, i32 0
+  %10 = getelementptr [ 11 x i32]* %9, i32 0
+  %11 = load i32* %ii
+  %12 = getelementptr [ 11 x i32]* %10, i32 0, i32 %11
+  store i32 %rr, i32* %12
+  store i32 11, i32* %ii
+  br label %label3
+label5:
+  %13 = load i32* %ii
+  %14 = add i32 %13, 1
+  store i32 %14, i32* %ii
+  br label %label3
+label3:
+  br label %label1
+label0:
+  br label %exit
+exit:
+  ret void
+}
+define void @Team2$in_team(%Team2$ref$ %self$, i32 %pp, i1* %aa) {
+entry:
+  %ii = alloca i32
+  %pl = alloca i32
+  store i32 0, i32* %ii
+  store i32 0, i32* %pl
+  store i1 0, i1* %aa
+  br label %label1
+label1:
+  %0 = load i32* %ii
+  %1 = icmp slt i32 %0, 11
+  br i1 %1, label %label2, label %label0
+label2:
+  %2 = getelementptr %Team2$ref$ %self$, i32 0, i32 0
+  %3 = getelementptr [ 11 x i32]* %2, i32 0
+  %4 = load i32* %ii
+  %5 = getelementptr [ 11 x i32]* %3, i32 0, i32 %4
+  %6 = load i32* %5
+  store i32 %6, i32* %pl
+  %7 = load i32* %pl
+  %8 = icmp eq i32 %7, %pp
+  br i1 %8, label %label4, label %label5
+label4:
+  store i1 1, i1* %aa
+  store i32 11, i32* %ii
+  br label %label3
+label5:
+  %9 = load i32* %ii
+  %10 = add i32 %9, 1
+  store i32 %10, i32* %ii
+  br label %label3
+label3:
+  br label %label1
+label0:
+  br label %exit
+exit:
+  ret void
+}

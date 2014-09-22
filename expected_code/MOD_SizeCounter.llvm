@@ -1,0 +1,42 @@
+;; -*- mode: asm -*-
+%MOD_SizeCounter$state$ = type {i32}
+%MOD_SizeCounter$ref$ = type %MOD_SizeCounter$state$*
+define void @MOD_SizeCounter$init$(%MOD_SizeCounter$ref$ %self$) {
+entry:
+  %0 = getelementptr %MOD_SizeCounter$ref$ %self$, i32 0, i32 0
+  store i32 0, i32* %0
+  br label %exit
+exit:
+  ret void
+}
+define void @MOD_SizeCounter$szeinc(%MOD_SizeCounter$ref$ %self$) {
+entry:
+  %0 = getelementptr %MOD_SizeCounter$ref$ %self$, i32 0, i32 0
+  %1 = load i32* %0
+  %2 = add i32 %1, 1
+  %3 = getelementptr %MOD_SizeCounter$ref$ %self$, i32 0, i32 0
+  store i32 %2, i32* %3
+  br label %exit
+exit:
+  ret void
+}
+define void @MOD_SizeCounter$szedec(%MOD_SizeCounter$ref$ %self$) {
+entry:
+  %0 = getelementptr %MOD_SizeCounter$ref$ %self$, i32 0, i32 0
+  %1 = load i32* %0
+  %2 = sub i32 %1, 1
+  %3 = getelementptr %MOD_SizeCounter$ref$ %self$, i32 0, i32 0
+  store i32 %2, i32* %3
+  br label %exit
+exit:
+  ret void
+}
+define void @MOD_SizeCounter$szeget(%MOD_SizeCounter$ref$ %self$, i32* %ss) {
+entry:
+  %0 = getelementptr %MOD_SizeCounter$ref$ %self$, i32 0, i32 0
+  %1 = load i32* %0
+  store i32 %1, i32* %ss
+  br label %exit
+exit:
+  ret void
+}

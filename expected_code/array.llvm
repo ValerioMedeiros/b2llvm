@@ -1,0 +1,9 @@
+;; -*- mode: asm -*-
+%array$state$ = type {[ 100 x i32], [ 100 x [ 100 x i32]], [ 100 x [ 100 x i32]], [ 100 x i32], [ 3 x i32], [ 2 x [ 2 x [ 4 x i32]]]}
+%array$ref$ = type %array$state$*
+define void @array$init$(%array$ref$ %self$) {
+entry:
+  br label %exit
+exit:
+  ret void
+}

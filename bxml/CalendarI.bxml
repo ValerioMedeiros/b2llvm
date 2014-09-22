@@ -1,0 +1,1054 @@
+<Machine name='CalendarI' type='implementation'>
+<Abstraction>Calendar</Abstraction>
+<Sets>
+<Set>
+<Identifier value='MONTH'>
+<Attributes>
+<TypeInfo>
+<Unary_Expression operator='POW'>
+<Identifier value='MONTH' />
+</Unary_Expression>
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Enumerated_Values>
+<Identifier value='January'>
+<Attributes>
+<TypeInfo>
+<Identifier value='MONTH' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Identifier value='February'>
+<Attributes>
+<TypeInfo>
+<Identifier value='MONTH' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Identifier value='March'>
+<Attributes>
+<TypeInfo>
+<Identifier value='MONTH' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Identifier value='April'>
+<Attributes>
+<TypeInfo>
+<Identifier value='MONTH' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Identifier value='May'>
+<Attributes>
+<TypeInfo>
+<Identifier value='MONTH' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Identifier value='June'>
+<Attributes>
+<TypeInfo>
+<Identifier value='MONTH' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Identifier value='July'>
+<Attributes>
+<TypeInfo>
+<Identifier value='MONTH' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Identifier value='August'>
+<Attributes>
+<TypeInfo>
+<Identifier value='MONTH' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Identifier value='September'>
+<Attributes>
+<TypeInfo>
+<Identifier value='MONTH' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Identifier value='October'>
+<Attributes>
+<TypeInfo>
+<Identifier value='MONTH' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Identifier value='November'>
+<Attributes>
+<TypeInfo>
+<Identifier value='MONTH' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Identifier value='December'>
+<Attributes>
+<TypeInfo>
+<Identifier value='MONTH' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Identifier value='Invalid_Month'>
+<Attributes>
+<TypeInfo>
+<Identifier value='MONTH' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Enumerated_Values>
+</Set>
+</Sets>
+<Concrete_Variables>
+<Identifier value='mmi'>
+<Attributes>
+<TypeInfo>
+<Identifier value='MONTH' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Concrete_Variables>
+<Invariant>
+<Nary_Predicate operator='&amp;'>
+<Expression_Comparison operator=':'>
+<Identifier value='mmi'>
+<Attributes>
+<TypeInfo>
+<Identifier value='MONTH' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Identifier value='MONTH'>
+<Attributes>
+<TypeInfo>
+<Unary_Expression operator='POW'>
+<Identifier value='MONTH' />
+</Unary_Expression>
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Expression_Comparison>
+<Binary_Predicate operator='&lt;=&gt;'>
+<Expression_Comparison operator='='>
+<Identifier value='mm'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Integer_Literal value='1'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Expression_Comparison>
+<Expression_Comparison operator='='>
+<Identifier value='mmi'>
+<Attributes>
+<TypeInfo>
+<Identifier value='MONTH' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Identifier value='January'>
+<Attributes>
+<TypeInfo>
+<Identifier value='MONTH' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Expression_Comparison>
+</Binary_Predicate>
+<Binary_Predicate operator='&lt;=&gt;'>
+<Expression_Comparison operator='='>
+<Identifier value='mm'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Integer_Literal value='2'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Expression_Comparison>
+<Expression_Comparison operator='='>
+<Identifier value='mmi'>
+<Attributes>
+<TypeInfo>
+<Identifier value='MONTH' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Identifier value='February'>
+<Attributes>
+<TypeInfo>
+<Identifier value='MONTH' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Expression_Comparison>
+</Binary_Predicate>
+<Binary_Predicate operator='&lt;=&gt;'>
+<Expression_Comparison operator='='>
+<Identifier value='mm'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Integer_Literal value='3'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Expression_Comparison>
+<Expression_Comparison operator='='>
+<Identifier value='mmi'>
+<Attributes>
+<TypeInfo>
+<Identifier value='MONTH' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Identifier value='March'>
+<Attributes>
+<TypeInfo>
+<Identifier value='MONTH' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Expression_Comparison>
+</Binary_Predicate>
+<Binary_Predicate operator='&lt;=&gt;'>
+<Expression_Comparison operator='='>
+<Identifier value='mm'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Integer_Literal value='4'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Expression_Comparison>
+<Expression_Comparison operator='='>
+<Identifier value='mmi'>
+<Attributes>
+<TypeInfo>
+<Identifier value='MONTH' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Identifier value='April'>
+<Attributes>
+<TypeInfo>
+<Identifier value='MONTH' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Expression_Comparison>
+</Binary_Predicate>
+<Binary_Predicate operator='&lt;=&gt;'>
+<Expression_Comparison operator='='>
+<Identifier value='mm'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Integer_Literal value='5'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Expression_Comparison>
+<Expression_Comparison operator='='>
+<Identifier value='mmi'>
+<Attributes>
+<TypeInfo>
+<Identifier value='MONTH' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Identifier value='May'>
+<Attributes>
+<TypeInfo>
+<Identifier value='MONTH' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Expression_Comparison>
+</Binary_Predicate>
+<Binary_Predicate operator='&lt;=&gt;'>
+<Expression_Comparison operator='='>
+<Identifier value='mm'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Integer_Literal value='6'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Expression_Comparison>
+<Expression_Comparison operator='='>
+<Identifier value='mmi'>
+<Attributes>
+<TypeInfo>
+<Identifier value='MONTH' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Identifier value='June'>
+<Attributes>
+<TypeInfo>
+<Identifier value='MONTH' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Expression_Comparison>
+</Binary_Predicate>
+<Binary_Predicate operator='&lt;=&gt;'>
+<Expression_Comparison operator='='>
+<Identifier value='mm'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Integer_Literal value='7'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Expression_Comparison>
+<Expression_Comparison operator='='>
+<Identifier value='mmi'>
+<Attributes>
+<TypeInfo>
+<Identifier value='MONTH' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Identifier value='July'>
+<Attributes>
+<TypeInfo>
+<Identifier value='MONTH' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Expression_Comparison>
+</Binary_Predicate>
+<Binary_Predicate operator='&lt;=&gt;'>
+<Expression_Comparison operator='='>
+<Identifier value='mm'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Integer_Literal value='8'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Expression_Comparison>
+<Expression_Comparison operator='='>
+<Identifier value='mmi'>
+<Attributes>
+<TypeInfo>
+<Identifier value='MONTH' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Identifier value='August'>
+<Attributes>
+<TypeInfo>
+<Identifier value='MONTH' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Expression_Comparison>
+</Binary_Predicate>
+<Binary_Predicate operator='&lt;=&gt;'>
+<Expression_Comparison operator='='>
+<Identifier value='mm'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Integer_Literal value='9'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Expression_Comparison>
+<Expression_Comparison operator='='>
+<Identifier value='mmi'>
+<Attributes>
+<TypeInfo>
+<Identifier value='MONTH' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Identifier value='September'>
+<Attributes>
+<TypeInfo>
+<Identifier value='MONTH' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Expression_Comparison>
+</Binary_Predicate>
+<Binary_Predicate operator='&lt;=&gt;'>
+<Expression_Comparison operator='='>
+<Identifier value='mm'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Integer_Literal value='10'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Expression_Comparison>
+<Expression_Comparison operator='='>
+<Identifier value='mmi'>
+<Attributes>
+<TypeInfo>
+<Identifier value='MONTH' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Identifier value='October'>
+<Attributes>
+<TypeInfo>
+<Identifier value='MONTH' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Expression_Comparison>
+</Binary_Predicate>
+<Binary_Predicate operator='&lt;=&gt;'>
+<Expression_Comparison operator='='>
+<Identifier value='mm'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Integer_Literal value='11'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Expression_Comparison>
+<Expression_Comparison operator='='>
+<Identifier value='mmi'>
+<Attributes>
+<TypeInfo>
+<Identifier value='MONTH' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Identifier value='November'>
+<Attributes>
+<TypeInfo>
+<Identifier value='MONTH' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Expression_Comparison>
+</Binary_Predicate>
+<Binary_Predicate operator='&lt;=&gt;'>
+<Expression_Comparison operator='='>
+<Identifier value='mm'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Integer_Literal value='12'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Expression_Comparison>
+<Expression_Comparison operator='='>
+<Identifier value='mmi'>
+<Attributes>
+<TypeInfo>
+<Identifier value='MONTH' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Identifier value='December'>
+<Attributes>
+<TypeInfo>
+<Identifier value='MONTH' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Expression_Comparison>
+</Binary_Predicate>
+<Binary_Predicate operator='&lt;=&gt;'>
+<Expression_Comparison operator='='>
+<Identifier value='mm'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Integer_Literal value='13'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Expression_Comparison>
+<Expression_Comparison operator='='>
+<Identifier value='mmi'>
+<Attributes>
+<TypeInfo>
+<Identifier value='MONTH' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+<Identifier value='Invalid_Month'>
+<Attributes>
+<TypeInfo>
+<Identifier value='MONTH' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Expression_Comparison>
+</Binary_Predicate>
+</Nary_Predicate>
+</Invariant>
+<Initialisation>
+<Assignement_Substitution>
+<Variables>
+<Identifier value='mmi'>
+<Attributes>
+<TypeInfo>
+<Identifier value='MONTH' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Variables>
+<Values>
+<Identifier value='January'>
+<Attributes>
+<TypeInfo>
+<Identifier value='MONTH' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Values>
+</Assignement_Substitution>
+</Initialisation>
+<Operations>
+<Operation name='month'>
+<Input_Parameters>
+<Identifier value='nn'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Input_Parameters>
+<Body>
+<Case_Substitution>
+<Value>
+<Identifier value='nn'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Value>
+<Choices>
+<Choice>
+<Value>
+<Integer_Literal value='1'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Value>
+<Then>
+<Assignement_Substitution>
+<Variables>
+<Identifier value='mmi'>
+<Attributes>
+<TypeInfo>
+<Identifier value='MONTH' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Variables>
+<Values>
+<Identifier value='January'>
+<Attributes>
+<TypeInfo>
+<Identifier value='MONTH' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Values>
+</Assignement_Substitution>
+</Then>
+</Choice>
+<Choice>
+<Value>
+<Integer_Literal value='2'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Value>
+<Then>
+<Assignement_Substitution>
+<Variables>
+<Identifier value='mmi'>
+<Attributes>
+<TypeInfo>
+<Identifier value='MONTH' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Variables>
+<Values>
+<Identifier value='February'>
+<Attributes>
+<TypeInfo>
+<Identifier value='MONTH' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Values>
+</Assignement_Substitution>
+</Then>
+</Choice>
+<Choice>
+<Value>
+<Integer_Literal value='3'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Value>
+<Then>
+<Assignement_Substitution>
+<Variables>
+<Identifier value='mmi'>
+<Attributes>
+<TypeInfo>
+<Identifier value='MONTH' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Variables>
+<Values>
+<Identifier value='March'>
+<Attributes>
+<TypeInfo>
+<Identifier value='MONTH' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Values>
+</Assignement_Substitution>
+</Then>
+</Choice>
+<Choice>
+<Value>
+<Integer_Literal value='4'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Value>
+<Then>
+<Assignement_Substitution>
+<Variables>
+<Identifier value='mmi'>
+<Attributes>
+<TypeInfo>
+<Identifier value='MONTH' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Variables>
+<Values>
+<Identifier value='April'>
+<Attributes>
+<TypeInfo>
+<Identifier value='MONTH' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Values>
+</Assignement_Substitution>
+</Then>
+</Choice>
+<Choice>
+<Value>
+<Integer_Literal value='5'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Value>
+<Then>
+<Assignement_Substitution>
+<Variables>
+<Identifier value='mmi'>
+<Attributes>
+<TypeInfo>
+<Identifier value='MONTH' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Variables>
+<Values>
+<Identifier value='May'>
+<Attributes>
+<TypeInfo>
+<Identifier value='MONTH' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Values>
+</Assignement_Substitution>
+</Then>
+</Choice>
+<Choice>
+<Value>
+<Integer_Literal value='6'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Value>
+<Then>
+<Assignement_Substitution>
+<Variables>
+<Identifier value='mmi'>
+<Attributes>
+<TypeInfo>
+<Identifier value='MONTH' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Variables>
+<Values>
+<Identifier value='June'>
+<Attributes>
+<TypeInfo>
+<Identifier value='MONTH' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Values>
+</Assignement_Substitution>
+</Then>
+</Choice>
+<Choice>
+<Value>
+<Integer_Literal value='7'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Value>
+<Then>
+<Assignement_Substitution>
+<Variables>
+<Identifier value='mmi'>
+<Attributes>
+<TypeInfo>
+<Identifier value='MONTH' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Variables>
+<Values>
+<Identifier value='July'>
+<Attributes>
+<TypeInfo>
+<Identifier value='MONTH' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Values>
+</Assignement_Substitution>
+</Then>
+</Choice>
+<Choice>
+<Value>
+<Integer_Literal value='8'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Value>
+<Then>
+<Assignement_Substitution>
+<Variables>
+<Identifier value='mmi'>
+<Attributes>
+<TypeInfo>
+<Identifier value='MONTH' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Variables>
+<Values>
+<Identifier value='August'>
+<Attributes>
+<TypeInfo>
+<Identifier value='MONTH' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Values>
+</Assignement_Substitution>
+</Then>
+</Choice>
+<Choice>
+<Value>
+<Integer_Literal value='9'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Value>
+<Then>
+<Assignement_Substitution>
+<Variables>
+<Identifier value='mmi'>
+<Attributes>
+<TypeInfo>
+<Identifier value='MONTH' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Variables>
+<Values>
+<Identifier value='September'>
+<Attributes>
+<TypeInfo>
+<Identifier value='MONTH' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Values>
+</Assignement_Substitution>
+</Then>
+</Choice>
+<Choice>
+<Value>
+<Integer_Literal value='10'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Value>
+<Then>
+<Assignement_Substitution>
+<Variables>
+<Identifier value='mmi'>
+<Attributes>
+<TypeInfo>
+<Identifier value='MONTH' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Variables>
+<Values>
+<Identifier value='October'>
+<Attributes>
+<TypeInfo>
+<Identifier value='MONTH' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Values>
+</Assignement_Substitution>
+</Then>
+</Choice>
+<Choice>
+<Value>
+<Integer_Literal value='11'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Value>
+<Then>
+<Assignement_Substitution>
+<Variables>
+<Identifier value='mmi'>
+<Attributes>
+<TypeInfo>
+<Identifier value='MONTH' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Variables>
+<Values>
+<Identifier value='November'>
+<Attributes>
+<TypeInfo>
+<Identifier value='MONTH' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Values>
+</Assignement_Substitution>
+</Then>
+</Choice>
+<Choice>
+<Value>
+<Integer_Literal value='12'>
+<Attributes>
+<TypeInfo>
+<Identifier value='INTEGER' />
+</TypeInfo>
+</Attributes>
+</Integer_Literal>
+</Value>
+<Then>
+<Assignement_Substitution>
+<Variables>
+<Identifier value='mmi'>
+<Attributes>
+<TypeInfo>
+<Identifier value='MONTH' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Variables>
+<Values>
+<Identifier value='December'>
+<Attributes>
+<TypeInfo>
+<Identifier value='MONTH' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Values>
+</Assignement_Substitution>
+</Then>
+</Choice>
+</Choices>
+<Else>
+<Choice>
+<Then>
+<Assignement_Substitution>
+<Variables>
+<Identifier value='mmi'>
+<Attributes>
+<TypeInfo>
+<Identifier value='MONTH' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Variables>
+<Values>
+<Identifier value='Invalid_Month'>
+<Attributes>
+<TypeInfo>
+<Identifier value='MONTH' />
+</TypeInfo>
+</Attributes>
+</Identifier>
+</Values>
+</Assignement_Substitution>
+</Then>
+</Choice>
+</Else>
+</Case_Substitution>
+</Body>
+</Operation>
+</Operations>
+</Machine>

@@ -13,7 +13,7 @@ parser.add_argument('directory',
                     help='when set, the program will lookup files in that directory')
 parser.add_argument('settings',
                     help='project settings file')
-parser.add_argument('-m', '--mode', choices=['comp','proj'], default='comp',
+parser.add_argument('-m', '--mode', choices=['comp','skeleton','proj'], default='comp',
                     help='Selects code generation mode.')
 parser.add_argument('-t', '--trace', action='store_true',
                     help= 'enables emission of references to B source in LLVM code')
