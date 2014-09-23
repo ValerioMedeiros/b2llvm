@@ -7,6 +7,8 @@ LLVM_LINK = llvm-link-mp-3.5
 
 init-%.llvm : bxml/%.bxml
 	$(B2LLVM) --mode proj $* $@ bxml project.xml
+default:
+	./coverage.sh
 
 binary:
 	pyinstaller -n b2llvm -F b2llvm.spec
