@@ -93,7 +93,7 @@ TRUE = make_boollit("TRUE")
 ZERO = make_intlit(0)
 ONE = make_intlit(1)
 MAXINT = make_intlit(2147483647)
-MININT = make_intlit(-2147483648)
+MININT = make_intlit(-2147483647)
 
 def make_sset(node):
     """Creates an AST node for a B simple set."""
@@ -172,6 +172,11 @@ def make_diff(term1, term2):
 def make_prod(term1, term2):
     """Creates an AST node for a B product expression."""
     return make_term("*", [term1, term2])
+
+def make_div(term1, term2):
+    """Creates an AST node for a B division expression."""
+    return make_term("/", [term1, term2])
+
 
 def make_mod(term1, term2):
     """Creates an AST node for a B mod expression."""
