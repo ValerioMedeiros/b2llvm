@@ -1,0 +1,10 @@
+/* COMPREF
+ * Author: 
+ * Creation date: 1/20/15
+ */
+
+REFINEMENT COMPREF_r(ID)
+REFINES COMPREF
+
+
+ END

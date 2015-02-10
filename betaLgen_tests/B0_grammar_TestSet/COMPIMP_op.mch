@@ -1,0 +1,14 @@
+MACHINE COMPIMP_op ( ID )
+CONCRETE_VARIABLES
+var
+INVARIANT
+var : INT
+INITIALISATION
+var:= 0
+OPERATIONS
+    do =
+    BEGIN
+        var:=0
+    END    
+
+END

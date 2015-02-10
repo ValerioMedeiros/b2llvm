@@ -719,6 +719,8 @@ def x_inst_label(buf, n, lbl):
         buf.code(GOTO, lbl)
     elif n["kind"] == "VarD":
         x_inst_list_label(buf, n["body"], lbl)
+#    elif n["kind"] == "Skip":
+#        x_inst(buf, n)
     else:
         print("error: instruction type unknown")
 

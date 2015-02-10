@@ -765,7 +765,8 @@ def load_binary_expression(node, symast):
     """Load an XML element for a binary expression to an AST node."""
     return load_binary(node, symast, "Binary_Expression",
                        {"+":ast.make_sum, "-":ast.make_diff,
-                        "*":ast.make_prod,"(":ast.make_array_item,",":ast.make_map,
+                        "*":ast.make_prod,"(":ast.make_array_item,
+                        "/":ast.make_div,",":ast.make_map,
                         "mod":ast.make_mod,"..":ast.make_interval, "|->":ast.make_map})
 
 def load_nary_expression(node, symast):
@@ -827,6 +828,7 @@ class SymbolTable(object):
         """Constructor. Prefills with MAXINT."""
         self._table = dict()
         self._table["MAXINT"] = ast.MAXINT
+        self._table["MININT"] = ast.MININT
     def __str__(self):
         """Converts object to string."""
         return "{"+",".join([key for key in self._table.keys()])+"}"
